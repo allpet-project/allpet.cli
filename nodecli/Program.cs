@@ -6,6 +6,11 @@ namespace allpet.nodecli
     {
         static void Main(string[] args)
         {
+            var peer = allpet.peer.tcp.PeerV2.CreatePeer();
+            peer.Start(new allpet.peer.tcp.PeerOption()
+            {
+
+            });
             //把当前目录搞对，怎么启动都能找到dll了
             var lastpath = System.IO.Path.GetDirectoryName(typeof(Program).Assembly.Location); ;
             Console.WriteLine("exepath=" + lastpath);

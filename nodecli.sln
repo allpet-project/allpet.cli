@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.102
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nodecli", "nodecli\nodecli.csproj", "{DEA2ABC6-384A-481B-93C5-E6B50D940A52}"
 EndProject
@@ -9,6 +9,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		readme.md = readme.md
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fortemp", "fortemp", "{A95C0306-4D5C-4593-8B85-C2708E07467E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.Peer.Tcp.PeerV2", "..\allpet.peer.tcp\PeerV2\allpet.Peer.Tcp.PeerV2.csproj", "{678974FC-89E5-4E76-A555-00D039C9F65F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.node", "..\allpet.node\allpet.node\allpet.node.csproj", "{C7F89CCA-C402-451C-BACE-7D382DED48A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,9 +26,21 @@ Global
 		{DEA2ABC6-384A-481B-93C5-E6B50D940A52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEA2ABC6-384A-481B-93C5-E6B50D940A52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEA2ABC6-384A-481B-93C5-E6B50D940A52}.Release|Any CPU.Build.0 = Release|Any CPU
+		{678974FC-89E5-4E76-A555-00D039C9F65F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{678974FC-89E5-4E76-A555-00D039C9F65F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{678974FC-89E5-4E76-A555-00D039C9F65F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{678974FC-89E5-4E76-A555-00D039C9F65F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7F89CCA-C402-451C-BACE-7D382DED48A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7F89CCA-C402-451C-BACE-7D382DED48A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7F89CCA-C402-451C-BACE-7D382DED48A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7F89CCA-C402-451C-BACE-7D382DED48A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{678974FC-89E5-4E76-A555-00D039C9F65F} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
+		{C7F89CCA-C402-451C-BACE-7D382DED48A9} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD701AF9-F9D8-4D2B-A1C1-C7DB3265A6E5}
