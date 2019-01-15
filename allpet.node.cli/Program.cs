@@ -1,9 +1,12 @@
-﻿using System;
+﻿using allpet.nodecli.httpinterface;
+using System;
 
 namespace allpet.nodecli
 {
     class Program
     {
+        public static Config config;
+        public static HttpRPC rpc;
         static void Main(string[] args)
         {
             var peer = allpet.peer.tcp.PeerV2.CreatePeer();
@@ -11,18 +14,33 @@ namespace allpet.nodecli
             {
 
             });
+            //init current path.
             //把当前目录搞对，怎么启动都能找到dll了
             var lastpath = System.IO.Path.GetDirectoryName(typeof(Program).Assembly.Location); ;
             Console.WriteLine("exepath=" + lastpath);
             Environment.CurrentDirectory = lastpath;
 
+            //loadConfig
+            LoadConfig();
 
-            var configstr = System.IO.File.ReadAllText("config.json");
-            var config = Config.Parse(configstr);
+            //StartNode
+
+
+            //InitRPC
+            rpc = new HttpRPC();
+            rpc.Start();
+
 
             InitMenu();
             MenuLoop();
         }
+
+        private static void LoadConfig()
+        {
+            var configstr = System.IO.File.ReadAllText("config.json");
+            var config = Config.Parse(configstr);
+        }
+
         static void InitMenu()
         {
             AddMenu("exit", "exit application", (words) => { Environment.Exit(0); });
