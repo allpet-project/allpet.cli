@@ -7,10 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="allpet.http.server" Version="1.0.0" />
-    <PackageReference Include="allpet.Peer.Tcp.Interface" Version="1.0.2" />
-    <PackageReference Include="allpet.Peer.Tcp.PeerV2" Version="1.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\allpet.httpserver\allpet.httpserver.csproj" />
+    <ProjectReference Include="..\allpet.peer.tcp.Interface\allpet.Peer.Tcp.Interface.csproj" />
+    <ProjectReference Include="..\allpet.peer.tcp.PeerV2\allpet.Peer.Tcp.PeerV2.csproj" />
   </ItemGroup>
 
   <ItemGroup>

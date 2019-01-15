@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28407.52
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "nodecli", "nodecli\nodecli.csproj", "{DEA2ABC6-384A-481B-93C5-E6B50D940A52}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{33ED0B06-F18D-48CA-8493-39F1F319567D}"
 	ProjectSection(SolutionItems) = preProject
 		readme.md = readme.md
@@ -12,9 +10,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fortemp", "fortemp", "{A95C0306-4D5C-4593-8B85-C2708E07467E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.Peer.Tcp.PeerV2", "..\allpet.peer.tcp\PeerV2\allpet.Peer.Tcp.PeerV2.csproj", "{678974FC-89E5-4E76-A555-00D039C9F65F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.node.cli", "allpet.node.cli\allpet.node.cli.csproj", "{D46C7B2F-A5B7-46F2-B470-3F5A594EAF2B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.node", "..\allpet.node\allpet.node\allpet.node.csproj", "{C7F89CCA-C402-451C-BACE-7D382DED48A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.Peer.Tcp.Interface", "allpet.peer.tcp.Interface\allpet.Peer.Tcp.Interface.csproj", "{3CE2F925-B311-4BA5-B641-43121BBAA227}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.Peer.Tcp.PeerV2", "allpet.peer.tcp.PeerV2\allpet.Peer.Tcp.PeerV2.csproj", "{736A573C-1F2E-4157-B00E-22470A278595}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.httpserver", "allpet.httpserver\allpet.httpserver.csproj", "{B05B4388-039E-4756-9942-6BFE799C9149}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,25 +24,30 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DEA2ABC6-384A-481B-93C5-E6B50D940A52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DEA2ABC6-384A-481B-93C5-E6B50D940A52}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DEA2ABC6-384A-481B-93C5-E6B50D940A52}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DEA2ABC6-384A-481B-93C5-E6B50D940A52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{678974FC-89E5-4E76-A555-00D039C9F65F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{678974FC-89E5-4E76-A555-00D039C9F65F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{678974FC-89E5-4E76-A555-00D039C9F65F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{678974FC-89E5-4E76-A555-00D039C9F65F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C7F89CCA-C402-451C-BACE-7D382DED48A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C7F89CCA-C402-451C-BACE-7D382DED48A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C7F89CCA-C402-451C-BACE-7D382DED48A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C7F89CCA-C402-451C-BACE-7D382DED48A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D46C7B2F-A5B7-46F2-B470-3F5A594EAF2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D46C7B2F-A5B7-46F2-B470-3F5A594EAF2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D46C7B2F-A5B7-46F2-B470-3F5A594EAF2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D46C7B2F-A5B7-46F2-B470-3F5A594EAF2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CE2F925-B311-4BA5-B641-43121BBAA227}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CE2F925-B311-4BA5-B641-43121BBAA227}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CE2F925-B311-4BA5-B641-43121BBAA227}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CE2F925-B311-4BA5-B641-43121BBAA227}.Release|Any CPU.Build.0 = Release|Any CPU
+		{736A573C-1F2E-4157-B00E-22470A278595}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{736A573C-1F2E-4157-B00E-22470A278595}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{736A573C-1F2E-4157-B00E-22470A278595}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{736A573C-1F2E-4157-B00E-22470A278595}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B05B4388-039E-4756-9942-6BFE799C9149}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B05B4388-039E-4756-9942-6BFE799C9149}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B05B4388-039E-4756-9942-6BFE799C9149}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B05B4388-039E-4756-9942-6BFE799C9149}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{678974FC-89E5-4E76-A555-00D039C9F65F} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
-		{C7F89CCA-C402-451C-BACE-7D382DED48A9} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
+		{3CE2F925-B311-4BA5-B641-43121BBAA227} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
+		{736A573C-1F2E-4157-B00E-22470A278595} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
+		{B05B4388-039E-4756-9942-6BFE799C9149} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD701AF9-F9D8-4D2B-A1C1-C7DB3265A6E5}
