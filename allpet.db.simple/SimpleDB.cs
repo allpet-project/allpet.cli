@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace allpet.db.simple
@@ -53,7 +54,114 @@ namespace allpet.db.simple
         public void WriteBatch(IWriteBatch wb)
         {
             RocksDbSharp.Native.Instance.rocksdb_write(this.dbPtr, this.defaultWriteOpPtr, (wb as WriteBatch).batchptr);
+            snapshotLast.Dispose();
+            snapshotLast = CreateSnapInfo();
+            snapshotLast.AddRef();
+        }
+        private byte[] GetDirectFinal(byte[] finalkey)
+        {
+            var data = RocksDbSharp.Native.Instance.rocksdb_get(dbPtr, snapshotLast.readopHandle, finalkey);
+            if (data == null || data.Length == 0)
+                return null;
+            return data;
+        }
+        public byte[] GetDirect(byte[] tableid, byte[] key)
+        {
+            var finalkey = LightDB.Helper.CalcKey(tableid, key);
+            return GetDirectFinal(finalkey);
+        }
+        private void DeleteDirectFinal(byte[] finalkey)
+        {
+            RocksDbSharp.Native.Instance.rocksdb_delete(this.dbPtr, this.defaultWriteOpPtr, finalkey, finalkey.LongLength);
 
+        }
+        private void PutDirectFinal(byte[] finalkey, byte[] data)
+        {
+            RocksDbSharp.Native.Instance.rocksdb_put(this.dbPtr, this.defaultWriteOpPtr, finalkey, (UIntPtr)finalkey.Length, data, (UIntPtr)data.Length, out IntPtr err);
+            if (err != IntPtr.Zero)
+            {
+                return;
+            }
+        }
+        public void PutDirect(byte[] tableid, byte[] key, byte[] data)
+        {
+            var finalkey = LightDB.Helper.CalcKey(tableid, key);
+            var countkey = LightDB.Helper.CalcKey(tableid, null, LightDB.SplitWord.TableCount);
+
+
+
+            var countdata = GetDirectFinal(countkey);
+            UInt32 count = 0;
+            if (countdata != null)
+            {
+                count = BitConverter.ToUInt32(countdata);
+            }
+            var vdata = GetDirectFinal(finalkey);
+            if (vdata == null || vdata.Length == 0)
+            {
+                count++;
+            }
+            else
+            {
+                if (LightDB.Helper.BytesEquals(vdata, data) == false)
+                    count++;
+            }
+            PutDirectFinal(finalkey, data);
+
+            var countvalue = BitConverter.GetBytes(count);
+            PutDirectFinal(countkey, countvalue);
+
+        }
+        public void DeleteDirect(byte[] tableid, byte[] key)
+        {
+            var finalkey = LightDB.Helper.CalcKey(tableid, key);
+
+            var countkey = LightDB.Helper.CalcKey(tableid, null, LightDB.SplitWord.TableCount);
+            var countdata = GetDirectFinal(countkey);
+            UInt32 count = 0;
+            if (countdata != null)
+            {
+                count = BitConverter.ToUInt32(countdata);
+            }
+
+            var vdata = GetDirectFinal(finalkey);
+            if (vdata != null && vdata.Length != 0)
+            {
+                DeleteDirectFinal(finalkey);
+                count--;
+                var countvalue = BitConverter.GetBytes(count);
+                PutDirectFinal(countkey, countvalue);
+
+            }
+        }
+        public void CreateTableDirect(byte[] tableid,byte[] info)
+        {
+            var finalkey = LightDB.Helper.CalcKey(tableid, null, LightDB.SplitWord.TableInfo);
+            var countkey = LightDB.Helper.CalcKey(tableid, null, LightDB.SplitWord.TableCount);
+            var data = GetDirectFinal(finalkey);
+            if (data != null && data.Length != 0)
+            {
+                throw new Exception("alread have that.");
+            }
+            PutDirectFinal(finalkey, info);
+
+            var byteCount = GetDirectFinal(countkey);
+            if (byteCount == null || byteCount.Length == 0)
+            {
+                byteCount = BitConverter.GetBytes((UInt32)0);
+            }
+            PutDirectFinal(countkey, byteCount);
+
+        }
+        public void DeleteTableDirect(byte[] tableid)
+        {
+            var finalkey = LightDB.Helper.CalcKey(tableid, null, LightDB.SplitWord.TableInfo);
+            //var countkey = Helper.CalcKey(tableid, null, SplitWord.TableCount);
+            var vdata = GetDirectFinal(finalkey);
+            if (vdata != null && vdata.Length != 0)
+            {
+                DeleteDirectFinal(finalkey);
+            }
         }
     }
     public interface ISnapShot : IDisposable
@@ -122,16 +230,14 @@ namespace allpet.db.simple
         }
         public IKeyFinder CreateKeyFinder(byte[] tableid, byte[] beginkey = null, byte[] endkey = null)
         {
-            //TableKeyFinder find = new TableKeyFinder(this, tableid, beginkey, endkey);
-            //return find;
-            return null;
+            TableKeyFinder find = new TableKeyFinder(this, tableid, beginkey, endkey);
+            return find;
         }
         public IKeyIterator CreateKeyIterator(byte[] tableid, byte[] _beginkey = null, byte[] _endkey = null)
         {
-            //var beginkey = Helper.CalcKey(tableid, _beginkey);
-            //var endkey = Helper.CalcKey(tableid, _endkey);
-            //return new TableIterator(this, tableid, beginkey, endkey);
-            return null;
+            var beginkey = LightDB.Helper.CalcKey(tableid, _beginkey);
+            var endkey = LightDB.Helper.CalcKey(tableid, _endkey);
+            return new TableIterator(this, tableid, beginkey, endkey);
         }
         public byte[] GetTableInfoData(byte[] tableid)
         {
@@ -247,7 +353,7 @@ namespace allpet.db.simple
             PutDataFinal(finalkey, tableinfo);
 
             var byteCount = GetData(countkey);
-            if (byteCount == null)
+            if (byteCount == null || byteCount.Length == 0)
             {
                 byteCount = BitConverter.GetBytes((UInt32)0);
             }
@@ -316,4 +422,136 @@ namespace allpet.db.simple
             }
         }
     }
+
+
+    class TableKeyFinder : IKeyFinder
+    {
+        public TableKeyFinder(SnapShot _snapshot, byte[] _tableid, byte[] _beginkey, byte[] _endkey)
+        {
+            this.snapshot = _snapshot;
+            this.tableid = _tableid;
+            this.beginkeyfinal = LightDB.Helper.CalcKey(_tableid, _beginkey);
+            this.endkeyfinal = LightDB.Helper.CalcKey(_tableid, _endkey);
+        }
+        SnapShot snapshot;
+        byte[] tableid;
+        byte[] beginkeyfinal;
+        byte[] endkeyfinal;
+        public IEnumerator<byte[]> GetEnumerator()
+        {
+            return new TableIterator(snapshot, tableid, beginkeyfinal, endkeyfinal);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+
+    class TableIterator : IKeyIterator
+    {
+        public TableIterator(SnapShot snapshot, byte[] _tableid, byte[] _beginkeyfinal, byte[] _endkeyfinal)
+        {
+            this.itPtr = RocksDbSharp.Native.Instance.rocksdb_create_iterator(snapshot.dbPtr, snapshot.readopHandle);
+            //this.it = snapshot.db.NewIterator(null, snapshot.readop);
+            this.tableid = _tableid;
+            this.beginkeyfinal = _beginkeyfinal;
+            this.endkeyfinal = _endkeyfinal;
+            //this.Reset();
+
+        }
+        public UInt64 HandleID
+        {
+            get
+            {
+                return (UInt64)itPtr.ToInt64();
+            }
+        }
+        bool bInit = false;
+        IntPtr itPtr;
+        //RocksDbSharp.Iterator it;
+        byte[] tableid;
+        byte[] beginkeyfinal;
+        byte[] endkeyfinal;
+        public byte[] Current
+        {
+            get
+            {
+                if (this.Vaild)
+                {
+                    var key = RocksDbSharp.Native.Instance.rocksdb_iter_key(itPtr);
+                    var bytes = new byte[key.Length - this.tableid.Length - 2];
+                    Buffer.BlockCopy(key, this.tableid.Length + 2, bytes, 0, bytes.Length);
+                    return bytes;
+                    //return it.Key().Skip(this.tableid.Length + 2).ToArray();
+                }
+                else
+                    return null;
+            }
+        }
+
+        object IEnumerator.Current
+        {
+            get
+            {
+                return Current;
+            }
+        }
+
+        public bool Vaild
+        {
+            get;
+            private set;
+        }
+        public bool TestVaild(byte[] data)
+        {
+            if (data.Length < this.endkeyfinal.Length)
+                return false;
+            for (var i = 0; i < endkeyfinal.Length; i++)
+            {
+                if (data[i] != this.endkeyfinal[i])
+                    return false;
+            }
+            return true;
+        }
+        public bool MoveNext()
+        {
+            if (bInit == false)
+            {
+                bInit = true;
+                RocksDbSharp.Native.Instance.rocksdb_iter_seek(itPtr, beginkeyfinal, (ulong)beginkeyfinal.Length);
+
+                // it.Seek(beginkeyfinal);
+            }
+            else
+            {
+                RocksDbSharp.Native.Instance.rocksdb_iter_next(itPtr);
+
+                //it.Next();
+            }
+            if (RocksDbSharp.Native.Instance.rocksdb_iter_valid(itPtr) == false)
+                return false;
+            var key = RocksDbSharp.Native.Instance.rocksdb_iter_key(itPtr);
+            this.Vaild = TestVaild(key);
+            return this.Vaild;
+        }
+
+        public void Reset()
+        {
+            RocksDbSharp.Native.Instance.rocksdb_iter_seek(itPtr, beginkeyfinal, (ulong)beginkeyfinal.Length);
+
+            //it.Seek(beginkeyfinal);
+            bInit = false;
+            this.Vaild = false;
+        }
+
+        public void Dispose()
+        {
+            RocksDbSharp.Native.Instance.rocksdb_iter_destroy(this.itPtr);
+            this.itPtr = IntPtr.Zero;
+            //it.Dispose();
+            //it = null;
+        }
+    }
+
 }

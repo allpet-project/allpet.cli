@@ -46,8 +46,10 @@ namespace allpet.nodecli
                 {
                     byte[] tdata = new byte[8000];
                     r.NextBytes(tdata);
+                    //db.PutDirect(tableid, key, tdata);
                     wb.Put(tableid, key, tdata);
                 }
+
                 db.WriteBatch(wb);
 
             }
