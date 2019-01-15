@@ -94,7 +94,7 @@ namespace allpet.db.simple
             UInt32 count = 0;
             if (countdata != null)
             {
-                count = BitConverter.ToUInt32(countdata);
+                count = BitConverter.ToUInt32(countdata,0);
             }
             var vdata = GetDirectFinal(finalkey);
             if (vdata == null || vdata.Length == 0)
@@ -121,7 +121,7 @@ namespace allpet.db.simple
             UInt32 count = 0;
             if (countdata != null)
             {
-                count = BitConverter.ToUInt32(countdata);
+                count = BitConverter.ToUInt32(countdata, 0);
             }
 
             var vdata = GetDirectFinal(finalkey);
@@ -251,7 +251,7 @@ namespace allpet.db.simple
         {
             var tablekey = LightDB.Helper.CalcKey(tableid, null, LightDB.SplitWord.TableCount);
             var data = RocksDbSharp.Native.Instance.rocksdb_get(this.dbPtr, this.readopHandle, tablekey);
-            return BitConverter.ToUInt32(data);
+            return BitConverter.ToUInt32(data, 0);
         }
     }
     public interface IKeyIterator : IEnumerator<byte[]>
@@ -381,7 +381,7 @@ namespace allpet.db.simple
             UInt32 count = 0;
             if (countdata != null)
             {
-                count = BitConverter.ToUInt32(countdata);
+                count = BitConverter.ToUInt32(countdata, 0);
             }
             var vdata = GetData(finalkey);
             if (vdata == null || vdata.Length == 0)
@@ -408,7 +408,7 @@ namespace allpet.db.simple
             UInt32 count = 0;
             if (countdata != null)
             {
-                count = BitConverter.ToUInt32(countdata);
+                count = BitConverter.ToUInt32(countdata, 0);
             }
 
             var vdata = GetData(finalkey);
