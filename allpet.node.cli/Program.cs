@@ -24,27 +24,31 @@ namespace allpet.nodecli
             LoadConfig();
 
             //StartNode
-            LightDB.LightDB db = new LightDB.LightDB();
-            db.Open("db001", new LightDB.DBCreateOption()
-            {
-                MagicStr = "hi db"
-            });
+            allpet.db.simple.DB db = new db.simple.DB();
+            db.Open("db001", true);
+
             var tableid = new byte[] { 0x01, 0x02, 0x03 };
             var ss = db.UseSnapShot();
             var tableinfo = ss.GetTableInfoData(tableid);
             if (tableinfo == null || tableinfo.Length == 0)
             {
-                var wb = db.CreateWriteTask();
-                wb.CreateTable(new LightDB.TableInfo(tableid, "001", "", LightDB.DBValue.Type.String));
-                db.Write(wb);
+                var wb = db.CreateWriteBatch();
+                wb.CreateTable(tableid, new byte[] { 0x01, 0x02 });
+                db.WriteBatch(wb);
             }
             var t0 = DateTime.Now;
+            Random r = new Random();
             for (var i = 0; i < 10000; i++)
             {
-                var wb = db.CreateWriteTask();
+                var wb = db.CreateWriteBatch();
                 var key = BitConverter.GetBytes(i);
-                wb.Put(tableid, key, LightDB.DBValue.FromValue(LightDB.DBValue.Type.INT32, i));
-                db.Write(wb);
+                for (var j = 0; j < 1; j++)
+                {
+                    byte[] tdata = new byte[8000];
+                    r.NextBytes(tdata);
+                    wb.Put(tableid, key, tdata);
+                }
+                db.WriteBatch(wb);
 
             }
             var t1 = DateTime.Now;
