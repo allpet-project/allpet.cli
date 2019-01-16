@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace allpet.db.simple
 {
-    public class DB
+    public class DB : IDisposable
     {
         IntPtr dbPtr;
         IntPtr defaultWriteOpPtr;
@@ -28,6 +28,16 @@ namespace allpet.db.simple
 
             snapshotLast = CreateSnapInfo();
             snapshotLast.AddRef();
+        }
+        public void Dispose()
+        {
+            snapshotLast.Dispose();
+            snapshotLast = null;
+
+            RocksDbSharp.Native.Instance.rocksdb_writeoptions_destroy(this.defaultWriteOpPtr);
+            this.defaultWriteOpPtr = IntPtr.Zero;
+            RocksDbSharp.Native.Instance.rocksdb_close(this.dbPtr);
+            this.dbPtr = IntPtr.Zero;
         }
         //创建快照
         private SnapShot CreateSnapInfo()
@@ -94,7 +104,7 @@ namespace allpet.db.simple
             UInt32 count = 0;
             if (countdata != null)
             {
-                count = BitConverter.ToUInt32(countdata,0);
+                count = BitConverter.ToUInt32(countdata, 0);
             }
             var vdata = GetDirectFinal(finalkey);
             if (vdata == null || vdata.Length == 0)
@@ -134,7 +144,7 @@ namespace allpet.db.simple
 
             }
         }
-        public void CreateTableDirect(byte[] tableid,byte[] info)
+        public void CreateTableDirect(byte[] tableid, byte[] info)
         {
             var finalkey = LightDB.Helper.CalcKey(tableid, null, LightDB.SplitWord.TableInfo);
             var countkey = LightDB.Helper.CalcKey(tableid, null, LightDB.SplitWord.TableCount);
