@@ -80,6 +80,17 @@ namespace allpet.db.simple
             var finalkey = LightDB.Helper.CalcKey(tableid, key);
             return GetDirectFinal(finalkey);
         }
+        public UInt64 GetUInt64Direct(byte[] tableid, byte[] key)
+        {
+            var data = GetDirect(tableid, key);
+            if (data == null || data.Length == 0)
+                return 0;
+            else return BitConverter.ToUInt64(data);
+        }
+        public void PutUInt64Direct(byte[] tableid, byte[] key,UInt64 v)
+        {
+            this.PutDirect(tableid, key, BitConverter.GetBytes(v));
+        }
         private void DeleteDirectFinal(byte[] finalkey)
         {
             RocksDbSharp.Native.Instance.rocksdb_delete(this.dbPtr, this.defaultWriteOpPtr, finalkey, finalkey.LongLength);

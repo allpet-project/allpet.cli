@@ -19,7 +19,7 @@ namespace allpet.node
     }
     public class Node
     {
-        static INode CreateNode()
+        public static INode CreateNode()
         {
             return new PeerNode();
         }
@@ -42,14 +42,7 @@ namespace allpet.node
 
         }
 
-        allpet.db.simple.DB db;
-        readonly static byte[] TableID_SystemInfo = new byte[] { 0x01, 0x01 };
-        readonly static byte[] Key_SystemInfo_BlockCount = new byte[] { 0x01 };
-        readonly static byte[] Key_SystemInfo_TXCount = new byte[] { 0x01 };
-
-        readonly static byte[] TableID_Blocks = new byte[] { 0x01, 0x02 };
-        readonly static byte[] TableID_TXs = new byte[] { 0x01, 0x03 };
-        readonly static byte[] TableID_Owners = new byte[] { 0x01, 0x04 };
+        block.BlockChain chain;
 
         public IPeer Newwork
         {
@@ -60,30 +53,24 @@ namespace allpet.node
 
         public ulong GetBlockCount()
         {
-            var data = db.GetDirect(TableID_SystemInfo, Key_SystemInfo_BlockCount);
-            if (data == null || data.Length == 0)
-                return 0;
-            UInt64 blockcount = BitConverter.ToUInt64(data);
-            return blockcount;
+            return chain.GetBlockCount();
         }
 
 
 
         public void InitChain(string dbpath, Config_ChainInit info)
         {
-            if (this.db != null)
-                throw new Exception("already had inited.");
-            throw new NotImplementedException();
+            chain = new block.BlockChain();
+            chain.InitChain(dbpath, info);
         }
         public void StartNetwork()
         {
-            throw new NotImplementedException();
         }
 
         public void Dispose()
         {
-            this.db.Dispose();
-            this.db = null;
+            this.chain.Dispose();
+            this.chain = null;
         }
     }
 }

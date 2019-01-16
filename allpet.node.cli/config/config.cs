@@ -5,18 +5,10 @@ using System.Text;
 
 namespace allpet.nodecli
 {
-    class Config
+    public class Config
     {
-        class ChainInfo
-        {
-            public string MagicStr;
-            public string[] InitOwner;
-            public byte[] ToInitScript()
-            {
-                return null;
-            }
-        }
-        ChainInfo chainInfo = new ChainInfo();
+        public string dbPath;
+        public node.Config_ChainInit chainInfo;
 
         static string[] GetStringArrayFromJson(JArray jarray)
         {
