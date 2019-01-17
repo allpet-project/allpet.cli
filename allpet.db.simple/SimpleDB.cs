@@ -85,7 +85,7 @@ namespace AllPet.db.simple
             var data = GetDirect(tableid, key);
             if (data == null || data.Length == 0)
                 return 0;
-            else return BitConverter.ToUInt64(data);
+            else return BitConverter.ToUInt64(data,0);
         }
         public void PutUInt64Direct(byte[] tableid, byte[] key,UInt64 v)
         {
