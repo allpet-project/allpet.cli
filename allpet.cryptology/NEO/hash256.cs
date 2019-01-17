@@ -31,7 +31,7 @@ namespace AllPet
             {
                 ulong* lpx = (ulong*)px;
                 ulong* lpy = (ulong*)py;
-                for (int i = 4; i >= 0; i--)
+                for (int i = (32 / 8) - 1; i >= 0; i--)
                 {
                     if (lpx[i] > lpy[i])
                         return 1;
@@ -48,7 +48,7 @@ namespace AllPet
             {
                 ulong* lpx = (ulong*)px;
                 ulong* lpy = (ulong*)py;
-                for (int i = 4; i >= 0; i--)
+                for (int i = (32 / 8) - 1; i >= 0; i--)
                 {
                     if (lpx[i] != lpy[i])
                         return false;

@@ -34,7 +34,7 @@ namespace AllPet
             {
                 uint* lpx = (uint*)px;
                 uint* lpy = (uint*)py;
-                for (int i = 5; i >= 0; i--)
+                for (int i = (20 / 4) - 1; i >= 0; i--)
                 {
                     if (lpx[i] > lpy[i])
                         return 1;
@@ -51,7 +51,7 @@ namespace AllPet
             {
                 uint* lpx = (uint*)px;
                 uint* lpy = (uint*)py;
-                for (int i = 5; i >= 0; i--)
+                for (int i = (20 / 4) - 1; i >= 0; i--)
                 {
                     if (lpx[i] != lpy[i])
                         return false;
