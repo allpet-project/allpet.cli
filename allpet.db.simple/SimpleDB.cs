@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace allpet.db.simple
+namespace AllPet.db.simple
 {
     public class DB : IDisposable
     {

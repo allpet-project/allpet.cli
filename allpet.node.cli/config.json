@@ -3,6 +3,7 @@
     "MagicStr": "hellokitty",
     "InitOwner": [ "AdsNmzKPPG7HfmQpacZ4ixbv9XJHJs2ACz" ]
   },
+  "DBPath": "db01",
   "Network": { //网络配置
     "InitPeer": [ "192.168.0.1:2088" ],
     "MaxConnectCount": 100,

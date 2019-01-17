@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace allpet.node.block
+namespace AllPet.node.block
 {
 
     public class HashPoint
@@ -120,7 +120,7 @@ namespace allpet.node.block
                 this.db.Dispose();
             this.db = null;
         }
-        allpet.db.simple.DB db;
+        AllPet.db.simple.DB db;
         readonly static byte[] TableID_SystemInfo = new byte[] { 0x01, 0x01 };
         readonly static byte[] Key_SystemInfo_BlockCount = new byte[] { 0x01 };
         readonly static byte[] Key_SystemInfo_TXCount = new byte[] { 0x01 };

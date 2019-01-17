@@ -1,7 +1,7 @@
-﻿using allpet.peer.tcp;
+﻿using AllPet.peer.tcp;
 using System;
 
-namespace allpet.node
+namespace AllPet.node
 {
     public interface INode : IDisposable
     {
@@ -12,7 +12,7 @@ namespace allpet.node
 
         UInt64 GetBlockCount();
         //获取节点对象
-        allpet.peer.tcp.IPeer Newwork
+        AllPet.peer.tcp.IPeer Newwork
         {
             get;
         }
@@ -65,6 +65,7 @@ namespace allpet.node
         }
         public void StartNetwork()
         {
+
         }
 
         public void Dispose()

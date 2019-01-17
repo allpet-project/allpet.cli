@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace allpet.http.server
+namespace AllPet.http.server
 {
     public class WebSocketController : IController
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace allpet.peer.tcp 
+namespace AllPet.peer.tcp 
 {
     public class PeerV2
     {

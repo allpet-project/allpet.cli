@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace allpet.peer.tcp
+namespace AllPet.peer.tcp
 {
     public class PeerOption
     {

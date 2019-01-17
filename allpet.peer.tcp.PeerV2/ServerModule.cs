@@ -27,7 +27,7 @@ namespace light.asynctcp
             Console.WriteLine(txt);
         }
     }
-    partial class ServerModule : allpet.peer.tcp.IPeer
+    partial class ServerModule : AllPet.peer.tcp.IPeer
     {
 
         public static UInt64 moduleID = 0;
@@ -55,8 +55,8 @@ namespace light.asynctcp
         {
             this.ID = moduleID++;
         }
-        allpet.peer.tcp.PeerOption option;
-        public void Start(allpet.peer.tcp.PeerOption option)
+        AllPet.peer.tcp.PeerOption option;
+        public void Start(AllPet.peer.tcp.PeerOption option)
         {
             logger = new ConsoleLogger();
 

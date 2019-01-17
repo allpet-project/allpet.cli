@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace allpet.nodecli.httpinterface
+namespace AllPet.nodecli.httpinterface
 {
     class HttpRPC
     {
         public void Start()
         {
-            allpet.http.server.httpserver server = new http.server.httpserver();
+            AllPet.http.server.httpserver server = new http.server.httpserver();
             server.SetHttpAction("/", async (context) =>
             {
                 byte[] writedata = System.Text.Encoding.UTF8.GetBytes("hello world.");

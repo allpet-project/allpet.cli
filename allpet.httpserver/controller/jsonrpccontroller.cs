@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 
-namespace allpet.http.server
+namespace AllPet.http.server
 {
     public class JSONRPCController : IController
     {

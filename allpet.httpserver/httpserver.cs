@@ -11,7 +11,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace allpet.http.server
+namespace AllPet.http.server
 {
 
 

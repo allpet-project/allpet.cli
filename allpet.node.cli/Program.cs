@@ -1,21 +1,27 @@
-﻿using allpet.nodecli.httpinterface;
+﻿using AllPet.nodecli.httpinterface;
 using System;
 using System.Collections.Generic;
 
-namespace allpet.nodecli
+namespace AllPet.nodecli
 {
     class Program
     {
+        public static AllPet.Log.ILogger logger;
         public static Config config;
-        public static allpet.node.INode node;//P2P节点
+        public static AllPet.node.INode node;//P2P节点
         public static HttpRPC rpc;
         static void Main(string[] args)
         {
-            var peer = allpet.peer.tcp.PeerV2.CreatePeer();
-            peer.Start(new allpet.peer.tcp.PeerOption()
+            logger = new AllPet.Log.Logger();
+            logger.Info("Allpet.Node v0.001");
+            logger.Warn("test warn.");
+            logger.Error("show Error.");
+            var peer = AllPet.peer.tcp.PeerV2.CreatePeer();
+            peer.Start(new AllPet.peer.tcp.PeerOption()
             {
 
             });
+            
             //init current path.
             //把当前目录搞对，怎么启动都能找到dll了
             var lastpath = System.IO.Path.GetDirectoryName(typeof(Program).Assembly.Location); ;
@@ -43,7 +49,7 @@ namespace allpet.nodecli
         }
         private static void StartNode()
         {
-            node = allpet.node.Node.CreateNode();
+            node = AllPet.node.Node.CreateNode();
             node.InitChain(config.dbPath, config.chainInfo);
             node.StartNetwork();
         }

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace allpet.nodecli
+namespace AllPet.nodecli
 {
     public class Config
     {
@@ -27,6 +27,8 @@ namespace allpet.nodecli
         {
             var jobj = JObject.Parse(txt);
             Config c = new Config();
+            c.dbPath = (string)jobj["DBPath"];
+            c.chainInfo = new node.Config_ChainInit();
             c.chainInfo.MagicStr = (string)jobj["ChainInfo"]["MagicStr"];
             c.chainInfo.InitOwner = GetStringArrayFromJson((JArray)jobj["ChainInfo"]["InitOwner"]);
             return c;
