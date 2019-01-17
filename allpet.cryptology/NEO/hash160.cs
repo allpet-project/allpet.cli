@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Allpet
+namespace AllPet
 {
     public class Hash160 : IComparable<Hash160>
     {

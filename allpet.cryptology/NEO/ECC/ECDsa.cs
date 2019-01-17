@@ -3,7 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
 
-namespace Allpet.Cryptography.ECC
+namespace AllPet.Cryptography.ECC
 {
     /// <summary>
     /// 提供椭圆曲线数字签名算法（ECDSA）的功能

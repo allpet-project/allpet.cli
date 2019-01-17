@@ -1,4 +1,4 @@
-﻿namespace Allpet.VM
+﻿namespace AllPet.VM
 {
     public enum OpCode : byte
     {

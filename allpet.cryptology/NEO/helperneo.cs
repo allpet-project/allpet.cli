@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
-namespace Allpet
+namespace AllPet
 {
     public static class Helper_NEO
     {
@@ -63,7 +63,7 @@ namespace Allpet
         }
         public static byte[] GetPublicKey_FromPrivateKey(byte[] privateKey)
         {
-            var PublicKey = Allpet.Cryptography.ECC.ECCurve.Secp256r1.G * privateKey;
+            var PublicKey = AllPet.Cryptography.ECC.ECCurve.Secp256r1.G * privateKey;
             return PublicKey.EncodePoint(true);
         }
         public static byte[] GetAddressScript_FromPublicKey(byte[] publicKey)
@@ -89,7 +89,7 @@ namespace Allpet
 
             var alldata = data.Concat(hash.Take(4)).ToArray();
 
-            return Allpet.Cryptography.Base58.Encode(alldata);
+            return AllPet.Cryptography.Base58.Encode(alldata);
         }
         public static string GetAddress_FromPublicKey(byte[] publicKey)
         {
@@ -100,7 +100,7 @@ namespace Allpet
         }
         public static Hash160 GetScriptHash_FromAddress(string address)
         {
-            var alldata = Allpet.Cryptography.Base58.Decode(address);
+            var alldata = AllPet.Cryptography.Base58.Decode(address);
             if (alldata.Length != 25)
                 throw new Exception("error length.");
             var data = alldata.Take(alldata.Length - 4).ToArray();
@@ -117,7 +117,7 @@ namespace Allpet
         }
         public static Hash160 GetScriptHash_FromAddress_WithoutCheck(string address)
         {
-            var alldata = Allpet.Cryptography.Base58.Decode(address);
+            var alldata = AllPet.Cryptography.Base58.Decode(address);
             if (alldata.Length != 25)
                 throw new Exception("error length.");
             if (alldata[0] != 0x17)
@@ -186,7 +186,7 @@ namespace Allpet
         {
             //var Secp256r1_G = Helper.HexString2Bytes("04" + "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296" + "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5");
 
-            var PublicKey = Allpet.Cryptography.ECC.ECCurve.Secp256r1.G * prikey;
+            var PublicKey = AllPet.Cryptography.ECC.ECCurve.Secp256r1.G * prikey;
             var pubkey = PublicKey.EncodePoint(false).Skip(1).ToArray();
 
             //var ecdsa = new Allpet.Cryptography.ECC.ECDsa(prikey, Allpet.Cryptography.ECC.ECCurve.Secp256r1);
@@ -276,7 +276,7 @@ namespace Allpet
             public static Signer FromPriKey(byte[] prikey)
             {
                 var s = new Signer();
-                var PublicKey = Allpet.Cryptography.ECC.ECCurve.Secp256r1.G * prikey;
+                var PublicKey = AllPet.Cryptography.ECC.ECCurve.Secp256r1.G * prikey;
                 var pubkey = PublicKey.EncodePoint(false).Skip(1).ToArray();
 
                 s.ecdsa = System.Security.Cryptography.ECDsa.Create(new System.Security.Cryptography.ECParameters
@@ -297,7 +297,7 @@ namespace Allpet
             public static Signer FromPubkey(byte[] pubkey)
             {
                 var s = new Signer();
-                var PublicKey = Allpet.Cryptography.ECC.ECPoint.DecodePoint(pubkey, Allpet.Cryptography.ECC.ECCurve.Secp256r1);
+                var PublicKey = AllPet.Cryptography.ECC.ECPoint.DecodePoint(pubkey, AllPet.Cryptography.ECC.ECCurve.Secp256r1);
                 var usepk = PublicKey.EncodePoint(false).Skip(1).ToArray();
 
                 //byte[] first = { 0x45, 0x43, 0x53, 0x31, 0x20, 0x00, 0x00, 0x00 };
@@ -320,8 +320,8 @@ namespace Allpet
         public static bool VerifySignature(byte[] message, byte[] signature, byte[] pubkey)
         {
             //unity dotnet不完整，不能用dotnet自带的ecdsa
-            var PublicKey = Allpet.Cryptography.ECC.ECPoint.DecodePoint(pubkey, Allpet.Cryptography.ECC.ECCurve.Secp256r1);
-            var ecdsa = new Allpet.Cryptography.ECC.ECDsa(PublicKey);
+            var PublicKey = AllPet.Cryptography.ECC.ECPoint.DecodePoint(pubkey, AllPet.Cryptography.ECC.ECCurve.Secp256r1);
+            var ecdsa = new AllPet.Cryptography.ECC.ECDsa(PublicKey);
             var b1 = signature.Take(32).Reverse().Concat(new byte[] { 0x00 }).ToArray();
             var b2 = signature.Skip(32).Reverse().Concat(new byte[] { 0x00 }).ToArray();
             var num1 = new BigInteger(b1);

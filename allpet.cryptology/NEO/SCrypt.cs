@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace Allpet.Cryptography
+namespace AllPet.Cryptography
 {
     public static class SCrypt
     {

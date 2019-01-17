@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Allpet
+namespace AllPet
 {
     public static class Helper
     {
@@ -19,13 +19,13 @@ namespace Allpet
             }
         }
         [ThreadStatic]
-        static Allpet.Cryptography.RIPEMD160Managed _ripemd160;
-        public static Allpet.Cryptography.RIPEMD160Managed RIPEMD160
+        static AllPet.Cryptography.RIPEMD160Managed _ripemd160;
+        public static AllPet.Cryptography.RIPEMD160Managed RIPEMD160
         {
             get
             {
                 if (_ripemd160 == null)
-                    _ripemd160 = new Allpet.Cryptography.RIPEMD160Managed();
+                    _ripemd160 = new AllPet.Cryptography.RIPEMD160Managed();
                 return _ripemd160;
             }
         }
@@ -99,7 +99,7 @@ namespace Allpet
 
         public static byte[] Base58CheckDecode(string input)
         {
-            byte[] buffer = Allpet.Cryptography.Base58.Decode(input);
+            byte[] buffer = AllPet.Cryptography.Base58.Decode(input);
             if (buffer.Length < 4) throw new FormatException();
 
             var b1 = CalcSha256(buffer, 0, buffer.Length - 4);
@@ -117,7 +117,7 @@ namespace Allpet
             byte[] buffer = new byte[data.Length + 4];
             Buffer.BlockCopy(data, 0, buffer, 0, data.Length);
             Buffer.BlockCopy(checksum, 0, buffer, data.Length, 4);
-            return Allpet.Cryptography.Base58.Encode(buffer);
+            return AllPet.Cryptography.Base58.Encode(buffer);
         }
         internal static byte[] AES256Encrypt(byte[] block, byte[] key)
         {

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 
-namespace Allpet.Cryptography.ECC
+namespace AllPet.Cryptography.ECC
 {
     internal class ECFieldElement : IComparable<ECFieldElement>, IEquatable<ECFieldElement>
     {

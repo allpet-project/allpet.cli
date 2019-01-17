@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 
-namespace Allpet
+namespace AllPet
 {
     public static class Helper_BigInt
     {

@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
-namespace Allpet.Cryptography.ECC
+namespace AllPet.Cryptography.ECC
 {
     public class ECPoint : IComparable<ECPoint>, IEquatable<ECPoint>
     {
