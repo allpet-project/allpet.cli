@@ -123,7 +123,7 @@ namespace light.asynctcp
                 ProcessRecvZero(link);
                 return true;
             }
-            if (option.WithPackage64K == false)
+            if (option.WithPackageLength16M == false)
             {
                 byte[] data = new byte[e.BytesTransferred];
                 fixed (byte* src = e.Buffer, dest = data)
@@ -137,12 +137,12 @@ namespace light.asynctcp
                 var seek = 0;
                 while (seek < e.BytesTransferred)
                 {
-                    if (link.lastPackageSize == 0 && e.BytesTransferred >= 2)//fill len
+                    if (link.lastPackageSize == 0 && e.BytesTransferred >= 4)//fill len
                     {
                         link.lastPackageSize = BitConverter.ToUInt16(e.Buffer, e.Offset + seek);
-                        link.lastPackege = new byte[link.lastPackageSize - 2];
+                        seek += 4;
+                        link.lastPackege = new byte[link.lastPackageSize];
                         link.lastPackegeSeek = 0;
-                        seek += 2;
                     }
                     if (seek < e.BytesTransferred)//fill package
                     {

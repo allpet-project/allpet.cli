@@ -250,11 +250,11 @@ namespace light.asynctcp
         public void Send(ulong linkid, byte[] data)
         {
             var link = this.links[linkid];
-            if(option.WithPackage64K)
+            if (option.WithPackageLength16M)
             {
-                if (data.Length >= 65534)
+                if (data.Length >= 255 * 255 * 255)
                     throw new Exception("too long for packet mode.");
-                var lendata = BitConverter.GetBytes((UInt16)(data.Length + 2));
+                var lendata = BitConverter.GetBytes((UInt32)(data.Length));
                 SendOnce(link, new ArraySegment<byte>(lendata));
             }
             var oncecount = _SendBufferSize;
