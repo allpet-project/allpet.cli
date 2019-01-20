@@ -8,7 +8,7 @@ namespace AllPet.Pipeline
     {
         public static IPipelineSystem CreateActorSystem()
         {
-            return new System();
+            return new PipelineSystem();
         }
     }
 }

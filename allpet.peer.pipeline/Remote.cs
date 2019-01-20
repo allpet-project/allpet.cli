@@ -31,18 +31,23 @@ namespace AllPet.Pipeline
     }
     class PipelineRefRemote : IPipelineRef
     {
-        public PipelineRefRemote(RefSystemRemote system, string path)
+        public PipelineRefRemote(ISystemRef usersystem, string userPath, RefSystemRemote remotesystem,  string path)
         {
-            this._system = system;
+            this._usersystem = usersystem;
+            this.userpath = userPath;
+
+            this._remotesystem = remotesystem;
             this.path = path;
         }
 
-        RefSystemRemote _system;
+        RefSystemRemote _remotesystem;
+        ISystemRef _usersystem;
+        string userpath;
         public ISystemRef system
         {
             get
             {
-                return _system;
+                return _remotesystem;
             }
         }
 
@@ -61,7 +66,7 @@ namespace AllPet.Pipeline
         }
         byte[] GetFromBytes()
         {
-            return null;
+            return System.Text.Encoding.UTF8.GetBytes(this.userpath);
         }
         byte[] GetToBytes()
         {
@@ -90,7 +95,7 @@ namespace AllPet.Pipeline
                 Buffer.MemoryCopy(pdata, pdiao + seek, data.Length, data.Length);
 
             }
-            _system.peer.Send(_system.peerid, outbuf);
+            _remotesystem.peer.Send(_remotesystem.peerid, outbuf);
         }
     }
 }

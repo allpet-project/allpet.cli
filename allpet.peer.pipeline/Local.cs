@@ -7,10 +7,13 @@ namespace AllPet.Pipeline
 {
     class PipelineRefLocal : IPipelineRef
     {
-        public PipelineRefLocal(ISystemRef system, string userUrl, string path, IPipelineInstance actor)
+        public PipelineRefLocal(ISystemRef system, string userPath, string path, IPipelineInstance actor)
         {
             this.system = system;
-            this.userUrl = userUrl;
+            if (string.IsNullOrEmpty(userPath))
+                this.userUrl = null;
+            else
+                this.userUrl = "this/"+ userPath;
             this.path = path;
             this.actorInstance = actor;
         }

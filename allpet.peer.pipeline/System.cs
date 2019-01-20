@@ -7,7 +7,7 @@ using AllPet.peer.tcp;
 
 namespace AllPet.Pipeline
 {
-    class System : IPipelineSystem
+    class PipelineSystem : IPipelineSystem
     {
         //本地创建的Actor实例
         global::System.Collections.Concurrent.ConcurrentDictionary<string, IPipelineInstance> localActors;
@@ -21,7 +21,7 @@ namespace AllPet.Pipeline
         global::System.Collections.Concurrent.ConcurrentDictionary<UInt64, string> linkedIP;
         ISystemRef refSystemThis;
 
-        public System()
+        public PipelineSystem()
         {
             localActors = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IPipelineInstance>();
             localActorPath = new global::System.Collections.Concurrent.ConcurrentDictionary<IPipelineInstance, string>();
@@ -49,7 +49,7 @@ namespace AllPet.Pipeline
 
         }
         public void RegistPipeline(string path, IPipelineInstance actor)
-        { 
+        {
             if (localActors.ContainsKey(path) == true)
                 throw new Exception("already have that path.");
 
@@ -99,7 +99,7 @@ namespace AllPet.Pipeline
             {
                 var actorpath = urlActor.Substring(5);
                 var actor = this.localActors[actorpath];
-                refActors[refName] = new PipelineRefLocal(refSystemThis, userstr==""?null:("this/" + userstr), actorpath, actor);
+                refActors[refName] = new PipelineRefLocal(refSystemThis, userstr, actorpath, actor);
                 return refActors[refName];
             }
             else
@@ -115,7 +115,7 @@ namespace AllPet.Pipeline
                 else
                 {//没连接
                 }
-                refActors[refName] = new PipelineRefRemote(refsys as RefSystemRemote, path);
+                refActors[refName] = new PipelineRefRemote(refSystemThis, userstr, refsys as RefSystemRemote, path);
                 return refActors[refName];
             }
         }
@@ -129,7 +129,7 @@ namespace AllPet.Pipeline
         //    return refActors[url];
         //}
         AllPet.peer.tcp.IPeer peer;
-        public void OpenNetwork(PeerOption option)
+        public unsafe void OpenNetwork(PeerOption option)
         {
             if (peer != null)
                 throw new Exception("already have init peer.");
@@ -145,7 +145,23 @@ namespace AllPet.Pipeline
               };
             peer.OnRecv += (id, data) =>
             {
-                Console.WriteLine("; line=" + id + " len=" + data.Length);
+                int seek = 0;
+                var fromlen = data[seek]; seek++;
+                string from = System.Text.Encoding.UTF8.GetString(data, seek, fromlen); seek += fromlen;
+                var tolen = data[seek]; seek++;
+                string to = System.Text.Encoding.UTF8.GetString(data, seek, tolen); seek += tolen;
+                IPipelineInstance user = null;
+                if (this.localActors.TryGetValue(from, out user))
+                {
+
+                }
+                var pipe = this.GetPipeline(user, "this/" + to);
+                var outbytes = new byte[data.Length - seek];
+                fixed (byte* pdata = data, pout = outbytes)
+                {
+                    Buffer.MemoryCopy(pdata + seek, pout, outbytes.Length, outbytes.Length);
+                }
+                pipe.Tell(outbytes);
             };
 
             peer.OnAccepted += (ulong id, IPEndPoint endpoint) =>
