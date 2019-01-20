@@ -30,18 +30,35 @@ namespace AllPet.Pipeline
             linkedIP = new global::System.Collections.Concurrent.ConcurrentDictionary<ulong, string>();
             refSystemThis = new PipelineSystemRefLocal(this);
         }
+        bool bStarted = false;
+        public void Start()
+        {
+            bStarted = true;
+            foreach (var pipe in this.localActors)
+            {
+                pipe.Value.OnStart();
+            }
+        }
+        public void Close()
+        {
+            this.Dispose();
+        }
+
         public void Dispose()
         {
 
         }
         public void RegistPipeline(string path, IPipelineInstance actor)
-        {
-
+        { 
             if (localActors.ContainsKey(path) == true)
                 throw new Exception("already have that path.");
 
             localActors[path] = actor;
             localActorPath[actor] = path;
+
+
+            if (bStarted)
+                actor.OnStart();
 
         }
         public void UnRegistPipeline(string path)
@@ -68,10 +85,10 @@ namespace AllPet.Pipeline
         }
         public IPipelineRef GetPipeline(IPipelineInstance user, string urlActor)
         {
-            var userstr = "_";
+            var userstr = "";
             if (user != null)
-                userstr = localActorPath[user] + "_";
-            var refName = userstr + urlActor;
+                userstr = localActorPath[user];
+            var refName = userstr + "_" + urlActor;
 
             if (refActors.TryGetValue(refName, out IPipelineRef pipe))
             {
@@ -82,7 +99,7 @@ namespace AllPet.Pipeline
             {
                 var actorpath = urlActor.Substring(5);
                 var actor = this.localActors[actorpath];
-                refActors[refName] = new PipelineRefLocal(refSystemThis, actorpath, actor);
+                refActors[refName] = new PipelineRefLocal(refSystemThis, userstr==""?null:("this/" + userstr), actorpath, actor);
                 return refActors[refName];
             }
             else
@@ -97,7 +114,6 @@ namespace AllPet.Pipeline
                 }
                 else
                 {//没连接
-
                 }
                 refActors[refName] = new PipelineRefRemote(refsys as RefSystemRemote, path);
                 return refActors[refName];

@@ -7,14 +7,15 @@ namespace AllPet.Pipeline
 {
     class PipelineRefLocal : IPipelineRef
     {
-        public PipelineRefLocal(ISystemRef system, string path, IPipelineInstance actor)
+        public PipelineRefLocal(ISystemRef system, string userUrl, string path, IPipelineInstance actor)
         {
             this.system = system;
+            this.userUrl = userUrl;
             this.path = path;
             this.actorInstance = actor;
         }
         public IPipelineInstance actorInstance;
-
+        public string userUrl;
         public ISystemRef system
         {
             get;
@@ -37,9 +38,12 @@ namespace AllPet.Pipeline
 
         public void Tell(byte[] data)
         {
+            var _system = (system as PipelineSystemRefLocal).system;
+
+            var pipeline = userUrl == null ? null : _system.GetPipeline(actorInstance, userUrl);
             global::System.Threading.ThreadPool.QueueUserWorkItem((s) =>
             {
-                this.actorInstance.OnTell(null, data);
+                this.actorInstance.OnTell(pipeline, data);
             }
             );
         }

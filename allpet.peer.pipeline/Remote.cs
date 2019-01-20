@@ -59,10 +59,38 @@ namespace AllPet.Pipeline
                 return system.linked;
             }
         }
-
-        public void Tell(byte[] data)
+        byte[] GetFromBytes()
         {
-            _system.peer.Send(_system.peerid, data);
+            return null;
+        }
+        byte[] GetToBytes()
+        {
+            return System.Text.Encoding.UTF8.GetBytes(this.path);
+        }
+        public unsafe void Tell(byte[] data)
+        {
+            byte[] from = GetFromBytes();
+            byte[] to = GetToBytes();
+            byte[] outbuf = new byte[from.Length + 1 + to.Length + 1 + data.Length];
+            fixed (byte* pdiao = outbuf,pfrom=from,pto=to,pdata=data)
+            {
+                int seek = 0;
+                outbuf[seek] = (byte)from.Length;
+                seek++;
+
+                Buffer.MemoryCopy(pfrom, pdiao + seek, from.Length, from.Length);
+                seek += from.Length;
+
+                outbuf[seek] = (byte)to.Length;
+                seek++;
+
+                Buffer.MemoryCopy(pto, pdiao + seek, to.Length, to.Length);
+                seek += to.Length;
+
+                Buffer.MemoryCopy(pdata, pdiao + seek, data.Length, data.Length);
+
+            }
+            _system.peer.Send(_system.peerid, outbuf);
         }
     }
 }

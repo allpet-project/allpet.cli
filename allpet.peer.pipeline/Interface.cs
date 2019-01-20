@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 namespace AllPet.Pipeline
 {
     //管线系统
-    public interface IPipelineSystem:IDisposable
+    public interface IPipelineSystem : IDisposable
     {
+        void Start();
+        void Close();
+
         void OpenNetwork(AllPet.peer.tcp.PeerOption option);
         void CloseNetwork();
         /// <summary>
@@ -25,7 +28,7 @@ namespace AllPet.Pipeline
         ICollection<string> GetAllSystemsPath();
         ICollection<ISystemRef> GetAllSystems();
 
-        IPipelineRef GetPipeline(IPipelineInstance user,string urlActor);
+        IPipelineRef GetPipeline(IPipelineInstance user, string urlActor);
 
         void RegistPipeline(string path, IPipelineInstance actor);
         string GetPipelinePath(IPipelineInstance actor);
@@ -68,6 +71,33 @@ namespace AllPet.Pipeline
     }
     public interface IPipelineInstance
     {
+        IPipelineSystem system
+        {
+            get;
+        }
+        IPipelineRef GetPipeline(string urlActor);
+        void OnStart();
         void OnTell(IPipelineRef from, byte[] data);
+    }
+    public abstract class Pipeline : IPipelineInstance
+    {
+        public Pipeline(IPipelineSystem system)
+        {
+            this.system = system;
+        }
+        public IPipelineSystem system
+        {
+            get;
+            private set;
+        }
+        public IPipelineRef GetPipeline(string urlActor)
+        {
+            return system.GetPipeline(this, urlActor);
+        }
+        public virtual void OnStart()
+        {
+
+        }
+        public abstract void OnTell(IPipelineRef from, byte[] data);
     }
 }

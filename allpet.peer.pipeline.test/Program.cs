@@ -27,7 +27,7 @@ namespace AllPet.Pipeline.test
                 }
                 if (line == "2")
                 {
-                   await RemoteTest();
+                    await RemoteTest();
                 }
             }
         }
@@ -36,7 +36,7 @@ namespace AllPet.Pipeline.test
             var systemR = AllPet.Pipeline.Instance.CreateActorSystem();
             systemR.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemR.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));
-            systemR.RegistPipeline("hello", new Hello());
+            systemR.RegistPipeline("hello", new Hello(systemR));
 
 
             var systemL = AllPet.Pipeline.Instance.CreateActorSystem();
@@ -65,8 +65,10 @@ namespace AllPet.Pipeline.test
         public async static Task LocalTest()
         {
             var system = AllPet.Pipeline.Instance.CreateActorSystem();
-            system.RegistPipeline("hello", new Hello());//actor习惯，连注册这个活都丢线程池，我这里简化一些
+            system.RegistPipeline("hello", new Hello(system));//actor习惯，连注册这个活都丢线程池，我这里简化一些
+            system.RegistPipeline("hello2", new Hello2(system));//actor习惯，连注册这个活都丢线程池，我这里简化一些
 
+            system.Start();
             var actor = system.GetPipeline(null, "this/hello");
             {
                 actor.Tell(System.Text.Encoding.UTF8.GetBytes("yeah very good."));
@@ -87,11 +89,33 @@ namespace AllPet.Pipeline.test
         }
     }
 
-    class Hello : AllPet.Pipeline.IPipelineInstance
+    class Hello : Pipeline
     {
-        public void OnTell(IPipelineRef from, byte[] data)
+        public Hello(IPipelineSystem system) : base(system)
         {
-            Console.WriteLine("recv:" + System.Text.Encoding.UTF8.GetString(data));
+        }
+        IPipelineRef refhello2;
+        public override void OnStart()
+        {
+            var refhello2 = this.GetPipeline("this/hello2");
+            refhello2.Tell(System.Text.Encoding.UTF8.GetBytes("abcde"));
+        }
+        public override void OnTell(IPipelineRef from, byte[] data)
+        {
+            Console.WriteLine("Hello:" + System.Text.Encoding.UTF8.GetString(data));
+        }
+    }
+    class Hello2 : Pipeline
+    {
+        public Hello2(IPipelineSystem system) : base(system)
+        {
+
+        }
+        public override void OnTell(IPipelineRef from, byte[] data)
+        {
+            Console.WriteLine("Hello2:" + System.Text.Encoding.UTF8.GetString(data));
+
+            from.Tell(System.Text.Encoding.UTF8.GetBytes("hello back."));
         }
     }
 }
