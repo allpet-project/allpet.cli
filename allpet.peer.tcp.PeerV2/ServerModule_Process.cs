@@ -146,7 +146,7 @@ namespace light.asynctcp
                     }
                     if (seek < e.BytesTransferred)//fill package
                     {
-                        var len = Math.Min(link.lastPackageSize - 2 - link.lastPackegeSeek, e.BytesTransferred - seek);
+                        var len = Math.Min(link.lastPackageSize - link.lastPackegeSeek, e.BytesTransferred - seek);
                         fixed (byte* src = e.Buffer, dest = link.lastPackege)
                         {
                             System.Buffer.MemoryCopy(src + e.Offset + seek, dest + link.lastPackegeSeek, e.BytesTransferred, len);
@@ -154,7 +154,7 @@ namespace light.asynctcp
                         link.lastPackegeSeek += (ushort)len;
                         seek += len;
                     }
-                    if (link.lastPackegeSeek == link.lastPackageSize - 2)//finish package
+                    if (link.lastPackegeSeek == link.lastPackageSize )//finish package
                     {
                         link.lastPackageSize = 0;
                         link.lastPackegeSeek = 0;
