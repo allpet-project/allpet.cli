@@ -12,7 +12,7 @@ namespace AllPet.Pipeline
             this.system = system;
             if (string.IsNullOrEmpty(userPath))
                 this.userUrl = null;
-            else if (userPath[0] == ':')
+            else if (userPath[0] == '@')
                 this.userUrl = userPath;
             else
                 this.userUrl = "this/" + userPath;
