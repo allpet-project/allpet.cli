@@ -43,6 +43,8 @@ namespace AllPet.Pipeline.test
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
             var systemref = await systemL.Connect(remote);
+
+            systemR.Start();
             var actor = systemL.GetPipeline(null, "127.0.0.1:8888/hello");
             {
                 actor.Tell(System.Text.Encoding.UTF8.GetBytes("yeah very good."));
@@ -115,7 +117,7 @@ namespace AllPet.Pipeline.test
         {
             Console.WriteLine("Hello2:" + System.Text.Encoding.UTF8.GetString(data));
 
-            from.Tell(System.Text.Encoding.UTF8.GetBytes("hello back."));
+            from.Tell(System.Text.Encoding.UTF8.GetBytes("hello2 back."));
         }
     }
 }
