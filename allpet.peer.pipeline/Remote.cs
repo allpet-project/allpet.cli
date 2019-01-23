@@ -57,7 +57,7 @@ namespace AllPet.Pipeline
             private set;
         }
 
-        public bool vaild
+        public bool IsVaild
         {
             get
             {

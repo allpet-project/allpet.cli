@@ -21,6 +21,7 @@
     <ProjectReference Include="..\allpet.httpserver\allpet.httpserver.csproj" />
     <ProjectReference Include="..\allpet.log\allpet.log.csproj" />
     <ProjectReference Include="..\allpet.node\allpet.node.csproj" />
+    <ProjectReference Include="..\allpet.peer.pipeline\allpet.peer.pipeline.csproj" />
     <ProjectReference Include="..\allpet.peer.tcp.Interface\allpet.Peer.Tcp.Interface.csproj" />
     <ProjectReference Include="..\allpet.peer.tcp.PeerV2\allpet.Peer.Tcp.PeerV2.csproj" />
   </ItemGroup>
@@ -29,6 +30,10 @@
     <None Update="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="module_Node\" />
   </ItemGroup>
 
 </Project>

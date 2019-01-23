@@ -13,7 +13,7 @@ namespace AllPet.Pipeline
             if (string.IsNullOrEmpty(userPath))
                 this.userUrl = null;
             else
-                this.userUrl = "this/"+ userPath;
+                this.userUrl = "this/" + userPath;
             this.path = path;
             this.actorInstance = actor;
         }
@@ -31,11 +31,18 @@ namespace AllPet.Pipeline
             private set;
         }
 
-        public bool vaild
+        public bool IsVaild
         {
             get
             {
-                return (system as PipelineSystemRefLocal).system.GetPipelinePath(actorInstance) != null;
+                var path = (system as PipelineSystemRefLocal).system.GetModulePath(actorInstance);
+                bool bExist = string.IsNullOrEmpty(path) == false;
+                if (bExist && actorInstance.HasDisposed == true)
+                {
+                    ((system as PipelineSystemRefLocal).system as PipelineSystemV1).UnRegistModule(path);
+                    return false;
+                }
+                return !actorInstance.HasDisposed;
             }
         }
 
@@ -44,7 +51,7 @@ namespace AllPet.Pipeline
             var _system = (system as PipelineSystemRefLocal).system;
 
             var pipeline = userUrl == null ? null : _system.GetPipeline(actorInstance, userUrl);
-            if (actorInstance.MultiThreadTell == true&& actorInstance.Inited)
+            if (actorInstance.MultiThreadTell == true && actorInstance.Inited)
             {//直接开线程投递，不阻塞
                 global::System.Threading.ThreadPool.QueueUserWorkItem((s) =>
                 {

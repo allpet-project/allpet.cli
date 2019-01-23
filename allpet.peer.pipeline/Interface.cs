@@ -9,7 +9,6 @@ namespace AllPet.Pipeline
     public interface ISystem : IDisposable
     {
         void Start();
-        void Close();
 
         void OpenNetwork(AllPet.peer.tcp.PeerOption option);
         void CloseNetwork();
@@ -30,11 +29,11 @@ namespace AllPet.Pipeline
 
         IModulePipeline GetPipeline(IModuleInstance user, string urlActor);
 
-        void RegistPipeline(string path, IModuleInstance actor);
-        string GetPipelinePath(IModuleInstance actor);
+        void RegistModule(string path, IModuleInstance actor);
+        string GetModulePath(IModuleInstance actor);
 
         ICollection<string> GetAllPipelinePath();
-        void UnRegistPipeline(string path);
+        //void UnRegistModule(string path);
     }
 
     public interface ISystemPipeline
@@ -64,12 +63,13 @@ namespace AllPet.Pipeline
             get;
         }
         void Tell(byte[] data);
-        bool vaild
+        bool IsVaild
         {
             get;
         }
     }
-    public interface IModuleInstance
+
+    public interface IModuleInstance : IDisposable
     {
         ISystem _System
         {
@@ -83,17 +83,22 @@ namespace AllPet.Pipeline
         {
             get;
         }
+        bool HasDisposed
+        {
+            get;
+        }
         IModulePipeline GetPipeline(string urlActor);
+        void OnRegistered(ISystem system);
         void OnStart();
         void OnTell(IModulePipeline from, byte[] data);
         void QueueTell(IModulePipeline from, byte[] data);
     }
     public abstract class Module : IModuleInstance
     {
-        public Module(ISystem system, bool MultiThreadTell = true)
+        public Module(bool MultiThreadTell = true)
         {
-            this._System = system;
             this.MultiThreadTell = MultiThreadTell;
+            this.HasDisposed = false;
         }
         public bool MultiThreadTell
         {
@@ -113,9 +118,22 @@ namespace AllPet.Pipeline
                 return _inited > 0;
             }
         }
+        public bool HasDisposed
+        {
+            get;
+            private set;
+        }
         public IModulePipeline GetPipeline(string urlActor)
         {
             return _System.GetPipeline(this, urlActor);
+        }
+        public void OnRegistered(ISystem system)
+        {
+            this._System = system;
+        }
+        public virtual void Dispose()
+        {
+            this.HasDisposed = true;
         }
         public void OnStarted()
         {

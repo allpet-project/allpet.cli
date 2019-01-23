@@ -51,14 +51,14 @@ namespace AllPet.Pipeline
         {
 
         }
-        public void RegistPipeline(string path, IModuleInstance actor)
+        public void RegistModule(string path, IModuleInstance actor)
         {
             if (localActors.ContainsKey(path) == true)
                 throw new Exception("already have that path.");
 
             localActors[path] = actor;
             localActorPath[actor] = path;
-
+            actor.OnRegistered(this);
 
             if (bStarted)
             {
@@ -68,7 +68,7 @@ namespace AllPet.Pipeline
                 });
             }
         }
-        public void UnRegistPipeline(string path)
+        public void UnRegistModule(string path)
         {
             if (path.IndexOf("this/") != 0)
                 path = "this/" + path;
@@ -82,7 +82,7 @@ namespace AllPet.Pipeline
                 localActors.TryRemove(path, out IModuleInstance actor);
             }
         }
-        public string GetPipelinePath(IModuleInstance actor)
+        public string GetModulePath(IModuleInstance actor)
         {
             if (localActorPath.TryGetValue(actor, out string path))
             {

@@ -1,9 +1,10 @@
 ﻿using AllPet.peer.tcp;
+using AllPet.Pipeline;
 using System;
 
 namespace AllPet.node
 {
-    public interface INode : IDisposable
+    public interface INode :AllPet.Pipeline.IModuleInstance, IDisposable
     {
         void InitChain(string dbpath, Config_ChainInit info);//链初始化
 
@@ -34,7 +35,7 @@ namespace AllPet.node
             return null;
         }
     }
-    class PeerNode : INode
+    class PeerNode : AllPet.Pipeline.Module, INode
     {
 
         public PeerNode()
@@ -42,6 +43,12 @@ namespace AllPet.node
 
         }
 
+        public override void OnStart()
+        {
+        }
+        public override void OnTell(IModulePipeline from, byte[] data)
+        {
+        }
         block.BlockChain chain;
 
         public IPeer Newwork

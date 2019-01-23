@@ -36,8 +36,8 @@ namespace AllPet.Pipeline.test
             var systemR = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             systemR.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemR.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));
-            systemR.RegistPipeline("hello", new Hello(systemR));
-            systemR.RegistPipeline("hello2", new Hello(systemR));
+            systemR.RegistModule("hello", new Hello());
+            systemR.RegistModule("hello2", new Hello());
             systemR.Start();
 
 
@@ -57,9 +57,10 @@ namespace AllPet.Pipeline.test
                 var line = Console.ReadLine();
                 if (line == "exit")
                 {
-                    systemR.UnRegistPipeline("hello");
-                    systemR.Dispose();
-                    systemL.Dispose();
+                    //不能这样粗暴关闭的，关闭应该由actor内部发起
+                    //systemR.UnRegistModule("hello");
+                    //systemR.Dispose();
+                    //systemL.Dispose();
                     break;
                 }
                 actor.Tell(System.Text.Encoding.UTF8.GetBytes(line));
@@ -69,8 +70,8 @@ namespace AllPet.Pipeline.test
         public async static Task LocalTest()
         {
             var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
-            system.RegistPipeline("hello", new Hello(system));//actor习惯，连注册这个活都丢线程池，我这里简化一些
-            system.RegistPipeline("hello2", new Hello2(system));//actor习惯，连注册这个活都丢线程池，我这里简化一些
+            system.RegistModule("hello", new Hello());//actor习惯，连注册这个活都丢线程池，我这里简化一些
+            system.RegistModule("hello2", new Hello2());//actor习惯，连注册这个活都丢线程池，我这里简化一些
 
             system.Start();
             var actor = system.GetPipeline(null, "this/hello");
@@ -83,8 +84,9 @@ namespace AllPet.Pipeline.test
                 var line = Console.ReadLine();
                 if (line == "exit")
                 {
-                    system.UnRegistPipeline("hello");
-                    system.Dispose();
+                    //不能这样粗暴关闭的，关闭应该由actor内部发起
+                    //system.UnRegistModule("hello");
+                    //system.Dispose();
                     break;
                 }
                 actor.Tell(System.Text.Encoding.UTF8.GetBytes(line));
@@ -95,7 +97,7 @@ namespace AllPet.Pipeline.test
 
     class Hello : Module
     {
-        public Hello(ISystem system) : base(system,false)
+        public Hello() : base(false)
         {
         }
         IModulePipeline refhello2;
@@ -111,10 +113,7 @@ namespace AllPet.Pipeline.test
     }
     class Hello2 : Module
     {
-        public Hello2(ISystem system) : base(system,false)
-        {
 
-        }
         public override void OnStart()
         {
         }
