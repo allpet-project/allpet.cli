@@ -9,8 +9,7 @@ namespace allpet.db.PP
     public class DistributedDB : Module
     {
         DB db = new DB();
-        Dictionary<ActionEnum, BaseAction> actionFactory = new Dictionary<ActionEnum, BaseAction>();
-
+        Dictionary<MsgEnum, BaseOrder> actionFactory = new Dictionary<MsgEnum, BaseOrder>();
         public DistributedDB(bool MultiThreadTell = true) : base(MultiThreadTell)
         {
 
@@ -18,39 +17,34 @@ namespace allpet.db.PP
 
         public override void OnStart()
         {
-            this.registeAction(ActionEnum.Put,new PutAction(db));
+            this.registeAction(MsgEnum.Put,new PutOrder(db));
         }
 
         public override void OnTell(IModulePipeline from, byte[] data)
         {
-            ActionEnum actiontype = (ActionEnum)StreamHelp.readByte(data);
-            if (this.actionFactory.ContainsKey(actiontype))
+            BaseMsg msg=MsgHelper.getMessage(data);
+            if(msg!=null)
             {
-                this.actionFactory[actiontype].handle(from, data);
+                if(this.actionFactory.ContainsKey(msg.msgtype))
+                {
+                    this.actionFactory[msg.msgtype].handle(from, msg);
+                }
             }
         }
 
-        void registeAction(ActionEnum action, BaseAction actionInc)
+        void registeAction(MsgEnum type, BaseOrder actionInc)
         {
-            this.actionFactory.Add(action, actionInc);
+            this.actionFactory.Add(type, actionInc);
         }
     }
 
-    public enum ActionEnum
-    {
-        Put,
-        Delete,
-        CreateTable,
-        DeleteTable
-    }
-
-    public abstract class BaseAction
+    public abstract class BaseOrder
     {
         protected DB db;
-        public BaseAction(DB dB)
+        public BaseOrder(DB dB)
         {
             this.db = dB;
         }
-        public abstract void handle(IModulePipeline from, byte[] data);
+        public abstract void handle(IModulePipeline from, BaseMsg msg);
     }
 }
