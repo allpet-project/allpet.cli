@@ -13,11 +13,12 @@ namespace allpet.db.PP
 
         public DistributedDB(bool MultiThreadTell = true) : base(MultiThreadTell)
         {
+
         }
 
         public override void OnStart()
         {
-            throw new NotImplementedException();
+            this.registeAction(ActionEnum.Put,new PutAction(db));
         }
 
         public override void OnTell(IModulePipeline from, byte[] data)
