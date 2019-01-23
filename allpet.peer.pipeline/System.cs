@@ -7,26 +7,26 @@ using AllPet.peer.tcp;
 
 namespace AllPet.Pipeline
 {
-    class PipelineSystemV1 : IPipelineSystem
+    class PipelineSystemV1 : ISystem
     {
         //本地创建的Actor实例
         global::System.Collections.Concurrent.ConcurrentDictionary<string, IModuleInstance> localActors;
         global::System.Collections.Concurrent.ConcurrentDictionary<IModuleInstance, string> localActorPath;
         //所有的Actor引用，无论是远程的还是本地的
-        global::System.Collections.Concurrent.ConcurrentDictionary<string, IModuleRef> refActors;
+        global::System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline> refActors;
 
-        global::System.Collections.Concurrent.ConcurrentDictionary<string, ISystemRef> refSystems;
+        global::System.Collections.Concurrent.ConcurrentDictionary<string, ISystemPipeline> refSystems;
 
         //建立连接时找ip用
         global::System.Collections.Concurrent.ConcurrentDictionary<UInt64, string> linkedIP;
-        ISystemRef refSystemThis;
+        ISystemPipeline refSystemThis;
 
         public PipelineSystemV1()
         {
             localActors = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IModuleInstance>();
             localActorPath = new global::System.Collections.Concurrent.ConcurrentDictionary<IModuleInstance, string>();
-            refActors = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IModuleRef>();
-            refSystems = new global::System.Collections.Concurrent.ConcurrentDictionary<string, ISystemRef>();
+            refActors = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline>();
+            refSystems = new global::System.Collections.Concurrent.ConcurrentDictionary<string, ISystemPipeline>();
             linkedIP = new global::System.Collections.Concurrent.ConcurrentDictionary<ulong, string>();
             refSystemThis = new PipelineSystemRefLocal(this);
         }
@@ -36,38 +36,53 @@ namespace AllPet.Pipeline
             bStarted = true;
             foreach (var pipe in this.localActors)
             {
-                pipe.Value.OnStart();
+                System.Threading.ThreadPool.QueueUserWorkItem((e) =>
+                {
+                    pipe.Value.OnStart();
+                    pipe.Value.OnStarted();
+                });
             }
         }
-        public void Close()
-        {
-            this.Dispose();
-        }
 
+
+        public bool Disposed
+        {
+            get;
+            private set;
+        }
         public void Dispose()
         {
-
+            if (this.Disposed)
+                return;
+            this.CloseListen();
+            this.CloseNetwork();
+            this.Disposed = true;
         }
-        public void RegistPipeline(string path, IModuleInstance actor)
+        public void RegistModule(string path, IModuleInstance actor)
         {
             if (localActors.ContainsKey(path) == true)
                 throw new Exception("already have that path.");
 
             localActors[path] = actor;
             localActorPath[actor] = path;
-
+            actor.OnRegistered(this);
 
             if (bStarted)
-                actor.OnStart();
-
+            {
+                System.Threading.ThreadPool.QueueUserWorkItem((e) =>
+                {
+                    actor.OnStart();
+                    actor.OnStarted();
+                });
+            }
         }
-        public void UnRegistPipeline(string path)
+        public void UnRegistModule(string path)
         {
             if (path.IndexOf("this/") != 0)
                 path = "this/" + path;
             if (refActors.ContainsKey(path))
             {
-                refActors.TryRemove(path, out IModuleRef actor);
+                refActors.TryRemove(path, out IModulePipeline actor);
             }
             path = path.Substring(5);
             if (localActors.ContainsKey(path))
@@ -75,7 +90,7 @@ namespace AllPet.Pipeline
                 localActors.TryRemove(path, out IModuleInstance actor);
             }
         }
-        public string GetPipelinePath(IModuleInstance actor)
+        public string GetModulePath(IModuleInstance actor)
         {
             if (localActorPath.TryGetValue(actor, out string path))
             {
@@ -83,14 +98,18 @@ namespace AllPet.Pipeline
             }
             return null;
         }
-        public IModuleRef GetPipeline(IModuleInstance user, string urlActor)
+        
+        public IModulePipeline GetPipeline(IModuleInstance user, string urlActor)
         {
+            if (bStarted == false)
+                throw new Exception("must getpipeline after System.Start()");
+
             var userstr = "";
             if (user != null)
                 userstr = localActorPath[user];
             var refName = userstr + "_" + urlActor;
 
-            if (refActors.TryGetValue(refName, out IModuleRef pipe))
+            if (refActors.TryGetValue(refName, out IModulePipeline pipe))
             {
                 return pipe;
             }
@@ -107,7 +126,7 @@ namespace AllPet.Pipeline
                 var sppos = urlActor.IndexOf('/');
                 var addr = urlActor.Substring(0, sppos);
                 var path = urlActor.Substring(sppos + 1);
-                ISystemRef refsys = null;
+                ISystemPipeline refsys = null;
                 if (refSystems.TryGetValue(addr, out refsys))
                 {
 
@@ -181,8 +200,8 @@ namespace AllPet.Pipeline
         }
         public void CloseNetwork()
         {
-            if (peer != null)
-                throw new Exception("have not init peer.");
+            if (peer == null)
+                return;
             peer.Close();
             peer = null;
         }
@@ -197,12 +216,12 @@ namespace AllPet.Pipeline
         public void CloseListen()
         {
             if (peer == null)
-                throw new Exception("not init peer.");
+                return;
 
             peer.StopListen();
         }
 
-        public async Task<ISystemRef> Connect(IPEndPoint remote)
+        public async Task<ISystemPipeline> Connect(IPEndPoint remote)
         {
             if (peer == null)
                 throw new Exception("not init peer.");
@@ -213,7 +232,7 @@ namespace AllPet.Pipeline
             while (true)
             {
                 await global::System.Threading.Tasks.Task.Delay(100);
-                if (this.refSystems.TryGetValue(remotestr, out ISystemRef sys))
+                if (this.refSystems.TryGetValue(remotestr, out ISystemPipeline sys))
                 {
                     return sys;
                 }
@@ -231,7 +250,7 @@ namespace AllPet.Pipeline
         {
             return refSystems.Keys;
         }
-        public ICollection<ISystemRef> GetAllSystems()
+        public ICollection<ISystemPipeline> GetAllSystems()
         {
             return refSystems.Values;
         }

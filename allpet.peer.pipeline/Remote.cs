@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AllPet.Pipeline
 {
-    class RefSystemRemote : ISystemRef
+    class RefSystemRemote : ISystemPipeline
     {
         public AllPet.peer.tcp.IPeer peer;
         public UInt64 peerid;
@@ -29,9 +29,9 @@ namespace AllPet.Pipeline
             set;
         }
     }
-    class PipelineRefRemote : IModuleRef
+    class PipelineRefRemote : IModulePipeline
     {
-        public PipelineRefRemote(ISystemRef usersystem, string userPath, RefSystemRemote remotesystem,  string path)
+        public PipelineRefRemote(ISystemPipeline usersystem, string userPath, RefSystemRemote remotesystem,  string path)
         {
             this._usersystem = usersystem;
             this.userpath = userPath;
@@ -41,9 +41,9 @@ namespace AllPet.Pipeline
         }
 
         RefSystemRemote _remotesystem;
-        ISystemRef _usersystem;
+        ISystemPipeline _usersystem;
         string userpath;
-        public ISystemRef system
+        public ISystemPipeline system
         {
             get
             {
@@ -57,7 +57,7 @@ namespace AllPet.Pipeline
             private set;
         }
 
-        public bool vaild
+        public bool IsVaild
         {
             get
             {

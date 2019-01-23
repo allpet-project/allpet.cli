@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\allpet.cryptology\allpet.cryptology.csproj" />
     <ProjectReference Include="..\allpet.db.simple\allpet.db.simple.csproj" />
+    <ProjectReference Include="..\allpet.peer.pipeline\allpet.peer.pipeline.csproj" />
     <ProjectReference Include="..\allpet.peer.tcp.Interface\allpet.Peer.Tcp.Interface.csproj" />
   </ItemGroup>
 
