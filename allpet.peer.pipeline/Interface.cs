@@ -90,6 +90,7 @@ namespace AllPet.Pipeline
         IModulePipeline GetPipeline(string urlActor);
         void OnRegistered(ISystem system);
         void OnStart();
+        void OnStarted();
         void OnTell(IModulePipeline from, byte[] data);
         void QueueTell(IModulePipeline from, byte[] data);
     }
@@ -171,6 +172,8 @@ namespace AllPet.Pipeline
         }
         void DequeueThread()
         {
+            if (queueObj == null)
+                return;
             while (MultiThreadTell == false || queueObj.IsEmpty == false)
             {
                 if (queueObj.TryDequeue(out QueueObj queueobj))

@@ -42,6 +42,7 @@ namespace AllPet.nodecli
 
 
             InitMenu();
+
             MenuLoop();
 
 

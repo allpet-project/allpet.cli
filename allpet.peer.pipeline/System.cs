@@ -39,17 +39,24 @@ namespace AllPet.Pipeline
                 System.Threading.ThreadPool.QueueUserWorkItem((e) =>
                 {
                     pipe.Value.OnStart();
+                    pipe.Value.OnStarted();
                 });
             }
         }
-        public void Close()
-        {
-            this.Dispose();
-        }
 
+
+        public bool Disposed
+        {
+            get;
+            private set;
+        }
         public void Dispose()
         {
-
+            if (this.Disposed)
+                return;
+            this.CloseListen();
+            this.CloseNetwork();
+            this.Disposed = true;
         }
         public void RegistModule(string path, IModuleInstance actor)
         {
@@ -65,6 +72,7 @@ namespace AllPet.Pipeline
                 System.Threading.ThreadPool.QueueUserWorkItem((e) =>
                 {
                     actor.OnStart();
+                    actor.OnStarted();
                 });
             }
         }
@@ -192,8 +200,8 @@ namespace AllPet.Pipeline
         }
         public void CloseNetwork()
         {
-            if (peer != null)
-                throw new Exception("have not init peer.");
+            if (peer == null)
+                return;
             peer.Close();
             peer = null;
         }
@@ -208,7 +216,7 @@ namespace AllPet.Pipeline
         public void CloseListen()
         {
             if (peer == null)
-                throw new Exception("not init peer.");
+                return;
 
             peer.StopListen();
         }
