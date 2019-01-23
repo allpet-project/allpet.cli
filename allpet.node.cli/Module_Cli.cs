@@ -43,9 +43,12 @@ namespace AllPet.nodecli
 
             InitMenu();
 
-            MenuLoop();
+            //不能阻塞這個函數，OnStart一定要結束
+            System.Threading.ThreadPool.QueueUserWorkItem((s) =>
+            {
+                MenuLoop();
 
-
+            });
         }
         public override void OnTell(IModulePipeline from, byte[] data)
         {

@@ -131,6 +131,10 @@ namespace AllPet.Pipeline.test
 
 class Hello : Module
 {
+    /// <summary>
+    ///  base(false)表示這個模塊是單綫程投遞的，ontell 保證在 同一個綫程裏面
+    ///  base(true)或者沒有，則該模塊的OnTell為多綫程投遞，須自行處理綫程問題
+    /// </summary>
     public Hello() : base(false)//這個false 表示這個模塊是單綫程投遞的，ontell 保證在 同一個綫程裏面
     {
     }
