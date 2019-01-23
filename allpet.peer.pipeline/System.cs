@@ -98,7 +98,27 @@ namespace AllPet.Pipeline
             }
             return null;
         }
-        
+        public IModulePipeline GetPipelineFromRemote(ISystemPipeline system, string from, string urlActor)
+        {
+            if (bStarted == false)
+                throw new Exception("must getpipeline after System.Start()");
+
+            if (urlActor.IndexOf("this/") != 0)
+                throw new Exception("remote pipeonly");
+            var refName = from + "_" + urlActor;
+
+            if (refActors.TryGetValue(refName, out IModulePipeline pipe))
+            {
+                return pipe;
+            }
+
+            {
+                var actorpath = urlActor.Substring(5);
+                var actor = this.localActors[actorpath];
+                refActors[refName] = new PipelineRefLocal(refSystemThis, from, actorpath, actor);
+                return refActors[refName];
+            }
+        }
         public IModulePipeline GetPipeline(IModuleInstance user, string urlActor)
         {
             if (bStarted == false)
@@ -114,6 +134,23 @@ namespace AllPet.Pipeline
                 return pipe;
             }
 
+            if (urlActor[0] == '@')
+            {
+                var sppos = urlActor.IndexOf('/');
+                var addrid = UInt64.Parse(urlActor.Substring(1, sppos - 1));
+                var path = urlActor.Substring(sppos + 1);
+                var addr = linkedIP[addrid];
+                ISystemPipeline refsys = null;
+                if (refSystems.TryGetValue(addr, out refsys))
+                {
+
+                }
+                else
+                {//没连接
+                }
+                refActors[refName] = new PipelineRefRemote(refSystemThis, userstr, refsys as RefSystemRemote, path);
+                return refActors[refName];
+            }
             if (urlActor.IndexOf("this/") == 0)
             {
                 var actorpath = urlActor.Substring(5);
@@ -169,12 +206,10 @@ namespace AllPet.Pipeline
                 string from = System.Text.Encoding.UTF8.GetString(data, seek, fromlen); seek += fromlen;
                 var tolen = data[seek]; seek++;
                 string to = System.Text.Encoding.UTF8.GetString(data, seek, tolen); seek += tolen;
-                IModuleInstance user = null;
-                if (this.localActors.TryGetValue(from, out user))
-                {
-
-                }
-                var pipe = this.GetPipeline(user, "this/" + to);
+                var remotestr = linkedIP[id];
+                var refsys = this.refSystems[remotestr];
+                var pipe = this.GetPipelineFromRemote(refsys, '@' + id + "/" + from, "this/" + to);
+                //var pipe = this.GetPipeline(user, "this/" + to);
                 var outbytes = new byte[data.Length - seek];
                 fixed (byte* pdata = data, pout = outbytes)
                 {
@@ -185,11 +220,18 @@ namespace AllPet.Pipeline
 
             peer.OnAccepted += (ulong id, IPEndPoint endpoint) =>
             {
+                var remotestr = endpoint.ToString();
+                linkedIP[id] = remotestr;
+                RefSystemRemote remote = new RefSystemRemote(peer, remotestr, id);
+                remote.linked = true;
+                this.refSystems[remotestr] = remote;
+
                 Console.WriteLine("on accepted." + id + " = " + endpoint);
             };
 
             peer.OnConnected += (ulong id) =>
               {
+
                   //主动连接成功，创建一个systemRef
                   var remotestr = this.linkedIP[id];
                   RefSystemRemote remote = new RefSystemRemote(peer, remotestr, id);
