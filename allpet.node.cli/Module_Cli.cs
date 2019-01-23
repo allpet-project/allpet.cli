@@ -14,9 +14,11 @@ namespace AllPet.nodecli
         public HttpRPC rpc;
         public override void OnStart()
         {
-
             logger = new AllPet.Log.Logger();
             logger.Info("Allpet.Node v0.001");
+
+            //this._System.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));
+
             logger.Warn("test warn.");
             logger.Error("show Error.");
             var peer = AllPet.peer.tcp.PeerV2.CreatePeer();
