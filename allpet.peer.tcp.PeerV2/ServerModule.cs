@@ -117,7 +117,11 @@ namespace light.asynctcp
         }
         public void StopListen()
         {
-            socketListen.Close();
+            if (socketListen != null)
+            {
+                socketListen.Close();
+                socketListen = null;
+            }
         }
         void StartAccept(SocketAsyncEventArgs args)
         {
