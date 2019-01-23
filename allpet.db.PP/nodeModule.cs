@@ -6,17 +6,21 @@ using System.Text;
 
 namespace allpet.db.PP
 {
-    public class NodeModule : Pipeline
+    public class NodeModule : Module
     {
-        Dictionary<string, IPipelineRef> DataServerDic = new Dictionary<string, IPipelineRef>();
+        Dictionary<string, IModulePipeline> DataServerDic = new Dictionary<string, IModulePipeline>();
         List<string> serverPath = new List<string>();
 
-        public NodeModule(IPipelineSystem system) : base(system)
+        public NodeModule(bool MultiThreadTell = true) : base(MultiThreadTell)
         {
 
         }
 
-        public override void OnTell(IPipelineRef from, byte[] data)
+        public override void OnStart()
+        {
+
+        }
+        public override void OnTell(IModulePipeline from, byte[] data)
         {
             var database = getServer(data);
             database.Tell(data);
@@ -27,7 +31,7 @@ namespace allpet.db.PP
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        IPipelineRef getServer(byte[] data)
+        IModulePipeline getServer(byte[] data)
         {
             int hash = Helper_NEO.CalcHash256(data).GetHashCode() % serverPath.Count;
             var path = serverPath[hash];

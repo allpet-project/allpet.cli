@@ -5,25 +5,25 @@ using System.Text;
 
 namespace allpet.db.PP
 {
-    interface IDbClient
-    {
+    //interface IDbClient
+    //{
 
-    }
+    //}
 
-    class DbClient : Pipeline
-    {
-        public DbClient(IPipelineSystem system) : base(system)
-        {
-        }
+    //class DbClient : Pipeline
+    //{
+    //    public DbClient(IPipelineSystem system) : base(system)
+    //    {
+    //    }
 
-        public override void OnTell(IPipelineRef from, byte[] data)
-        {
-            throw new NotImplementedException();
-        }
+    //    public override void OnTell(IPipelineRef from, byte[] data)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        public void put()
-        {
+    //    public void put()
+    //    {
 
-        }
-    }
+    //    }
+    //}
 }

@@ -9,7 +9,7 @@ namespace allpet.db.PP
         {
             
         }
-        public override void handle(IPipelineRef from, byte[] data)
+        public override void handle(IModulePipeline from, byte[] data)
         {
             ActionData acdata=ActionData.FromRaw(data);
             db.PutDirect(acdata.tableid,acdata.key,acdata.finnaldata);

@@ -6,21 +6,26 @@ using System.Text;
 
 namespace allpet.db.PP
 {
-    public class DistributedDB : Pipeline
+    public class DistributedDB : Module
     {
         DB db = new DB();
         Dictionary<ActionEnum, BaseAction> actionFactory = new Dictionary<ActionEnum, BaseAction>();
 
-        public DistributedDB(IPipelineSystem system) : base(system)
+        public DistributedDB(bool MultiThreadTell = true) : base(MultiThreadTell)
         {
-            this.registeAction(ActionEnum.Put,new PutAction(db));
         }
-        public override void OnTell(IPipelineRef from, byte[] data)
+
+        public override void OnStart()
         {
-            ActionEnum actiontype= (ActionEnum)StreamHelp.readByte(data);
-            if(this.actionFactory.ContainsKey(actiontype))
+            throw new NotImplementedException();
+        }
+
+        public override void OnTell(IModulePipeline from, byte[] data)
+        {
+            ActionEnum actiontype = (ActionEnum)StreamHelp.readByte(data);
+            if (this.actionFactory.ContainsKey(actiontype))
             {
-                this.actionFactory[actiontype].handle(from,data);
+                this.actionFactory[actiontype].handle(from, data);
             }
         }
 
@@ -45,6 +50,6 @@ namespace allpet.db.PP
         {
             this.db = dB;
         }
-        public abstract void handle(IPipelineRef from, byte[] data);
+        public abstract void handle(IModulePipeline from, byte[] data);
     }
 }
