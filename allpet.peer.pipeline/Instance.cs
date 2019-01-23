@@ -4,11 +4,11 @@ using System.Text;
 
 namespace AllPet.Pipeline
 {
-    public class Instance
+    public class PipelineSystem
     {
-        public static IPipelineSystem CreateActorSystem()
+        public static IPipelineSystem CreatePipelineSystemV1()
         {
-            return new PipelineSystem();
+            return new PipelineSystemV1();
         }
     }
 }

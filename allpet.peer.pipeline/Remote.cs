@@ -29,7 +29,7 @@ namespace AllPet.Pipeline
             set;
         }
     }
-    class PipelineRefRemote : IPipelineRef
+    class PipelineRefRemote : IModuleRef
     {
         public PipelineRefRemote(ISystemRef usersystem, string userPath, RefSystemRemote remotesystem,  string path)
         {

@@ -5,9 +5,9 @@ using System.Text;
 
 namespace AllPet.Pipeline
 {
-    class PipelineRefLocal : IPipelineRef
+    class PipelineRefLocal : IModuleRef
     {
-        public PipelineRefLocal(ISystemRef system, string userPath, string path, IPipelineInstance actor)
+        public PipelineRefLocal(ISystemRef system, string userPath, string path, IModuleInstance actor)
         {
             this.system = system;
             if (string.IsNullOrEmpty(userPath))
@@ -17,7 +17,7 @@ namespace AllPet.Pipeline
             this.path = path;
             this.actorInstance = actor;
         }
-        public IPipelineInstance actorInstance;
+        public IModuleInstance actorInstance;
         public string userUrl;
         public ISystemRef system
         {

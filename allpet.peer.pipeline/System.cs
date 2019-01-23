@@ -7,13 +7,13 @@ using AllPet.peer.tcp;
 
 namespace AllPet.Pipeline
 {
-    class PipelineSystem : IPipelineSystem
+    class PipelineSystemV1 : IPipelineSystem
     {
         //本地创建的Actor实例
-        global::System.Collections.Concurrent.ConcurrentDictionary<string, IPipelineInstance> localActors;
-        global::System.Collections.Concurrent.ConcurrentDictionary<IPipelineInstance, string> localActorPath;
+        global::System.Collections.Concurrent.ConcurrentDictionary<string, IModuleInstance> localActors;
+        global::System.Collections.Concurrent.ConcurrentDictionary<IModuleInstance, string> localActorPath;
         //所有的Actor引用，无论是远程的还是本地的
-        global::System.Collections.Concurrent.ConcurrentDictionary<string, IPipelineRef> refActors;
+        global::System.Collections.Concurrent.ConcurrentDictionary<string, IModuleRef> refActors;
 
         global::System.Collections.Concurrent.ConcurrentDictionary<string, ISystemRef> refSystems;
 
@@ -21,11 +21,11 @@ namespace AllPet.Pipeline
         global::System.Collections.Concurrent.ConcurrentDictionary<UInt64, string> linkedIP;
         ISystemRef refSystemThis;
 
-        public PipelineSystem()
+        public PipelineSystemV1()
         {
-            localActors = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IPipelineInstance>();
-            localActorPath = new global::System.Collections.Concurrent.ConcurrentDictionary<IPipelineInstance, string>();
-            refActors = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IPipelineRef>();
+            localActors = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IModuleInstance>();
+            localActorPath = new global::System.Collections.Concurrent.ConcurrentDictionary<IModuleInstance, string>();
+            refActors = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IModuleRef>();
             refSystems = new global::System.Collections.Concurrent.ConcurrentDictionary<string, ISystemRef>();
             linkedIP = new global::System.Collections.Concurrent.ConcurrentDictionary<ulong, string>();
             refSystemThis = new PipelineSystemRefLocal(this);
@@ -48,7 +48,7 @@ namespace AllPet.Pipeline
         {
 
         }
-        public void RegistPipeline(string path, IPipelineInstance actor)
+        public void RegistPipeline(string path, IModuleInstance actor)
         {
             if (localActors.ContainsKey(path) == true)
                 throw new Exception("already have that path.");
@@ -67,15 +67,15 @@ namespace AllPet.Pipeline
                 path = "this/" + path;
             if (refActors.ContainsKey(path))
             {
-                refActors.TryRemove(path, out IPipelineRef actor);
+                refActors.TryRemove(path, out IModuleRef actor);
             }
             path = path.Substring(5);
             if (localActors.ContainsKey(path))
             {
-                localActors.TryRemove(path, out IPipelineInstance actor);
+                localActors.TryRemove(path, out IModuleInstance actor);
             }
         }
-        public string GetPipelinePath(IPipelineInstance actor)
+        public string GetPipelinePath(IModuleInstance actor)
         {
             if (localActorPath.TryGetValue(actor, out string path))
             {
@@ -83,14 +83,14 @@ namespace AllPet.Pipeline
             }
             return null;
         }
-        public IPipelineRef GetPipeline(IPipelineInstance user, string urlActor)
+        public IModuleRef GetPipeline(IModuleInstance user, string urlActor)
         {
             var userstr = "";
             if (user != null)
                 userstr = localActorPath[user];
             var refName = userstr + "_" + urlActor;
 
-            if (refActors.TryGetValue(refName, out IPipelineRef pipe))
+            if (refActors.TryGetValue(refName, out IModuleRef pipe))
             {
                 return pipe;
             }
@@ -150,7 +150,7 @@ namespace AllPet.Pipeline
                 string from = System.Text.Encoding.UTF8.GetString(data, seek, fromlen); seek += fromlen;
                 var tolen = data[seek]; seek++;
                 string to = System.Text.Encoding.UTF8.GetString(data, seek, tolen); seek += tolen;
-                IPipelineInstance user = null;
+                IModuleInstance user = null;
                 if (this.localActors.TryGetValue(from, out user))
                 {
 

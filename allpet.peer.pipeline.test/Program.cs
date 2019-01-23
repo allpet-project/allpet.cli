@@ -33,13 +33,13 @@ namespace AllPet.Pipeline.test
         }
         public async static Task RemoteTest()
         {
-            var systemR = AllPet.Pipeline.Instance.CreateActorSystem();
+            var systemR = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             systemR.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemR.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));
             systemR.RegistPipeline("hello", new Hello(systemR));
 
 
-            var systemL = AllPet.Pipeline.Instance.CreateActorSystem();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
             var systemref = await systemL.Connect(remote);
@@ -64,7 +64,7 @@ namespace AllPet.Pipeline.test
         }
         public async static Task LocalTest()
         {
-            var system = AllPet.Pipeline.Instance.CreateActorSystem();
+            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             system.RegistPipeline("hello", new Hello(system));//actor习惯，连注册这个活都丢线程池，我这里简化一些
             system.RegistPipeline("hello2", new Hello2(system));//actor习惯，连注册这个活都丢线程池，我这里简化一些
 
@@ -94,13 +94,13 @@ namespace AllPet.Pipeline.test
         public Hello(IPipelineSystem system) : base(system)
         {
         }
-        IPipelineRef refhello2;
+        IModuleRef refhello2;
         public override void OnStart()
         {
             var refhello2 = this.GetPipeline("this/hello2");
             refhello2.Tell(System.Text.Encoding.UTF8.GetBytes("abcde"));
         }
-        public override void OnTell(IPipelineRef from, byte[] data)
+        public override void OnTell(IModuleRef from, byte[] data)
         {
             Console.WriteLine("Hello:" + System.Text.Encoding.UTF8.GetString(data));
         }
@@ -111,7 +111,7 @@ namespace AllPet.Pipeline.test
         {
 
         }
-        public override void OnTell(IPipelineRef from, byte[] data)
+        public override void OnTell(IModuleRef from, byte[] data)
         {
             Console.WriteLine("Hello2:" + System.Text.Encoding.UTF8.GetString(data));
 

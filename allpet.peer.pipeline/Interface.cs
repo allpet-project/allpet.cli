@@ -28,10 +28,10 @@ namespace AllPet.Pipeline
         ICollection<string> GetAllSystemsPath();
         ICollection<ISystemRef> GetAllSystems();
 
-        IPipelineRef GetPipeline(IPipelineInstance user, string urlActor);
+        IModuleRef GetPipeline(IModuleInstance user, string urlActor);
 
-        void RegistPipeline(string path, IPipelineInstance actor);
-        string GetPipelinePath(IPipelineInstance actor);
+        void RegistPipeline(string path, IModuleInstance actor);
+        string GetPipelinePath(IModuleInstance actor);
 
         ICollection<string> GetAllPipelinePath();
         void UnRegistPipeline(string path);
@@ -53,7 +53,7 @@ namespace AllPet.Pipeline
         }
     }
     //连接到的actor
-    public interface IPipelineRef
+    public interface IModuleRef
     {
         ISystemRef system
         {
@@ -69,17 +69,17 @@ namespace AllPet.Pipeline
             get;
         }
     }
-    public interface IPipelineInstance
+    public interface IModuleInstance
     {
         IPipelineSystem system
         {
             get;
         }
-        IPipelineRef GetPipeline(string urlActor);
+        IModuleRef GetPipeline(string urlActor);
         void OnStart();
-        void OnTell(IPipelineRef from, byte[] data);
+        void OnTell(IModuleRef from, byte[] data);
     }
-    public abstract class Pipeline : IPipelineInstance
+    public abstract class Pipeline : IModuleInstance
     {
         public Pipeline(IPipelineSystem system)
         {
@@ -90,7 +90,7 @@ namespace AllPet.Pipeline
             get;
             private set;
         }
-        public IPipelineRef GetPipeline(string urlActor)
+        public IModuleRef GetPipeline(string urlActor)
         {
             return system.GetPipeline(this, urlActor);
         }
@@ -98,6 +98,6 @@ namespace AllPet.Pipeline
         {
 
         }
-        public abstract void OnTell(IPipelineRef from, byte[] data);
+        public abstract void OnTell(IModuleRef from, byte[] data);
     }
 }
