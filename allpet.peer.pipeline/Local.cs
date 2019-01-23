@@ -12,6 +12,8 @@ namespace AllPet.Pipeline
             this.system = system;
             if (string.IsNullOrEmpty(userPath))
                 this.userUrl = null;
+            else if (userPath[0] == '@')
+                this.userUrl = userPath;
             else
                 this.userUrl = "this/" + userPath;
             this.path = path;
@@ -50,7 +52,15 @@ namespace AllPet.Pipeline
         {
             var _system = (system as PipelineSystemRefLocal).system;
 
-            var pipeline = userUrl == null ? null : _system.GetPipeline(actorInstance, userUrl);
+            IModulePipeline pipeline = null;
+            try
+            {
+                pipeline = userUrl == null ? null : _system.GetPipeline(actorInstance, userUrl);
+            }
+            catch
+            {
+                Console.WriteLine("error here.");
+            }
             if (actorInstance.MultiThreadTell == true && actorInstance.Inited)
             {//直接开线程投递，不阻塞
                 global::System.Threading.ThreadPool.QueueUserWorkItem((s) =>

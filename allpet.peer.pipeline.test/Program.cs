@@ -72,6 +72,7 @@ namespace AllPet.Pipeline.test
 
             //客戶端
             var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            systemL.RegistModule("me", new Local());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemL.Start();
 
@@ -80,11 +81,7 @@ namespace AllPet.Pipeline.test
             //連接
             var systemref = await systemL.Connect(remote);
 
-            //連接以後可以直接獲取一個遠程管道
-            var actor = systemL.GetPipeline(null, "127.0.0.1:8888/hello");
-            {
-                actor.Tell(System.Text.Encoding.UTF8.GetBytes("yeah very good."));
-            }
+            var actor = systemL.GetPipeline(null, "this/me");
             while (true)
             {
                 Console.Write("1.remote>");
@@ -128,7 +125,17 @@ namespace AllPet.Pipeline.test
     }
 
 }
-
+class Local : Module
+{
+    public override void OnStart()
+    {
+    }
+    public override void OnTell(IModulePipeline from, byte[] data)
+    {
+        var actor = this.GetPipeline("127.0.0.1:8888/hello");
+        actor.Tell(data);
+    }
+}
 class Hello : Module
 {
     /// <summary>
