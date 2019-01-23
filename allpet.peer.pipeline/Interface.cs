@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace AllPet.Pipeline
 {
     //管线系统
-    public interface IPipelineSystem : IDisposable
+    public interface ISystem : IDisposable
     {
         void Start();
         void Close();
@@ -24,11 +24,11 @@ namespace AllPet.Pipeline
         /// 连接到另一个ActorSystem，也不是必须的，GetActorRemote会自己去做这件事
         /// </summary>
         /// <param name="remote"></param>
-        Task<ISystemRef> Connect(IPEndPoint remote);//一个system 可以连接到另外一个系统,
+        Task<ISystemPipeline> Connect(IPEndPoint remote);//一个system 可以连接到另外一个系统,
         ICollection<string> GetAllSystemsPath();
-        ICollection<ISystemRef> GetAllSystems();
+        ICollection<ISystemPipeline> GetAllSystems();
 
-        IModuleRef GetPipeline(IModuleInstance user, string urlActor);
+        IModulePipeline GetPipeline(IModuleInstance user, string urlActor);
 
         void RegistPipeline(string path, IModuleInstance actor);
         string GetPipelinePath(IModuleInstance actor);
@@ -37,7 +37,7 @@ namespace AllPet.Pipeline
         void UnRegistPipeline(string path);
     }
 
-    public interface ISystemRef
+    public interface ISystemPipeline
     {
         bool IsLocal
         {
@@ -53,9 +53,9 @@ namespace AllPet.Pipeline
         }
     }
     //连接到的actor
-    public interface IModuleRef
+    public interface IModulePipeline
     {
-        ISystemRef system
+        ISystemPipeline system
         {
             get;
         }
@@ -71,33 +71,100 @@ namespace AllPet.Pipeline
     }
     public interface IModuleInstance
     {
-        IPipelineSystem system
+        ISystem _System
         {
             get;
         }
-        IModuleRef GetPipeline(string urlActor);
-        void OnStart();
-        void OnTell(IModuleRef from, byte[] data);
-    }
-    public abstract class Pipeline : IModuleInstance
-    {
-        public Pipeline(IPipelineSystem system)
+        bool MultiThreadTell
         {
-            this.system = system;
+            get;
         }
-        public IPipelineSystem system
+        bool Inited //是否已经初始化
+        {
+            get;
+        }
+        IModulePipeline GetPipeline(string urlActor);
+        void OnStart();
+        void OnTell(IModulePipeline from, byte[] data);
+        void QueueTell(IModulePipeline from, byte[] data);
+    }
+    public abstract class Module : IModuleInstance
+    {
+        public Module(ISystem system, bool MultiThreadTell = true)
+        {
+            this._System = system;
+            this.MultiThreadTell = MultiThreadTell;
+        }
+        public bool MultiThreadTell
         {
             get;
             private set;
         }
-        public IModuleRef GetPipeline(string urlActor)
+        public ISystem _System
         {
-            return system.GetPipeline(this, urlActor);
+            get;
+            private set;
         }
-        public virtual void OnStart()
+        private int _inited;
+        public bool Inited //是否已经初始化
         {
+            get
+            {
+                return _inited > 0;
+            }
+        }
+        public IModulePipeline GetPipeline(string urlActor)
+        {
+            return _System.GetPipeline(this, urlActor);
+        }
+        public void OnStarted()
+        {
+            if (MultiThreadTell == false)//如果是单线程投递，不用管，有dequeueThread处理
+            {
+
+            }
+            else
+            {//此时
+                DequeueThread();
+            }
+
+            global::System.Threading.Interlocked.Exchange(ref this._inited, 1);
 
         }
-        public abstract void OnTell(IModuleRef from, byte[] data);
+        class QueueObj
+        {
+            public IModulePipeline from;
+            public byte[] data;
+        }
+        System.Collections.Concurrent.ConcurrentQueue<QueueObj> queueObj;
+        public void QueueTell(IModulePipeline _from, byte[] _data)
+        {
+            if (queueObj == null)
+            {
+                queueObj = new System.Collections.Concurrent.ConcurrentQueue<QueueObj>();
+                if (MultiThreadTell == false)//单线程投递则必须开一个线程去处理队列消息
+                {
+                    global::System.Threading.Thread t = new System.Threading.Thread(DequeueThread);
+                    t.IsBackground = true;
+                    t.Start();
+                }
+            }
+            queueObj.Enqueue(new QueueObj() { data = _data, from = _from });
+        }
+        void DequeueThread()
+        {
+            while (MultiThreadTell == false || queueObj.IsEmpty == false)
+            {
+                if (queueObj.TryDequeue(out QueueObj queueobj))
+                {
+                    this.OnTell(queueobj.from, queueobj.data);
+                }
+                System.Threading.Thread.Sleep(1);
+            }
+        }
+
+        public abstract void OnStart();
+
+        public abstract void OnTell(IModulePipeline from, byte[] data);
     }
 }

@@ -6,7 +6,7 @@ namespace AllPet.Pipeline
 {
     public class PipelineSystem
     {
-        public static IPipelineSystem CreatePipelineSystemV1()
+        public static ISystem CreatePipelineSystemV1()
         {
             return new PipelineSystemV1();
         }

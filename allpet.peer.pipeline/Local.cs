@@ -5,9 +5,9 @@ using System.Text;
 
 namespace AllPet.Pipeline
 {
-    class PipelineRefLocal : IModuleRef
+    class PipelineRefLocal : IModulePipeline
     {
-        public PipelineRefLocal(ISystemRef system, string userPath, string path, IModuleInstance actor)
+        public PipelineRefLocal(ISystemPipeline system, string userPath, string path, IModuleInstance actor)
         {
             this.system = system;
             if (string.IsNullOrEmpty(userPath))
@@ -19,7 +19,7 @@ namespace AllPet.Pipeline
         }
         public IModuleInstance actorInstance;
         public string userUrl;
-        public ISystemRef system
+        public ISystemPipeline system
         {
             get;
             private set;
@@ -44,20 +44,28 @@ namespace AllPet.Pipeline
             var _system = (system as PipelineSystemRefLocal).system;
 
             var pipeline = userUrl == null ? null : _system.GetPipeline(actorInstance, userUrl);
-            global::System.Threading.ThreadPool.QueueUserWorkItem((s) =>
-            {
-                this.actorInstance.OnTell(pipeline, data);
+            if (actorInstance.MultiThreadTell == true&& actorInstance.Inited)
+            {//直接开线程投递，不阻塞
+                global::System.Threading.ThreadPool.QueueUserWorkItem((s) =>
+                {
+                    this.actorInstance.OnTell(pipeline, data);
+                }
+                );
             }
-            );
+            else
+            {
+                //队列投递,不阻塞，队列在内部实现
+                this.actorInstance.QueueTell(pipeline, data);
+            }
         }
     }
-    class PipelineSystemRefLocal : ISystemRef
+    class PipelineSystemRefLocal : ISystemPipeline
     {
-        public PipelineSystemRefLocal(IPipelineSystem system)
+        public PipelineSystemRefLocal(ISystem system)
         {
             this.system = system;
         }
-        public IPipelineSystem system;
+        public ISystem system;
         public bool IsLocal => true;
 
         public string remoteaddr => null;
