@@ -208,7 +208,7 @@ namespace AllPet.Pipeline
                 string to = System.Text.Encoding.UTF8.GetString(data, seek, tolen); seek += tolen;
                 var remotestr = linkedIP[id];
                 var refsys = this.refSystems[remotestr];
-                var pipe = this.GetPipelineFromRemote(refsys, '@' + id + "/" + from, "this/" + to);
+                var pipe = this.GetPipelineFromRemote(refsys, "@" + id + "/" + from, "this/" + to);
                 //var pipe = this.GetPipeline(user, "this/" + to);
                 var outbytes = new byte[data.Length - seek];
                 fixed (byte* pdata = data, pout = outbytes)
