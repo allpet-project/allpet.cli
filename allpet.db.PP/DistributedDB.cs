@@ -22,7 +22,7 @@ namespace allpet.db.PP
 
         public override void OnTell(IModulePipeline from, byte[] data)
         {
-            BaseMsg msg=MsgHelper.getMessage(data);
+            BaseMsg msg=MsgHelper.DecodeMessage(data);
             if(msg!=null)
             {
                 if(this.actionFactory.ContainsKey(msg.msgtype))

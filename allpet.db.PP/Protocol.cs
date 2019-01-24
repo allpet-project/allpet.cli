@@ -25,21 +25,21 @@ namespace allpet.db.PP
             }
         }
 
-        public static BaseMsg getMessage(byte[] msg)
+        public static BaseMsg DecodeMessage(byte[] msg)
         {
             MsgEnum type= getMessageType(msg);
             if(type!=MsgEnum.None&&msgDic.ContainsKey(type))
             {
-                return msgDic[type]().fromBytes(msg);
+                return msgDic[type]().decode(msg);
             }else
             {
                 return null;
             }
         }
 
-        public static byte[] getBytes(BaseMsg msg)
+        public static byte[] EncodeMessage(BaseMsg msg)
         {
-           return msg.toBytes();
+           return msg.encode();
         }
     }
 
@@ -53,9 +53,9 @@ namespace allpet.db.PP
         /// 输出字节流
         /// </summary>
         /// <returns></returns>
-        public abstract BaseMsg fromBytes(byte[] data);
+        public abstract BaseMsg decode(byte[] data);
 
-        public abstract byte[] toBytes();
+        public abstract byte[] encode();
     }
 
     public enum MsgEnum
@@ -78,7 +78,7 @@ namespace allpet.db.PP
             this.msgtype = MsgEnum.Put;
         }
 
-        public override BaseMsg fromBytes(byte[] data)
+        public override BaseMsg decode(byte[] data)
         {
             using (var stream = new System.IO.MemoryStream(data))
             {
@@ -90,7 +90,7 @@ namespace allpet.db.PP
             }
         }
 
-        public override byte[] toBytes()
+        public override byte[] encode()
         {
             using (var stream = new System.IO.MemoryStream())
             {
