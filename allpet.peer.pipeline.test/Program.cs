@@ -132,8 +132,17 @@ class Local : Module
     }
     public override void OnTell(IModulePipeline from, byte[] data)
     {
-        var actor = this.GetPipeline("127.0.0.1:8888/hello");
-        actor.Tell(data);
+        if (from == null)
+        {
+            var actor = this.GetPipeline("127.0.0.1:8888/hello");
+            actor.Tell(data);
+        }
+        else
+        {
+            Console.WriteLine("Local got from:" + from.system.remoteaddr + " // " + from.path);
+        }
+        Console.WriteLine("Local get info=" + global::System.Text.Encoding.UTF8.GetString(data));
+
     }
 }
 class Hello : Module
@@ -153,7 +162,12 @@ class Hello : Module
     }
     public override void OnTell(IModulePipeline from, byte[] data)
     {
-        Console.WriteLine("Hello:" + global::System.Text.Encoding.UTF8.GetString(data));
+        if(from!=null&&from.system.remoteaddr!=null)//从远程投递而来
+        {
+            Console.WriteLine("Hello get from:" + from.system.remoteaddr + " // " + from.path);
+            from.Tell(global::System.Text.Encoding.UTF8.GetBytes("hihihihi"));
+        }
+        Console.WriteLine("Hello get info=" + global::System.Text.Encoding.UTF8.GetString(data));
     }
 }
 class Hello2 : Module
