@@ -16,14 +16,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Akka" Version="1.3.11" />
+    <PackageReference Include="Akka.Remote" Version="1.3.11" />
     <PackageReference Include="allpet.db.simple" Version="1.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\allpet.peer.pipeline\allpet.peer.pipeline.csproj" />
-    <ProjectReference Include="..\..\allpet.peer.tcp.Interface\allpet.Peer.Tcp.Interface.csproj" />
-    <ProjectReference Include="..\..\allpet.peer.tcp.PeerV2\allpet.Peer.Tcp.PeerV2.csproj" />
     <ProjectReference Include="..\SimplDb.Protocol.Sdk\SimplDb.Protocol.Sdk.csproj" />
   </ItemGroup>
 
