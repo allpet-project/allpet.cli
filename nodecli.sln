@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{33ED0B06-F18D-48CA-8493-39F1F319567D}"
 	ProjectSection(SolutionItems) = preProject
@@ -32,7 +32,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.peer.pipeline", "all
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.db.PP", "allpet.db.PP\allpet.db.PP.csproj", "{F79385F7-506F-4247-9388-47397E406FCC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "allpet.db.PP.test", "allpet.db.PP.test\allpet.db.PP.test.csproj", "{FD32A0DE-E7B9-4DD9-A942-D59814AE781A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.db.PP.test", "allpet.db.PP.test\allpet.db.PP.test.csproj", "{FD32A0DE-E7B9-4DD9-A942-D59814AE781A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SimpleDb", "SimpleDb", "{1E8B2A67-DC94-46E5-B970-BE0FE3A0B7C2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimplDb.Protocol.Sdk", "SimpleDb\SimplDb.Protocol.Sdk\SimplDb.Protocol.Sdk.csproj", "{DEFDED6A-9DDF-4FFF-BCAB-DFF773429612}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleDb.Client", "SimpleDb\SimpleDb.Client\SimpleDb.Client.csproj", "{2FD36790-A9DA-44C0-9810-52D096ABDA7B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleDb.Server", "SimpleDb\SimpleDb.Server\SimpleDb.Server.csproj", "{0FE136E3-3A83-4122-A9E0-C2B4CF3C5133}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -88,6 +96,18 @@ Global
 		{FD32A0DE-E7B9-4DD9-A942-D59814AE781A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD32A0DE-E7B9-4DD9-A942-D59814AE781A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD32A0DE-E7B9-4DD9-A942-D59814AE781A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEFDED6A-9DDF-4FFF-BCAB-DFF773429612}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEFDED6A-9DDF-4FFF-BCAB-DFF773429612}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEFDED6A-9DDF-4FFF-BCAB-DFF773429612}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEFDED6A-9DDF-4FFF-BCAB-DFF773429612}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FD36790-A9DA-44C0-9810-52D096ABDA7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FD36790-A9DA-44C0-9810-52D096ABDA7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FD36790-A9DA-44C0-9810-52D096ABDA7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FD36790-A9DA-44C0-9810-52D096ABDA7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FE136E3-3A83-4122-A9E0-C2B4CF3C5133}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FE136E3-3A83-4122-A9E0-C2B4CF3C5133}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FE136E3-3A83-4122-A9E0-C2B4CF3C5133}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FE136E3-3A83-4122-A9E0-C2B4CF3C5133}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -104,6 +124,10 @@ Global
 		{37B53F13-4C6B-4F90-9002-E9EDE0C910B5} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
 		{F79385F7-506F-4247-9388-47397E406FCC} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
 		{FD32A0DE-E7B9-4DD9-A942-D59814AE781A} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
+		{1E8B2A67-DC94-46E5-B970-BE0FE3A0B7C2} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
+		{DEFDED6A-9DDF-4FFF-BCAB-DFF773429612} = {1E8B2A67-DC94-46E5-B970-BE0FE3A0B7C2}
+		{2FD36790-A9DA-44C0-9810-52D096ABDA7B} = {1E8B2A67-DC94-46E5-B970-BE0FE3A0B7C2}
+		{0FE136E3-3A83-4122-A9E0-C2B4CF3C5133} = {1E8B2A67-DC94-46E5-B970-BE0FE3A0B7C2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD701AF9-F9D8-4D2B-A1C1-C7DB3265A6E5}
