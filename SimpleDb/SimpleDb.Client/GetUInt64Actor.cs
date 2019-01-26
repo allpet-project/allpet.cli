@@ -1,32 +1,30 @@
-﻿using AllPet.Pipeline;
+﻿using Akka.Actor;
+using SimplDb.Protocol.Sdk.ActorMessage;
+using SimplDb.Protocol.Sdk.ActorMessage.BackMessage;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace SimpleDb.Client
 {
-    public class GetUInt64Actor : Module
+    public class GetUInt64Actor : ReceiveActor, ILogReceive
     {
-        public GetUInt64Actor() : base(false)
-        {
-        }
-        public override void OnStart()
-        {
+        private ActorSelection _server;
 
-        }
-        public override void OnTell(IModulePipeline from, byte[] data)
+        public GetUInt64Actor(string path)
         {
-            if (from == null)
+            _server = Context.ActorSelection(path);
+            Receive<SimpleDbMessage>((msg) =>
             {
-                var actor = this.GetPipeline("127.0.0.1:8888/simpledb");
+                _server.Tell(msg);
+            });
 
-                actor.Tell(data);
-            }
-            else
+            Receive<ULongValueMessage>((msg) =>
             {
-                var longValue = BitConverter.ToUInt64(data);
-                Console.WriteLine("Remote :Back length=" + longValue);
-            }
+                Console.WriteLine("GetUInt64Actor Back :" + msg.msg);
+            });
+
+
         }
     }
 }

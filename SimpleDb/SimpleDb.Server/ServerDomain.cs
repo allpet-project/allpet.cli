@@ -1,5 +1,8 @@
-﻿using SimplDb.Protocol.Sdk;
+﻿using Akka.Actor;
+using SimplDb.Protocol.Sdk;
+using SimplDb.Protocol.Sdk.ActorMessage.BackMessage;
 using SimplDb.Protocol.Sdk.Message;
+using SimplDb.Protocol.Sdk.Message.BackMessage;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,9 +12,11 @@ namespace SimpleDb.Server
     public class ServerDomain: BaseDomain
     {
         private AllPet.db.simple.DB SimpleDb;
-        public ServerDomain(AllPet.db.simple.DB simpledb)
+        private IActorRef From;
+        public ServerDomain(AllPet.db.simple.DB simpledb, IActorRef from)
         {
             this.SimpleDb = simpledb;
+            this.From = from;
         }
         public void ExcuteCommand(ICommand command)
         {
@@ -28,6 +33,13 @@ namespace SimpleDb.Server
         {
             Console.WriteLine("GetDirectCommand");
             var bytes = this.SimpleDb.GetDirect(command.TableId, command.Key);
+            if(this.From != null && bytes != null)
+            {
+                var message = new ByteValueMessage();
+                message.msg = bytes;
+                this.From.Tell(message);
+            }
+            
         }
         public void Handle(PutDirectCommand command)
         {
@@ -57,7 +69,12 @@ namespace SimpleDb.Server
         {
             Console.WriteLine("GetUint64Command");
             var longValue = this.SimpleDb.GetUInt64Direct(command.TableId, command.Key);
-            
+            if (this.From != null)
+            {
+                var message = new ULongValueMessage();
+                message.msg = longValue;
+                this.From.Tell(message);
+            }
         }
     }
 }

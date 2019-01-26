@@ -1,6 +1,6 @@
-﻿using AllPet.Pipeline;
-using SimplDb.Protocol.Sdk;
-using SimplDb.Protocol.Sdk.Message;
+﻿using Akka.Actor;
+using SimplDb.Protocol.Sdk.ActorMessage;
+using SimplDb.Protocol.Sdk.Message.BackMessage;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,27 +9,25 @@ using System.Text;
 
 namespace SimpleDb.Client
 {
-    public class GetActor : Module
+    public class GetActor : ReceiveActor, ILogReceive
     {
-        public GetActor() : base(false)
+        private ActorSelection _server;
+
+        public GetActor(string path)
         {
-        }
-        public override void OnStart()
-        {
-            
-        }
-        public override void OnTell(IModulePipeline from, byte[] data)
-        {
-            if (from == null)
+            _server = Context.ActorSelection(path);
+            Receive<SimpleDbMessage>((msg) =>
             {
-                var actor = this.GetPipeline("127.0.0.1:8888/simpledb");
-                
-                actor.Tell(data);
-            }
-            else
+                _server.Tell(msg);
+            });
+
+            Receive<ByteValueMessage>((msg) =>
             {
-                Console.WriteLine("Remote :Back length="+ data.Length);
-            }
+                Console.WriteLine("GetActor Back :"+ msg.msg.Length);
+            });
+
+
         }
     }
+    
 }

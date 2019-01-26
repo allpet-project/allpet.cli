@@ -17,7 +17,7 @@ namespace SimpleDb.Server.Actor
         public void Handle(SimpleDbMessage message)
         {
             Console.WriteLine("Hello world!");
-            ServerDomain domain = new ServerDomain(this.simpledb);
+            ServerDomain domain = new ServerDomain(this.simpledb,this.Sender);
             domain.ExcuteCommand(message.command);
         }
     }
