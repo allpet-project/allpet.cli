@@ -37,10 +37,10 @@ namespace SimpleDb.Client
             {
                 string path1 = "akka.tcp://MyServer@localhost:8081/user/SimpleDb";
 
-                var prop = Props.Create(() => new GetActor(path1));
+
+                Props prop = Props.Create(() => new BaseActor("akka.tcp://MyServer@localhost:8081/user/SimpleDb"));
                 var greeting = system.ActorOf(prop);
-                ///var greeting = system.ActorSelection("akka.tcp://MyServer@localhost:8081/user/SimpleDb");
-                
+
                 while (true)
                 {
                     Console.WriteLine("0.TestNet>");
@@ -61,7 +61,7 @@ namespace SimpleDb.Client
                         case "1":
                             message.command = new CreatTableCommand()
                             {
-                                TableId = new byte[] { 0x04, 0x02, 0x03 },
+                                TableId = new byte[] { 0x05, 0x02, 0x03 },
                                 Data = new byte[8000]
                             };
                             break;
@@ -78,7 +78,9 @@ namespace SimpleDb.Client
                             {
                                 TableId = new byte[] { 0x03, 0x02, 0x03 },
                                 Key = new byte[] { 0x10, 0x10 }
-                            };                            
+                            };
+                            prop = Props.Create(() => new GetActor(path1));
+                            greeting = system.ActorOf(prop);
                             break;
                         case "4":
                             message.command = new PutUInt64Command()
@@ -107,6 +109,8 @@ namespace SimpleDb.Client
                                 TableId = new byte[] { 0x02, 0x02, 0x03 },
                                 Key = new byte[] { 0x14, 0x13 }
                             };
+                            prop = Props.Create(() => new GetUInt64Actor(path1));
+                            greeting = system.ActorOf(prop);
                             break;
 
                     }
