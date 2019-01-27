@@ -139,22 +139,65 @@ namespace light.asynctcp
                 var seek = 0;
                 while (seek < e.BytesTransferred)
                 {
-                    if (link.lastPackageSize == 0 && e.BytesTransferred >= 4)//fill len
+                    if (link.lastPackageSize == 0)//fill len
                     {
-                        link.lastPackageSize = BitConverter.ToUInt16(e.Buffer, e.Offset + seek);
-                        seek += 4;
-                        link.lastPackege = new byte[link.lastPackageSize];
-                        link.lastPackegeSeek = 0;
+                        if(link.lastPackageSizeSeek==0)
+                        {
+                            if (e.BytesTransferred - seek >= 4)//长度字节数够了
+                            {
+                                link.lastPackageSize = BitConverter.ToUInt32(e.Buffer, e.Offset + seek);
+                                seek += 4;
+                                link.lastPackege = new byte[link.lastPackageSize];
+                                link.lastPackegeSeek = 0;
+                                if (link.lastPackageSize > 9000)
+                                {
+                                    Console.WriteLine("err");
+                                }
+                            }
+                            else //长度不够，读部分长度
+                            {
+                                link.lastPackageSizeSeek = (byte)(e.BytesTransferred - seek);
+                                link.lastPackageSizeBuf = new byte[4];
+                                for(var i=0;i<link.lastPackageSizeSeek;i++)
+                                {
+                                    link.lastPackageSizeBuf[i] = e.Buffer[seek+i];
+                                }
+                                seek += (int)link.lastPackageSizeSeek;
+                                continue;//不够长跳出逻辑
+                            }
+                        }
+                        else //长度不完整，接着读
+                        {
+                            var len = (byte)Math.Min(4 - link.lastPackageSizeSeek, e.BytesTransferred - seek);
+                            for (var i = 0; i < len; i++)
+                            {
+                                link.lastPackageSizeBuf[link.lastPackageSizeSeek + i] =
+                                e.Buffer[e.Offset + seek + i];
+                            }
+                            seek += len;
+                            link.lastPackageSizeSeek += len;
+                            if (link.lastPackageSizeSeek==4)
+                            {
+                                link.lastPackageSizeSeek = 0;
+                                link.lastPackageSize = BitConverter.ToUInt32(link.lastPackageSizeBuf,0);
+                                link.lastPackege = new byte[link.lastPackageSize];
+                                link.lastPackegeSeek = 0;
+                            }
+                            else
+                            {
+                                continue;//不够长跳出逻辑
+                            }
+                        }
                     }
                     if (seek < e.BytesTransferred)//fill package
                     {
-                        var len = Math.Min(link.lastPackageSize - link.lastPackegeSeek, e.BytesTransferred - seek);
+                        var len = (uint)Math.Min(link.lastPackageSize - link.lastPackegeSeek, e.BytesTransferred - seek);
                         fixed (byte* src = e.Buffer, dest = link.lastPackege)
                         {
                             System.Buffer.MemoryCopy(src + e.Offset + seek, dest + link.lastPackegeSeek, e.BytesTransferred, len);
                         }
-                        link.lastPackegeSeek += (ushort)len;
-                        seek += len;
+                        link.lastPackegeSeek +=len;
+                        seek += (int)len;
                     }
                     if (link.lastPackegeSeek == link.lastPackageSize )//finish package
                     {

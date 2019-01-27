@@ -53,6 +53,10 @@ namespace AllPet.Pipeline.test
                 {
                     await test2_remote.Test();
                 }
+                if (line == "3")
+                {
+                    await test3_perform.Test();
+                }
                 if (line == "exit")
                 {
                     this.Dispose();//這將會導致這個模塊關閉

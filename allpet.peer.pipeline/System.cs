@@ -201,21 +201,29 @@ namespace AllPet.Pipeline
               };
             peer.OnRecv += (id, data) =>
             {
+                //if (data.Length == 0)
+                //{
+                //    throw new Exception("err h01");
+                //}
                 int seek = 0;
                 var fromlen = data[seek]; seek++;
                 string from = System.Text.Encoding.UTF8.GetString(data, seek, fromlen); seek += fromlen;
                 var tolen = data[seek]; seek++;
                 string to = System.Text.Encoding.UTF8.GetString(data, seek, tolen); seek += tolen;
+                //if (from == "" || to =="")
+                //{
+                //    throw new Exception("err h02");
+                //}
                 var remotestr = linkedIP[id];
                 var refsys = this.refSystems[remotestr];
-                var pipe = this.GetPipelineFromRemote(refsys, "@" + id + "/" + from, "this/" + to);
+                var pipe = this.GetPipelineFromRemote(refsys, "@" + id + "/" + from, "this/" + to) as PipelineRefLocal;
                 //var pipe = this.GetPipeline(user, "this/" + to);
                 var outbytes = new byte[data.Length - seek];
                 fixed (byte* pdata = data, pout = outbytes)
                 {
                     Buffer.MemoryCopy(pdata + seek, pout, outbytes.Length, outbytes.Length);
                 }
-                pipe.Tell(outbytes);
+                pipe.TellDirect(outbytes);
             };
 
             peer.OnAccepted += (ulong id, IPEndPoint endpoint) =>

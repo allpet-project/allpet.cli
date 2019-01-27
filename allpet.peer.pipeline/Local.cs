@@ -7,7 +7,7 @@ namespace AllPet.Pipeline
 {
     class PipelineRefLocal : IModulePipeline
     {
-        public PipelineRefLocal(ISystemPipeline system, string userPath, string path, IModuleInstance actor)
+        public PipelineRefLocal(ISystemPipeline system, string userPath, string pathModule, IModuleInstance module)
         {
             this.system = system;
             if (string.IsNullOrEmpty(userPath))
@@ -16,10 +16,24 @@ namespace AllPet.Pipeline
                 this.userUrl = userPath;
             else
                 this.userUrl = "this/" + userPath;
-            this.path = path;
-            this.actorInstance = actor;
+
+            var _system = (system as PipelineSystemRefLocal).system;
+            try
+            {
+                fromPipeline = userUrl == null ? null : _system.GetPipeline(targetModule, userUrl);
+            }
+            catch
+            {
+                Console.WriteLine("error here.");
+            }
+
+            this.path = pathModule;
+            this.targetModule = module;
         }
-        public IModuleInstance actorInstance;
+
+        IModulePipeline fromPipeline;
+        //指向的模块
+        public IModuleInstance targetModule;
         public string userUrl;
         public ISystemPipeline system
         {
@@ -37,42 +51,35 @@ namespace AllPet.Pipeline
         {
             get
             {
-                var path = (system as PipelineSystemRefLocal).system.GetModulePath(actorInstance);
+                var path = (system as PipelineSystemRefLocal).system.GetModulePath(targetModule);
                 bool bExist = string.IsNullOrEmpty(path) == false;
-                if (bExist && actorInstance.HasDisposed == true)
+                if (bExist && targetModule.HasDisposed == true)
                 {
                     ((system as PipelineSystemRefLocal).system as PipelineSystemV1).UnRegistModule(path);
                     return false;
                 }
-                return !actorInstance.HasDisposed;
+                return !targetModule.HasDisposed;
             }
         }
+        public void TellDirect(byte[] data)
+        {
+            this.targetModule.OnTell(fromPipeline, data);
 
+        }
         public void Tell(byte[] data)
         {
-            var _system = (system as PipelineSystemRefLocal).system;
-
-            IModulePipeline pipeline = null;
-            try
-            {
-                pipeline = userUrl == null ? null : _system.GetPipeline(actorInstance, userUrl);
-            }
-            catch
-            {
-                Console.WriteLine("error here.");
-            }
-            if (actorInstance.MultiThreadTell == true && actorInstance.Inited)
+            if (targetModule.MultiThreadTell == true && targetModule.Inited)
             {//直接开线程投递，不阻塞
                 global::System.Threading.ThreadPool.QueueUserWorkItem((s) =>
                 {
-                    this.actorInstance.OnTell(pipeline, data);
+                    this.targetModule.OnTell(fromPipeline, data);
                 }
                 );
             }
             else
             {
                 //队列投递,不阻塞，队列在内部实现
-                this.actorInstance.QueueTell(pipeline, data);
+                this.targetModule.QueueTell(fromPipeline, data);
             }
         }
     }

@@ -26,8 +26,10 @@ namespace light.asynctcp
         public int sendTag;//此标记为1则有数据在发送中
         public Queue<ArraySegment<byte>> queueSend;
 
-        public UInt16 lastPackageSize;//最后一个包的尺寸
+        public UInt32 lastPackageSize;//最后一个包的尺寸
         public byte[] lastPackege;
-        public UInt16 lastPackegeSeek;
+        public UInt32 lastPackegeSeek;
+        public byte[] lastPackageSizeBuf;
+        public byte lastPackageSizeSeek;
     }
 }
