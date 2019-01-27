@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -45,6 +46,7 @@ namespace light.asynctcp
                             link.sendTag = 0;
                             link.lastPackageSize = 0;
                             link.lastPackege = null;
+                            link.Remote = link.Socket.RemoteEndPoint as System.Net.IPEndPoint;
                             this.links[link.Handle] = link;
 
                             //s.Send(Encoding.UTF8.GetBytes("Your GUID:" + token.ID));
@@ -52,7 +54,7 @@ namespace light.asynctcp
                             //Console.WriteLine("client in:" + this.links.Count);
                             //lock (link)
                             {
-                                this.OnAccepted(link.Handle, link.Socket.RemoteEndPoint as System.Net.IPEndPoint);
+                                this.OnAccepted(link.Handle, link.Remote);
                                 //try
                                 {
                                     if (link.indisconnect == false)
@@ -98,7 +100,7 @@ namespace light.asynctcp
 
         private void ProcessConnect(SocketAsyncEventArgs e, LinkInfo link)
         {
-            this.OnConnected(link.Handle);
+            this.OnConnected(link.Handle,link.Remote);
 
             var asyncr = link.Socket.ReceiveAsync(link.recvArgs);
             if (!asyncr)

@@ -17,6 +17,7 @@ namespace light.asynctcp
         public LinkType type;
         public Socket Socket;
         public UInt64 Handle;
+        public IPEndPoint Remote;
         public DateTime ActiveDateTime;
         public DateTime ConnectDateTime;
         public SocketAsyncEventArgs recvArgs;

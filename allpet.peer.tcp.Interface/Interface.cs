@@ -44,7 +44,7 @@ namespace AllPet.peer.tcp
         //无论是accept 的 和 connect的,统一管理 用一个UINT64标识他
 
         event Action<UInt64, IPEndPoint> OnAccepted;//Listen->When Connect In->OnAccepted(linkid,remoteEndPoint);
-        event Action<UInt64> OnConnected;//Connect->When Linked->OnConnected(linkid);
+        event Action<UInt64, IPEndPoint> OnConnected;//Connect->When Linked->OnConnected(linkid);
         //连接发生错误时触发
         event Action<UInt64, Exception> OnLinkError;
         event Action<UInt64, byte[]> OnRecv;

@@ -39,7 +39,7 @@ namespace light.asynctcp
         private Socket socketListen;
 
         public event Action<ulong, IPEndPoint> OnAccepted;
-        public event Action<ulong> OnConnected;
+        public event Action<ulong, IPEndPoint> OnConnected;
         public event Action<ulong, Exception> OnLinkError;
         public event Action<ulong, byte[]> OnRecv;
         public event Action<ulong> OnClosed;
@@ -69,7 +69,11 @@ namespace light.asynctcp
         }
         public void Close()
         {
-
+            this.OnAccepted = null;
+            this.OnConnected = null;
+            this.OnLinkError = null;
+            this.OnRecv = null;
+            this.OnClosed = null;
         }
         public void Dispose()
         {
@@ -240,6 +244,7 @@ namespace light.asynctcp
             link.lastPackageSize = 0;
             link.lastPackege = null;
             link.ConnectDateTime = DateTime.Now;
+            link.Remote = linktoEndPoint;
             this.links[link.Handle] = link;
 
             eventArgs.RemoteEndPoint = linktoEndPoint;

@@ -229,8 +229,10 @@ namespace AllPet.Pipeline
                 Console.WriteLine("on accepted." + id + " = " + endpoint);
             };
 
-            peer.OnConnected += (ulong id) =>
+            peer.OnConnected += (ulong id, IPEndPoint endpoint) =>
               {
+
+                  this.linkedIP[id] = endpoint.ToString();
 
                   //主动连接成功，创建一个systemRef
                   var remotestr = this.linkedIP[id];
@@ -270,7 +272,10 @@ namespace AllPet.Pipeline
 
             var linkid = peer.Connect(remote);
             var remotestr = remote.ToString();
-            linkedIP[linkid] = remotestr;
+            //这里处理linkid时机不稳定，还是最好放在on connect事件中处理
+            //linkedIP[linkid] = remotestr;
+
+
             while (true)
             {
                 await global::System.Threading.Tasks.Task.Delay(100);
