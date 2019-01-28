@@ -35,8 +35,8 @@ namespace bintest
             DateTime begin = DateTime.Now;
             for (var i = 0; i < count; i++)
             {
+                //序列化
                 bytes = serializer.PackSingleObject(dict);
-
             }
             var time1 = DateTime.Now;
             {
@@ -45,7 +45,7 @@ namespace bintest
                 Console.WriteLine("msgpack.pack bytes=" + bytes.Length + ", time=" + time + ", speed(c/s)=" + speed);
             }
             for (var i = 0; i < count; i++)
-            {
+            {//反序列化
                 var obj2 = MsgPack.Serialization.MessagePackSerializer.UnpackMessagePackObject(bytes);
                 //看起来上面的方法比下面这个更快一点点
                 //var obj2 = serializer.UnpackSingleObject(bytes);
