@@ -44,5 +44,9 @@ namespace SimpleDb.Server.Actor
             //domain.ExcuteCommand(command);
 
         }
+        public override void OnTellLocalObj(IModulePipeline from, object obj)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

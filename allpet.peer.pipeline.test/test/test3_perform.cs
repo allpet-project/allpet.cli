@@ -51,7 +51,7 @@ namespace allpet.peer.pipeline.test.test
             {
                 var str = System.Text.Encoding.UTF8.GetString(data);
                 var recv = this.GetPipeline("127.0.0.1:8888/recv");
-                recv.Tell(new byte[0]);
+                recv.Tell(new byte[1]);
                 Random r = new Random();
 
                 if (str == "1k")
@@ -95,6 +95,10 @@ namespace allpet.peer.pipeline.test.test
                     }
                 }
             }
+            public override void OnTellLocalObj(IModulePipeline from, object obj)
+            {
+                throw new NotImplementedException();
+            }
         }
         public class Recv : AllPet.Pipeline.Module
         {
@@ -109,7 +113,7 @@ namespace allpet.peer.pipeline.test.test
             //默认多线程接收
             public override void OnTell(IModulePipeline from, byte[] data)
             {
-                if ( data.Length==0)
+                if ( data.Length==1)
                 {
                     recvcount = 0;
                     recvbytes = 0;
@@ -125,6 +129,10 @@ namespace allpet.peer.pipeline.test.test
                     Console.WriteLine("recv count=" + recvcount + " size=" + recvbytes);
                     Console.WriteLine("time=" + (DateTime.Now - begin).TotalSeconds);
                 }
+            }
+            public override void OnTellLocalObj(IModulePipeline from, object obj)
+            {
+                throw new NotImplementedException();
             }
         }
 

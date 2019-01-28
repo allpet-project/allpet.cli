@@ -50,7 +50,10 @@ namespace SimpleDb.Server
         {
 
         }
-
+        public override void OnTellLocalObj(IModulePipeline from, object obj)
+        {
+            throw new NotImplementedException();
+        }
         async void MainLoop()
         {
             var serverSys = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();

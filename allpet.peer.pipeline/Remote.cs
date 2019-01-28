@@ -64,6 +64,7 @@ namespace AllPet.Pipeline
                 return system.linked;
             }
         }
+        public bool IsLocal => false;
         byte[] GetFromBytes()
         {
             return System.Text.Encoding.UTF8.GetBytes(this.userpath);
@@ -74,6 +75,9 @@ namespace AllPet.Pipeline
         }
         public unsafe void Tell(byte[] data)
         {
+            if (data.Length == 0)
+                throw new Exception("do not support  zero length bytearray.");
+
             byte[] from = GetFromBytes();
             byte[] to = GetToBytes();
             byte[] outbuf = new byte[from.Length + 1 + to.Length + 1 + data.Length];
@@ -96,6 +100,10 @@ namespace AllPet.Pipeline
 
             }
             _remotesystem.peer.Send(_remotesystem.peerid, outbuf);
+        }
+        public void TellLocalObj(object obj)
+        {
+            throw new Exception("not support to telllocal obj on remote pipeline.");
         }
     }
 }

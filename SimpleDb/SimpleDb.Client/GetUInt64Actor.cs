@@ -28,5 +28,9 @@ namespace SimpleDb.Client
                 Console.WriteLine("Remote :Back length=" + longValue);
             }
         }
+        public override void OnTellLocalObj(IModulePipeline from, object obj)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

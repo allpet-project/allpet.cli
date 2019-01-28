@@ -61,6 +61,8 @@ namespace AllPet.Pipeline
                 return !targetModule.HasDisposed;
             }
         }
+        public bool IsLocal => true;
+
         public void TellDirect(byte[] data)
         {
             this.targetModule.OnTell(fromPipeline, data);
@@ -68,6 +70,9 @@ namespace AllPet.Pipeline
         }
         public void Tell(byte[] data)
         {
+            if (data.Length == 0)
+                throw new Exception("do not support  zero length bytearray.");
+
             if (targetModule.MultiThreadTell == true && targetModule.Inited)
             {//直接开线程投递，不阻塞
                 global::System.Threading.ThreadPool.QueueUserWorkItem((s) =>
@@ -80,6 +85,25 @@ namespace AllPet.Pipeline
             {
                 //队列投递,不阻塞，队列在内部实现
                 this.targetModule.QueueTell(fromPipeline, data);
+            }
+        }
+        public void TellLocalObj(object obj)
+        {
+            if (obj == null)
+                throw new Exception("do not support  null.");
+
+            if (targetModule.MultiThreadTell == true && targetModule.Inited)
+            {//直接开线程投递，不阻塞
+                global::System.Threading.ThreadPool.QueueUserWorkItem((s) =>
+                {
+                    this.targetModule.OnTellLocalObj(fromPipeline, obj);
+                }
+                );
+            }
+            else
+            {
+                //队列投递,不阻塞，队列在内部实现
+                this.targetModule.QueueTellLocalObj(fromPipeline, obj);
             }
         }
     }

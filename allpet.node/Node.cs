@@ -49,6 +49,10 @@ namespace AllPet.node
         public override void OnTell(IModulePipeline from, byte[] data)
         {
         }
+        public override void OnTellLocalObj(IModulePipeline from, object obj)
+        {
+            throw new NotImplementedException();
+        }
         block.BlockChain chain;
 
         public IPeer Newwork

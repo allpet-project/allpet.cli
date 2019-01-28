@@ -31,7 +31,10 @@ namespace allpet.db.PP
                 }
             }
         }
-
+        public override void OnTellLocalObj(IModulePipeline from, object obj)
+        {
+            throw new NotImplementedException();
+        }
         void registeAction(MsgEnum type, BaseOrder actionInc)
         {
             this.actionFactory.Add(type, actionInc);

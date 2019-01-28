@@ -38,7 +38,10 @@ namespace AllPet.Pipeline.test
         public override void OnTell(IModulePipeline from, byte[] data)
         {
         }
-
+        public override void OnTellLocalObj(IModulePipeline from, object obj)
+        {
+            throw new NotImplementedException();
+        }
         async void TestLoop()
         {
             while (true)
@@ -56,6 +59,22 @@ namespace AllPet.Pipeline.test
                 if (line == "3")
                 {
                     await test3_perform.Test();
+                }
+                if (line == "4")
+                {
+                    await test4_perform.Test();
+                }
+                if (line == "5")
+                {
+                    await test5_local.Test();
+                }
+                if (line == "6")
+                {
+                    await test6_local_auto.Test();
+                }
+                if (line == "7")
+                {
+                    await test7_local_auto.Test();
                 }
                 if (line == "exit")
                 {

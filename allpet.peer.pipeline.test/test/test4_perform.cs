@@ -97,7 +97,10 @@ namespace allpet.peer.pipeline.test.test
                     }
                 }
             }
-
+            public override void OnTellLocalObj(IModulePipeline from, object obj)
+            {
+                throw new NotImplementedException();
+            }
             private void perTest()
             {
                 sendIndex++;
@@ -141,6 +144,10 @@ namespace allpet.peer.pipeline.test.test
                     }
                     from.Tell(new byte[2]);
                 }
+            }
+            public override void OnTellLocalObj(IModulePipeline from, object obj)
+            {
+                throw new NotImplementedException();
             }
         }
 

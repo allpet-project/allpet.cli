@@ -68,6 +68,10 @@ namespace allpet.peer.pipeline.test.test
                 Console.WriteLine("Local get info=" + global::System.Text.Encoding.UTF8.GetString(data));
 
             }
+            public override void OnTellLocalObj(IModulePipeline from, object obj)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         class Hello : Module
@@ -94,6 +98,10 @@ namespace allpet.peer.pipeline.test.test
                 }
                 Console.WriteLine("Hello get info=" + global::System.Text.Encoding.UTF8.GetString(data));
             }
+            public override void OnTellLocalObj(IModulePipeline from, object obj)
+            {
+                throw new NotImplementedException();
+            }
         }
         class Hello2 : Module
         {
@@ -107,7 +115,10 @@ namespace allpet.peer.pipeline.test.test
 
                 from.Tell(global::System.Text.Encoding.UTF8.GetBytes("hello back."));
             }
-
+            public override void OnTellLocalObj(IModulePipeline from, object obj)
+            {
+                throw new NotImplementedException();
+            }
         }
 
     }

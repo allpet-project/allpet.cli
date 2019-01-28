@@ -25,7 +25,10 @@ namespace allpet.db.PP
             var database = getServer(data);
             database.Tell(data);
         }
-
+        public override void OnTellLocalObj(IModulePipeline from, object obj)
+        {
+            throw new NotImplementedException();
+        }
         /// <summary>
         /// 根据data得到挑选 dataserver
         /// </summary>

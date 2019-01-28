@@ -55,7 +55,10 @@ namespace AllPet.nodecli
         public override void OnTell(IModulePipeline from, byte[] data)
         {
         }
-
+        public override void OnTellLocalObj(IModulePipeline from, object obj)
+        {
+            throw new NotImplementedException();
+        }
         private void LoadConfig()
         {
             var configstr = System.IO.File.ReadAllText("config.json");
