@@ -266,6 +266,15 @@ namespace AllPet.Pipeline
 
             peer.OnConnected += (ulong id, IPEndPoint endpoint) =>
               {
+                  if (this.linkedIP.ContainsKey(id) == false)
+                  {
+                      var __remotestr = endpoint.ToString();
+                      this.linkedIP[id] = __remotestr;
+                      RefSystemRemote __remote = new RefSystemRemote(this, peer, __remotestr, id, false);
+                      __remote.linked = false;
+                      this.refSystems[__remotestr] = __remote;
+                  }
+
                   var remotestr = this.linkedIP[id];
                   var remote = this.refSystems[remotestr] as RefSystemRemote;
                   remote.linked = true;
