@@ -65,7 +65,7 @@ namespace AllPet.Pipeline
 
             localModules[path] = actor;
             localModulePath[actor] = path;
-            actor.OnRegistered(this,path);
+            actor.OnRegistered(this, path);
 
             if (bStarted)
             {
@@ -206,7 +206,7 @@ namespace AllPet.Pipeline
             peer.OnClosed += (id) =>
               {
                   var remotestr = linkedIP[id];
-                  if(this.refSystems.TryRemove(remotestr,out ISystemPipeline remote))
+                  if (this.refSystems.TryRemove(remotestr, out ISystemPipeline remote))
                   {
                       (remote as RefSystemRemote).Close();
                   }
@@ -214,7 +214,7 @@ namespace AllPet.Pipeline
               };
             peer.OnLinkError += (id, err) =>
             {
-                Console.WriteLine("OnLinkError line=" + id+" ,err="+err.ToString());
+                Console.WriteLine("OnLinkError line=" + id + " ,err=" + err.ToString());
                 var remotestr = linkedIP[id];
                 if (this.refSystems.TryRemove(remotestr, out ISystemPipeline remote))
                 {
@@ -252,7 +252,7 @@ namespace AllPet.Pipeline
             {
                 var remotestr = endpoint.ToString();
                 linkedIP[id] = remotestr;
-                RefSystemRemote remote = new RefSystemRemote(this,peer, remotestr, id);
+                RefSystemRemote remote = new RefSystemRemote(this, peer, remotestr, id, true);
                 remote.linked = true;
                 this.refSystems[remotestr] = remote;
 
@@ -309,7 +309,7 @@ namespace AllPet.Pipeline
                 this.linkedIP[linkid] = remotestr;
 
                 //主动连接成功，创建一个systemRef
-                RefSystemRemote remote = new RefSystemRemote(this,peer, remotestr, linkid);
+                RefSystemRemote remote = new RefSystemRemote(this, peer, remotestr, linkid, false);
                 remote.linked = false;
                 this.refSystems[remotestr] = remote;
 

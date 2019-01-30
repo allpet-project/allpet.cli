@@ -34,6 +34,8 @@ namespace allpet.peer.pipeline.test.test
                 {
                     Console.Write("通信速率测试(1=进行测试，exit=退出)：>");
                     var line = Console.ReadLine();
+                    if (line == "")
+                        continue;
                     if (line == "exit")
                     {
                         systemR.CloseListen();

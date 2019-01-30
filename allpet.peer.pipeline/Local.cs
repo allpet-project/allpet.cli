@@ -8,34 +8,34 @@ namespace AllPet.Pipeline
     class PipelineRefLocal : IModulePipeline
     {
         PipelineSystemV1 _System;
-        public PipelineRefLocal(PipelineSystemV1 _System, ISystemPipeline system, string userPath, string pathModule, IModuleInstance module)
+        public PipelineRefLocal(PipelineSystemV1 _System, IModuleInstance module)
         {
             this._System = _System;
-            this.system = system;
-            if (string.IsNullOrEmpty(userPath))
-                this.userUrl = null;
-            else if (userPath[0] == '@')
-                this.userUrl = userPath;
-            else
-                this.userUrl = "this/" + userPath;
+            this.system = _System.refSystemThis;
+            //if (string.IsNullOrEmpty(userPath))
+            //    this.userUrl = null;
+            //else if (userPath[0] == '@')
+            //    this.userUrl = userPath;
+            //else
+            //    this.userUrl = "this/" + userPath;
 
 
 
-            this.path = pathModule;
+            this.path = module.path;
             this.targetModule = module;
         }
-        public void SetFrom()
-        {
-            try
-            {
-                fromPipeline = userUrl == null ? null : _System.GetPipeline(targetModule, userUrl);
-            }
-            catch
-            {
-                Console.WriteLine("error here.");
-            }
-        }
-        public void SetFromModule(IModulePipeline pipeline)
+        //public void SetFrom()
+        //{
+        //    try
+        //    {
+        //        fromPipeline = userUrl == null ? null : _System.GetPipeline(targetModule, userUrl);
+        //    }
+        //    catch
+        //    {
+        //        Console.WriteLine("error here.");
+        //    }
+        //}
+        public void SetFromPipeline(IModulePipeline pipeline)
         {
             fromPipeline = pipeline;
         }
@@ -148,9 +148,11 @@ namespace AllPet.Pipeline
             }
             IModuleInstance module = this._System.GetModule(path);
 
-            PipelineRefLocal _pipe = new PipelineRefLocal(_System, _System.refSystemThis, user == null ? null : user.path, path, module);
+            PipelineRefLocal _pipe = new PipelineRefLocal(_System, module);
             this.refPipelines[pipestr] = _pipe;
-            _pipe.SetFrom();
+
+            var userpipe = user == null ? null : _System.GetPipeline(module, "this/" + user.path);
+            _pipe.SetFromPipeline(userpipe);
             return _pipe;
         }
 
@@ -162,9 +164,10 @@ namespace AllPet.Pipeline
             {
                 return pipe;
             }
-            PipelineRefLocal _pipe = new PipelineRefLocal(_System, _System.refSystemThis, fromstr, to.path, to);
+            PipelineRefLocal _pipe = new PipelineRefLocal(_System, to);
             this.refPipelines[pipestr] = _pipe;
-            _pipe.SetFromModule(from);
+
+            _pipe.SetFromPipeline(from);
             return _pipe;
         }
     }

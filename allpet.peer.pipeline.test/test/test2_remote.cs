@@ -28,7 +28,7 @@ namespace allpet.peer.pipeline.test.test
 
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
 
-            //連接
+            //連接,也可以GetPipeline的时候自动连接，自动连接就需要处理连接什么时候接通的问题了
             var systemref = await systemL.ConnectAsync(remote);
 
             var actor = systemL.GetPipeline(null, "this/me");
@@ -44,6 +44,8 @@ namespace allpet.peer.pipeline.test.test
                     systemL.Dispose();
                     break;
                 }
+                if (line == "")
+                    continue;
                 actor.Tell(System.Text.Encoding.UTF8.GetBytes(line));
 
             }

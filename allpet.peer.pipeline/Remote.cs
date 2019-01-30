@@ -11,8 +11,9 @@ namespace AllPet.Pipeline
         public UInt64 peerid;
         PipelineSystemV1 _System;
         global::System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline> refPipelines;
-        public RefSystemRemote(PipelineSystemV1 system, AllPet.peer.tcp.IPeer peer, string remoteaddr, UInt64 id)
+        public RefSystemRemote(PipelineSystemV1 system, AllPet.peer.tcp.IPeer peer, string remoteaddr, UInt64 id,bool host)
         {
+            this.IsHost = host;
             this._System = system;
             this.peer = peer;
             this.peerid = id;
@@ -20,7 +21,11 @@ namespace AllPet.Pipeline
             refPipelines = new System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline>();
         }
         public bool IsLocal => false;
-
+        public bool IsHost
+        {
+            get;
+            private set;
+        }
         public string remoteaddr
         {
             get;

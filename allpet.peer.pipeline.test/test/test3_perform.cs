@@ -39,6 +39,8 @@ namespace allpet.peer.pipeline.test.test
                     systemL.Dispose();
                     break;
                 }
+                if (line == "")
+                    continue;
                 module.Tell(System.Text.Encoding.UTF8.GetBytes(line));
             }
         }

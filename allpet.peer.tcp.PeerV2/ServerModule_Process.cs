@@ -149,9 +149,9 @@ namespace light.asynctcp
                                 seek += 4;
                                 link.lastPackege = new byte[link.lastPackageSize];
                                 link.lastPackegeSeek = 0;
-                                if (link.lastPackageSize > 9000)
+                                if (link.lastPackageSize > 16*1024*1024)
                                 {
-                                    Console.WriteLine("err");
+                                    throw new Exception("err package size is too big");
                                 }
                             }
                             else //长度不够，读部分长度

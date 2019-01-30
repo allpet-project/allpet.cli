@@ -28,6 +28,8 @@ namespace allpet.peer.pipeline.test.test
                     system.Dispose();
                     break;
                 }
+                if (line == "")
+                    continue;
                 actor.Tell(System.Text.Encoding.UTF8.GetBytes(line));
 
             }
