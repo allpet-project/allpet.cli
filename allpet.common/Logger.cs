@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AllPet.Log
+namespace AllPet.Common
 {
     public class Logger : ILogger
     {

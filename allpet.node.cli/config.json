@@ -1,26 +1,14 @@
 ﻿{
-  "ChainInfo": { //链配置
-    "MagicStr": "hellokitty",
-    "InitOwner": [ "AdsNmzKPPG7HfmQpacZ4ixbv9XJHJs2ACz" ]
+  "ModulesConfig": {
+    "Cli": {
+      "Open": true
+
+    },
+    "Node": {
+      "Open": true,
+      "PublicEndPoint": "127.0.0.1:2080",
+      "InitPeer": [ "192.168.0.1:2088" ]
+    }
   },
-  "DBPath": "db01",
-  "Network": { //网络配置
-    "InitPeer": [ "192.168.0.1:2088" ],
-    "MaxConnectCount": 100,
-    "FindPeer": true, //主动寻找其他节点,为false则只寻找InitPeer
-    "ListenStart": true, //是否打开监听
-    "PublicEndPoint": "0.0.0.0:2088", //通知别人的我的信息，如果我通过路由器配置了端口转发，通知别人的是路由器ip和端口
-    "ListenEndPoint": "0.0.0.0:2088", //实际监听端口
-    "ListenOwnerOnly": false //只接受所有者接入网络
-  },
-  "Persist": { //同步配置
-    "mode": "all", //同步所有 txonly=只同步交易，不执行智能合约
-    "db": "local" //存本地，数据库可以不存本地
-  },
-  "Consensus": { //共识配置
-    "system": "neoplus" //配置共识系统，暂时就这一种
-  },
-  "RPC": { //RPC配置
-    "ListenEndPoint": "0.0.0.0:2080"
-  }
+  "ListenEndPoint": "0.0.0.0:2080"
 }

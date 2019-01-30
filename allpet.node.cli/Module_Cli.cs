@@ -8,41 +8,16 @@ namespace AllPet.nodecli
 {
     class Module_Cli : AllPet.Pipeline.Module
     {
-        public AllPet.Log.ILogger logger;
-        public Config config;
-        public AllPet.node.INode node;//P2P节点
-        public HttpRPC rpc;
+        public AllPet.Common.ILogger logger;
+        public Newtonsoft.Json.Linq.JObject configJson;
+        public Module_Cli(AllPet.Common.ILogger logger,Newtonsoft.Json.Linq.JObject configJson) :base(false)
+        {
+            this.logger = logger;
+            this.configJson = configJson;
+        }
         public override void OnStart()
         {
-            logger = new AllPet.Log.Logger();
-            logger.Info("Allpet.Node v0.001");
-
-            //this._System.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));
-
-            logger.Warn("test warn.");
-            logger.Error("show Error.");
-            var peer = AllPet.peer.tcp.PeerV2.CreatePeer();
-            peer.Start(new AllPet.peer.tcp.PeerOption()
-            {
-
-            });
-
-            //init current path.
-            //把当前目录搞对，怎么启动都能找到dll了
-            var lastpath = System.IO.Path.GetDirectoryName(typeof(Program).Assembly.Location); ;
-            Console.WriteLine("exepath=" + lastpath);
-            Environment.CurrentDirectory = lastpath;
-
-            //loadConfig
-            LoadConfig();
-
-            //StartNode
-            StartNode();
-            //InitRPC
-            rpc = new HttpRPC();
-            rpc.Start();
-
-
+            logger.Info("Module_Cli::OnStart");
             InitMenu();
 
             //不能阻塞這個函數，OnStart一定要結束
@@ -57,18 +32,6 @@ namespace AllPet.nodecli
         }
         public override void OnTellLocalObj(IModulePipeline from, object obj)
         {
-            throw new NotImplementedException();
-        }
-        private void LoadConfig()
-        {
-            var configstr = System.IO.File.ReadAllText("config.json");
-            config = Config.Parse(configstr);
-        }
-        private void StartNode()
-        {
-            node = AllPet.node.Node.CreateNode();
-            node.InitChain(config.dbPath, config.chainInfo);
-            node.StartNetwork();
         }
 
         void InitMenu()
