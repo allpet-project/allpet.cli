@@ -29,7 +29,7 @@ namespace allpet.peer.pipeline.test.test
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
 
             //連接
-            var systemref = await systemL.Connect(remote);
+            var systemref = await systemL.ConnectAsync(remote);
 
             var actor = systemL.GetPipeline(null, "this/me");
             while (true)

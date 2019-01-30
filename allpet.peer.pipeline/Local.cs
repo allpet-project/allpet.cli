@@ -7,8 +7,10 @@ namespace AllPet.Pipeline
 {
     class PipelineRefLocal : IModulePipeline
     {
-        public PipelineRefLocal(ISystemPipeline system, string userPath, string pathModule, IModuleInstance module)
+        PipelineSystemV1 _System;
+        public PipelineRefLocal(PipelineSystemV1 _System, ISystemPipeline system, string userPath, string pathModule, IModuleInstance module)
         {
+            this._System = _System;
             this.system = system;
             if (string.IsNullOrEmpty(userPath))
                 this.userUrl = null;
@@ -17,20 +19,26 @@ namespace AllPet.Pipeline
             else
                 this.userUrl = "this/" + userPath;
 
-            var _system = (system as PipelineSystemRefLocal).system;
+
+
+            this.path = pathModule;
+            this.targetModule = module;
+        }
+        public void SetFrom()
+        {
             try
             {
-                fromPipeline = userUrl == null ? null : _system.GetPipeline(targetModule, userUrl);
+                fromPipeline = userUrl == null ? null : _System.GetPipeline(targetModule, userUrl);
             }
             catch
             {
                 Console.WriteLine("error here.");
             }
-
-            this.path = pathModule;
-            this.targetModule = module;
         }
-
+        public void SetFromModule(IModulePipeline pipeline)
+        {
+            fromPipeline = pipeline;
+        }
         IModulePipeline fromPipeline;
         //指向的模块
         public IModuleInstance targetModule;
@@ -51,11 +59,11 @@ namespace AllPet.Pipeline
         {
             get
             {
-                var path = (system as PipelineSystemRefLocal).system.GetModulePath(targetModule);
+                var path = _System.GetModulePath(targetModule);
                 bool bExist = string.IsNullOrEmpty(path) == false;
                 if (bExist && targetModule.HasDisposed == true)
                 {
-                    ((system as PipelineSystemRefLocal).system as PipelineSystemV1).UnRegistModule(path);
+                    _System.UnRegistModule(path);
                     return false;
                 }
                 return !targetModule.HasDisposed;
@@ -109,15 +117,55 @@ namespace AllPet.Pipeline
     }
     class PipelineSystemRefLocal : ISystemPipeline
     {
-        public PipelineSystemRefLocal(ISystem system)
+        global::System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline> refPipelines;
+
+        public PipelineSystemRefLocal(PipelineSystemV1 system)
         {
-            this.system = system;
+            this._System = system;
+            refPipelines = new System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline>();
         }
-        public ISystem system;
+        PipelineSystemV1 _System;
+
+        public event Action OnClose;
+
         public bool IsLocal => true;
 
         public string remoteaddr => null;
 
         public bool linked => false;
+
+        public void Close()
+        {
+            this?.OnClose();
+        }
+        public IModulePipeline GetPipeline(IModuleInstance user, string path)
+        {
+            var pipestr = path + "_";
+            if (user != null) pipestr += user.path;
+            if (this.refPipelines.TryGetValue(pipestr, out IModulePipeline pipe))
+            {
+                return pipe;
+            }
+            IModuleInstance module = this._System.GetModule(path);
+
+            PipelineRefLocal _pipe = new PipelineRefLocal(_System, _System.refSystemThis, user == null ? null : user.path, path, module);
+            this.refPipelines[pipestr] = _pipe;
+            _pipe.SetFrom();
+            return _pipe;
+        }
+
+        public IModulePipeline GetPipeLineByFrom(IModulePipeline from, IModuleInstance to)
+        {
+            var fromstr = from.IsLocal ? from.path : (from.system.remoteaddr + "/" + from.path);
+            var pipestr = to.path + "_" + fromstr;
+            if (this.refPipelines.TryGetValue(pipestr, out IModulePipeline pipe))
+            {
+                return pipe;
+            }
+            PipelineRefLocal _pipe = new PipelineRefLocal(_System, _System.refSystemThis, fromstr, to.path, to);
+            this.refPipelines[pipestr] = _pipe;
+            _pipe.SetFromModule(from);
+            return _pipe;
+        }
     }
 }

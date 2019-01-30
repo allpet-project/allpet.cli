@@ -16,7 +16,7 @@
     <ProjectReference Include="..\allpet.cryptology\allpet.cryptology.csproj" />
     <ProjectReference Include="..\allpet.db.simple\allpet.db.simple.csproj" />
     <ProjectReference Include="..\allpet.httpserver\allpet.httpserver.csproj" />
-    <ProjectReference Include="..\allpet.node\allpet.node.csproj" />
+    <ProjectReference Include="..\allpet.node\allpet.module.node.csproj" />
     <ProjectReference Include="..\allpet.peer.pipeline\allpet.peer.pipeline.csproj" />
     <ProjectReference Include="..\allpet.peer.tcp.Interface\allpet.Peer.Tcp.Interface.csproj" />
     <ProjectReference Include="..\allpet.peer.tcp.PeerV2\allpet.Peer.Tcp.PeerV2.csproj" />
@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="config\" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
 
 </Project>

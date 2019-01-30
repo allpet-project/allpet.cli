@@ -1,33 +1,21 @@
 ﻿using AllPet.peer.tcp;
 using AllPet.Pipeline;
+using AllPet.Pipeline.MsgPack;
+using MsgPack;
 using System;
 
-namespace AllPet.node
+using AllPet.Common;
+using Newtonsoft.Json.Linq;
+
+namespace AllPet.Module
 {
-    public interface INode :AllPet.Pipeline.IModuleInstance, IDisposable
+    class ChainInfo
     {
-        void InitChain(string dbpath, Config_ChainInit info);//链初始化
-
-        void StartNetwork();//启动网络
-
-
-        UInt64 GetBlockCount();
-        //获取节点对象
-        AllPet.peer.tcp.IPeer Newwork
+        public ChainInfo(Newtonsoft.Json.Linq.JObject configJson)
         {
-            get;
+            MagicStr = configJson["MagicStr"].AsString();
+            InitOwner = configJson["InitOwner"].AsStringArray();
         }
-    }
-    public class Node
-    {
-        public static INode CreateNode()
-        {
-            return new PeerNode();
-        }
-    }
-
-    public class Config_ChainInit
-    {
         public string MagicStr;
         public string[] InitOwner;
         public byte[] ToInitScript()
@@ -35,54 +23,62 @@ namespace AllPet.node
             return null;
         }
     }
-    class PeerNode : AllPet.Pipeline.Module, INode
+    class Config_Module
     {
-
-        public PeerNode()
+        public System.Net.IPEndPoint PublicEndPoint;
+        public System.Net.IPEndPoint[] InitPeer;
+        public ChainInfo ChainInfo;
+        public Config_Module(Newtonsoft.Json.Linq.JObject json)
         {
+            PublicEndPoint = json["PublicEndPoint"].AsIPEndPoint();
+            InitPeer = json["InitPeer"].AsIPEndPointArray();
+            ChainInfo = new ChainInfo(json["ChainInfo"] as JObject);
+        }
+    }
+    public enum CmdList : UInt16
+    {
+        Want_JoinPeer = 0x0100,//告知其他节点我的存在
+        Tell_AcceptJoin,//同意他加入
+        Want_PeerList,//询问一个节点所能到达的节点
+        Tell_PeerList,//告知一个节点所能到达的节点
+    }
 
+    public class Module_Node : Module_MsgPack
+    {
+        AllPet.Common.ILogger logger;
+        Config_Module config;
+        public Module_Node(AllPet.Common.ILogger logger, Newtonsoft.Json.Linq.JObject configJson) : base(true)
+        {
+            this.logger = logger;
+            this.config = new Config_Module(configJson);
+            //this.config = new Config_ChainInit(configJson);
         }
 
         public override void OnStart()
         {
-        }
-        public override void OnTell(IModulePipeline from, byte[] data)
-        {
-        }
-        public override void OnTellLocalObj(IModulePipeline from, object obj)
-        {
-            throw new NotImplementedException();
-        }
-        block.BlockChain chain;
-
-        public IPeer Newwork
-        {
-            get;
-            private set;
+            foreach(var p in this.config.InitPeer)
+            {
+                var actorpeer = this.GetPipeline(p.ToString() + "/node");//模块的名称是固定的
+                //actorpeer.IsVaild 此时这个pipeline不是立即可用的，需要等待
+            }
         }
 
-
-        public ulong GetBlockCount()
+        public override void OnTell(IModulePipeline from, MessagePackObject? obj)
         {
-            return chain.GetBlockCount();
-        }
+            var dict = obj.Value.AsDictionary();
+            var cmd = (CmdList)dict["cmd"].AsInt16();
+            switch (cmd)
+            {
+                case CmdList.Want_JoinPeer:
+                    break;
+                case CmdList.Tell_AcceptJoin:
+                    break;
+                case CmdList.Want_PeerList:
+                    break;
+                case CmdList.Tell_PeerList:
+                    break;
 
-
-
-        public void InitChain(string dbpath, Config_ChainInit info)
-        {
-            chain = new block.BlockChain();
-            chain.InitChain(dbpath, info);
-        }
-        public void StartNetwork()
-        {
-
-        }
-
-        public void Dispose()
-        {
-            this.chain.Dispose();
-            this.chain = null;
+            }
         }
     }
 }

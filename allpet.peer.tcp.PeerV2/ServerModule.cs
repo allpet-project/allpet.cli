@@ -94,7 +94,7 @@ namespace light.asynctcp
             {
                 throw new Exception("need set event OnRecv");
             }
-            logger.Log("Module listen==");
+            logger.Log("Module listen==" + endPoint.ToString());
 
             if (this.socketListen != null)
             {

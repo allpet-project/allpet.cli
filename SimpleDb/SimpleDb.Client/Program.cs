@@ -69,7 +69,7 @@ namespace SimpleDb.Client
             var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
-            var systemref = systemL.Connect(remote).Result;
+            var systemref = systemL.ConnectAsync(remote).Result;
             systemL.Start();
             var actor = systemL.GetPipeline(null, "127.0.0.1:8888/simpledb");
             {
@@ -87,7 +87,7 @@ namespace SimpleDb.Client
             var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
-            var systemref = systemL.Connect(remote).Result;
+            var systemref = systemL.ConnectAsync(remote).Result;
             systemL.Start();
             var actor = systemL.GetPipeline(null, "127.0.0.1:8888/simpledb");
             {              
@@ -109,7 +109,7 @@ namespace SimpleDb.Client
             var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
-            var systemref = systemL.Connect(remote).Result;
+            var systemref = systemL.ConnectAsync(remote).Result;
             systemL.Start();
             var actor = systemL.GetPipeline(null, "127.0.0.1:8888/simpledb");
             {
@@ -135,7 +135,7 @@ namespace SimpleDb.Client
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
 
             //連接
-            var systemref = await server.Connect(remote);
+            var systemref = await server.ConnectAsync(remote);
             
             var actor = server.GetPipeline(null, "this/me");
             GetDirectCommand command = new GetDirectCommand()
@@ -167,7 +167,7 @@ namespace SimpleDb.Client
             var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
-            var systemref = systemL.Connect(remote).Result;
+            var systemref = systemL.ConnectAsync(remote).Result;
             systemL.Start();
             var actor = systemL.GetPipeline(null, "127.0.0.1:8888/simpledb");
             {
@@ -193,7 +193,7 @@ namespace SimpleDb.Client
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
 
             //連接
-            var systemref = await server.Connect(remote);
+            var systemref = await server.ConnectAsync(remote);
 
             var actor = server.GetPipeline(null, "this/me");
             GetUint64Command command = new GetUint64Command()
@@ -214,7 +214,7 @@ namespace SimpleDb.Client
             var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
-            var systemref = systemL.Connect(remote).Result;
+            var systemref = systemL.ConnectAsync(remote).Result;
             systemL.Start();
             var actor = systemL.GetPipeline(null, "127.0.0.1:8888/simpledb");
             {
@@ -237,7 +237,7 @@ namespace SimpleDb.Client
             var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
-            var systemref = systemL.Connect(remote).Result;
+            var systemref = systemL.ConnectAsync(remote).Result;
             systemL.Start();
             var actor = systemL.GetPipeline(null, "127.0.0.1:8888/simpledb");
             {

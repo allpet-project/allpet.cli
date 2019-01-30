@@ -55,6 +55,11 @@ namespace allpet.peer.pipeline.test.test
                     from.Tell(global::System.Text.Encoding.UTF8.GetBytes("hihihihi"));
                 }
                 Console.WriteLine("Hello get info=" + global::System.Text.Encoding.UTF8.GetString(data));
+                if(from==null)
+                {
+                    var refhello2 = this.GetPipeline("this/hello2");
+                    refhello2.Tell(global::System.Text.Encoding.UTF8.GetBytes("abcde"));
+                }
             }
             public override void OnTellLocalObj(IModulePipeline from, object obj)
             {

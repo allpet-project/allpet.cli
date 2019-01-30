@@ -1,11 +1,11 @@
-﻿using AllPet.node;
+﻿using AllPet.Module;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AllPet.node.block
+namespace AllPet.Module.block
 {
-    public class BlockChain : IDisposable
+     class BlockChain : IDisposable
     {
         public void Dispose()
         {
@@ -33,7 +33,7 @@ namespace AllPet.node.block
 
 
 
-        public void InitChain(string dbpath, Config_ChainInit info)
+        public void InitChain(string dbpath, ChainInfo info)
         {
             if (this.db != null)
                 throw new Exception("already had inited.");

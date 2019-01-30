@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AllPet.node.block
+namespace AllPet.Module.block
 {
 
     public class HashPoint

@@ -1,10 +1,8 @@
 ﻿using AllPet.Common;
-using AllPet.nodecli.httpinterface;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 
-namespace AllPet.nodecli
+namespace allpet.module.node.test
 {
     class Program
     {
@@ -14,7 +12,7 @@ namespace AllPet.nodecli
         static void Main(string[] args)
         {
             logger = new AllPet.Common.Logger();
-            logger.Info("Allpet.Node v0.001");
+            logger.Info("Allpet.Node v0.001 Peer 01");
 
             var config = new Config(logger);
 
@@ -28,40 +26,34 @@ namespace AllPet.nodecli
 
             var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
 
-            var config_cli = config.GetJson("config.json", ".ModulesConfig.Cli") as JObject;
-            var config_node = config.GetJson("config.json", ".ModulesConfig.Node") as JObject;
-            if (Config.IsOpen(config_cli))
-            {
-                system.RegistModule("cli", new Module_Cli(logger, config_cli));
-            }
 
+            var config_node = config.GetJson("config.json", ".ModulesConfig.Node") as JObject;
             if (Config.IsOpen(config_node))
             {
                 system.RegistModule("node", new AllPet.Module.Module_Node(logger, config_node));
             }
-
-            system.OpenNetwork(new AllPet.peer.tcp.PeerOption()
+            else
             {
+                logger.Error("cant find config for node");
+                return;
+            }
 
-            });
 
+            system.OpenNetwork(new AllPet.peer.tcp.PeerOption() { });
             var endpoint = config.GetIPEndPoint("config.json", ".ListenEndPoint");
             if (endpoint != null)
             {
                 system.OpenListen(endpoint);
             }
-            //是不是开listen 这个事情可以留给Module
+
             system.Start();
 
             //等待cli结束才退出
-            var pipeline = system.GetPipeline(null, "this/cli");
+            var pipeline = system.GetPipeline(null, "this/node");
             while (pipeline.IsVaild)
             {
                 System.Threading.Thread.Sleep(100);
             }
-
         }
-
-
     }
 }

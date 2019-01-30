@@ -5,6 +5,44 @@ using System.Text;
 
 namespace AllPet.Common
 {
+    public static class JsonConvert
+    {
+
+        public static string AsString(this JToken json)
+        {
+           return (string)json;
+        }
+        public static string[] AsStringArray(this JToken json)
+        {
+            var list = json as JArray;
+            string[] result = new string[list.Count];
+            for(var i=0;i<result.Length;i++)
+            {
+                result[i] = list[i].AsString();
+            }
+            return result;
+        }
+        public static System.Net.IPEndPoint AsIPEndPoint(this JToken json)
+        {
+            var ip = ((string)json).Split(':');
+            return new System.Net.IPEndPoint(System.Net.IPAddress.Parse(ip[0]), int.Parse(ip[1]));
+        }
+        public static System.Net.IPEndPoint AsIPEndPoint(this string str)
+        {
+            var ip = str.Split(':');
+            return new System.Net.IPEndPoint(System.Net.IPAddress.Parse(ip[0]), int.Parse(ip[1]));
+        }
+        public static System.Net.IPEndPoint[] AsIPEndPointArray(this JToken json)
+        {
+            var list = json as JArray;
+            System.Net.IPEndPoint[] result = new System.Net.IPEndPoint[list.Count];
+            for (var i = 0; i < result.Length; i++)
+            {
+                result[i] = list[i].AsIPEndPoint();
+            }
+            return result;
+        }
+    }
     public class Config
     {
         AllPet.Common.ILogger logger;
@@ -72,9 +110,10 @@ namespace AllPet.Common
         public System.Net.IPEndPoint GetIPEndPoint(string filename, string configpath)
         {
             var json = GetJson(filename, configpath);
-            var ip = ((string)json).Split(':');
-
-            return new System.Net.IPEndPoint(System.Net.IPAddress.Parse(ip[0]), int.Parse(ip[1]));
+            if (json == null)
+                return null;
+            return json.AsIPEndPoint();
         }
+
     }
 }

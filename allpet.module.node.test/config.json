@@ -6,7 +6,7 @@
     },
     "Node": {
       "Open": true,
-      "PublicEndPoint": "127.0.0.1:2080",
+      "PublicEndPoint": "127.0.0.1:2081",
       "InitPeer": [ "192.168.0.1:2081" ],
       "ChainInfo": {
         "MagicStr": "HelloKitty",
@@ -14,5 +14,5 @@
       }
     }
   },
-  "ListenEndPoint": "0.0.0.0:2080"
+  "ListenEndPoint": "0.0.0.0:2081"
 }
