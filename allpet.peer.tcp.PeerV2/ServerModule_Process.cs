@@ -208,8 +208,15 @@ namespace light.asynctcp
                     }
                 }
             }
-            var asyncr = link.Socket.ReceiveAsync(link.recvArgs);
-            return asyncr;
+            try
+            {
+                var asyncr = link.Socket.ReceiveAsync(link.recvArgs);
+                return asyncr;
+            }
+            catch(Exception err)
+            {
+                return true;
+            }
         }
 
         private unsafe void SendOnce(LinkInfo link, ArraySegment<byte> data)
