@@ -215,6 +215,7 @@ namespace light.asynctcp
             }
             catch(Exception err)
             {
+                logger.Error("error ProcessReceice. continue." + e.SocketError);
                 return true;
             }
         }
