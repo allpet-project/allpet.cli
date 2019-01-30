@@ -12,7 +12,7 @@ namespace allpet.module.node.test
         static void Main(string[] args)
         {
             logger = new AllPet.Common.Logger();
-            logger.Info("Allpet.Node v0.001 Peer 01");
+            logger.Warn("Allpet.Node v0.001 Peer 01");
 
             var config = new Config(logger);
 
@@ -24,7 +24,7 @@ namespace allpet.module.node.test
 
 
 
-            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
 
 
             var config_node = config.GetJson("config.json", ".ModulesConfig.Node") as JObject;
@@ -43,7 +43,14 @@ namespace allpet.module.node.test
             var endpoint = config.GetIPEndPoint("config.json", ".ListenEndPoint");
             if (endpoint != null)
             {
-                system.OpenListen(endpoint);
+                try
+                {
+                    system.OpenListen(endpoint);
+                }
+                catch(Exception err)
+                {
+                    logger.Error("listen error:" + err.ToString());
+                }
             }
 
             system.Start();

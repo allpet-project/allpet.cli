@@ -11,22 +11,7 @@ namespace light.asynctcp
         Warning,
         Error
     }
-    interface ILogger
-    {
-        void Log(string txt, LogType type = LogType.Message);
-    }
-    class ConsoleLogger : ILogger
-    {
-        public void Log(string txt, LogType type = LogType.Message)
-        {
-            if (type == LogType.Warning)
-                Console.Write("<Warn>");
-            else if (type == LogType.Error)
-                Console.Write("<Error>");
 
-            Console.WriteLine(txt);
-        }
-    }
     partial class ServerModule : AllPet.peer.tcp.IPeer
     {
 
@@ -44,28 +29,28 @@ namespace light.asynctcp
         public event Action<ulong, byte[]> OnRecv;
         public event Action<ulong> OnClosed;
 
-        public ILogger logger;
+        public AllPet.Common.ILogger logger;
 
         public UInt64 ID
         {
             get;
             private set;
         }
-        public ServerModule()
+        public ServerModule(AllPet.Common.ILogger logger)
         {
             this.ID = moduleID++;
+            this.logger = logger;
         }
         AllPet.peer.tcp.PeerOption option;
         public void Start(AllPet.peer.tcp.PeerOption option)
         {
-            logger = new ConsoleLogger();
 
-            logger.Log("Module Start==");
+            logger.Info("Module Start==");
             this.option = option;
             InitPools();
             InitProcess();
 
-            logger.Log("==Module Start");
+            logger.Info("==Module Start");
         }
         public void Close()
         {
@@ -94,7 +79,7 @@ namespace light.asynctcp
             {
                 throw new Exception("need set event OnRecv");
             }
-            logger.Log("Module listen==" + endPoint.ToString());
+            logger.Warn("Module listen==" + endPoint.ToString());
 
             if (this.socketListen != null)
             {
@@ -114,7 +99,7 @@ namespace light.asynctcp
 
             StartAccept(null);
 
-            logger.Log("==Module listen");
+            logger.Info("==Module listen");
 
 
 

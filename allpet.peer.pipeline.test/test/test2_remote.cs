@@ -11,8 +11,9 @@ namespace allpet.peer.pipeline.test.test
 
         public static async Task Test()
         {
+            var logger =new AllPet.Common.Logger();
             //服務器端
-            var systemR = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemR = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(logger);
             systemR.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemR.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));
             systemR.RegistModule("hello", new Hello());
@@ -21,7 +22,7 @@ namespace allpet.peer.pipeline.test.test
 
 
             //客戶端
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(logger);
             systemL.RegistModule("me", new Local());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemL.Start();

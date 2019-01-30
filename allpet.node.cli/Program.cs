@@ -14,7 +14,7 @@ namespace AllPet.nodecli
         static void Main(string[] args)
         {
             logger = new AllPet.Common.Logger();
-            logger.Info("Allpet.Node v0.001");
+            logger.Warn("Allpet.Node v0.001");
 
             var config = new Config(logger);
 
@@ -26,7 +26,7 @@ namespace AllPet.nodecli
 
 
 
-            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(logger);
 
             var config_cli = config.GetJson("config.json", ".ModulesConfig.Cli") as JObject;
             var config_node = config.GetJson("config.json", ".ModulesConfig.Node") as JObject;
@@ -48,7 +48,14 @@ namespace AllPet.nodecli
             var endpoint = config.GetIPEndPoint("config.json", ".ListenEndPoint");
             if (endpoint != null)
             {
-                system.OpenListen(endpoint);
+                try
+                {
+                    system.OpenListen(endpoint);
+                }
+                catch(Exception err)
+                {
+                    logger.Error("open listen err:" + err);
+                }
             }
             //是不是开listen 这个事情可以留给Module
             system.Start();

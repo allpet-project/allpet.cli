@@ -10,7 +10,7 @@ namespace allpet.peer.pipeline.test.test
     {
         public static async Task Test()
         {
-            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             system.RegistModule("hello", new Hello());//actor习惯，连注册这个活都丢线程池，我这里简化一些
             system.RegistModule("hello2", new Hello2());//actor习惯，连注册这个活都丢线程池，我这里简化一些
             system.Start();

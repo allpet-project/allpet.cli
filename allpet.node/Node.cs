@@ -79,10 +79,17 @@ namespace AllPet.Module
 
         void RegNetEvent(ISystemPipeline syspipe)
         {
-            syspipe.OnPeerLink += _OnPeerLink;
+            if (syspipe.linked)
+            {
+                _OnPeerLink(syspipe.PeerID);
+            }
+            else
+            {
+                syspipe.OnPeerLink += _OnPeerLink;
+            }
             syspipe.OnPeerClose += _OnPeerClose;
         }
-        void _OnPeerLink(UInt64 id)//这有个问题，我不知道这个连接是进来的，还是我连出去的，也不知道这个是不是我自己
+        void _OnPeerLink(UInt64 id)//不知道这个连接是进来的，还是我连出去的，也不知道这个是不是我自己
         {
             var pipe = linkNodes[id];
             var dict = new MessagePackObjectDictionary();
@@ -112,6 +119,7 @@ namespace AllPet.Module
                     publicEndPoint = null
                 };
                 RegNetEvent(remotenode.system);
+
                 //actorpeer.IsVaild 此时这个pipeline不是立即可用的，需要等待
             }
         }
@@ -151,14 +159,15 @@ namespace AllPet.Module
         {
 
             Hash256 id = dict["id"].AsBinary();
-            if (this.guid == id)
+            if (this.guid.Equals(id))
             {
                 logger.Info("my self in.");
                 this._System.DisConnect(from.system);//断开这个连接
                 return;
             }
+            
             Hash256 hash = dict["chaininfo"].AsBinary();
-            if (hash != this.chainHash)
+            if (hash.Equals(this.chainHash)==false)
             {
                 logger.Info("join hash is diff.");
                 //this._System.Disconnect(from.system);//断开这个连接

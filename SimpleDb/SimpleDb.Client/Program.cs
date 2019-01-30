@@ -66,7 +66,7 @@ namespace SimpleDb.Client
         }
         private static void TestNetTransfer()
         {
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
             var systemref = systemL.ConnectAsync(remote).Result;
@@ -84,7 +84,7 @@ namespace SimpleDb.Client
         }
         private static void CreateTable()
         {
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
             var systemref = systemL.ConnectAsync(remote).Result;
@@ -106,7 +106,7 @@ namespace SimpleDb.Client
         }
         private static void PutDirect()
         {
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
             var systemref = systemL.ConnectAsync(remote).Result;
@@ -128,7 +128,7 @@ namespace SimpleDb.Client
         }
         private async static void GetDirect()
         {
-            var server = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var server = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             server.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             server.RegistModule("me", new GetActor());
             server.Start();
@@ -164,7 +164,7 @@ namespace SimpleDb.Client
 
         private static void PutUInt64()
         {
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
             var systemref = systemL.ConnectAsync(remote).Result;
@@ -186,7 +186,7 @@ namespace SimpleDb.Client
         }
         private async static void GetUInt64()
         {
-            var server = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var server = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             server.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             server.RegistModule("me", new GetUInt64Actor());
             server.Start();
@@ -211,7 +211,7 @@ namespace SimpleDb.Client
 
         private static void DeleteDirect()
         {
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
             var systemref = systemL.ConnectAsync(remote).Result;
@@ -234,7 +234,7 @@ namespace SimpleDb.Client
 
         private static void DeleteTable()
         {
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
             var systemref = systemL.ConnectAsync(remote).Result;

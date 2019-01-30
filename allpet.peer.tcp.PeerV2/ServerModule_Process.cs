@@ -92,8 +92,9 @@ namespace light.asynctcp
                 }
                 else
                 {
-                    throw new Exception("accept error.");
+                    logger.Error("error accept. continue." + e.SocketError);
                     //ProcessDisConnect(e, e.UserToken as LinkInfo);
+                    StartAccept(e);
                 }
             }
         }

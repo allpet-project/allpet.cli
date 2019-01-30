@@ -10,14 +10,14 @@ namespace allpet.peer.pipeline.test.test
     {
         public static async Task Test()
         {
-            var systemR = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemR = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             systemR.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemR.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));
             systemR.RegistModule("recv", new Recv());
             systemR.Start();
 
             //客戶端
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             systemL.RegistModule("send", new Send());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemL.Start();

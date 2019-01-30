@@ -20,7 +20,7 @@ namespace SimpleDb.Server
             //    System.Threading.Thread.Sleep(100);
             //}
 
-            var serverSys = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var serverSys = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             serverSys.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             serverSys.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));
             serverSys.RegistModule("simpledb", new SimpleDbModule());
@@ -56,7 +56,7 @@ namespace SimpleDb.Server
         }
         async void MainLoop()
         {
-            var serverSys = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var serverSys = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             serverSys.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             serverSys.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));            
             serverSys.RegistModule("simpledb", new SimpleDbModule());

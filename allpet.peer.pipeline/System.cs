@@ -21,8 +21,10 @@ namespace AllPet.Pipeline
         global::System.Collections.Concurrent.ConcurrentDictionary<UInt64, string> linkedIP;
         public ISystemPipeline refSystemThis;
 
-        public PipelineSystemV1()
+        public AllPet.Common.ILogger logger;
+        public PipelineSystemV1(AllPet.Common.ILogger logger)
         {
+            this.logger = logger;
             localModules = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IModuleInstance>();
             localModulePath = new global::System.Collections.Concurrent.ConcurrentDictionary<IModuleInstance, string>();
             //refPipelines = new global::System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline>();
@@ -201,16 +203,18 @@ namespace AllPet.Pipeline
         {
             if (peer != null)
                 throw new Exception("already have init peer.");
-            peer = AllPet.peer.tcp.PeerV2.CreatePeer();
+            peer = AllPet.peer.tcp.PeerV2.CreatePeer(logger);
             peer.Start(option);
             peer.OnClosed += (id) =>
               {
-                  var remotestr = linkedIP[id];
-                  if (this.refSystems.TryRemove(remotestr, out ISystemPipeline remote))
+                  if (this.linkedIP.TryRemove(id, out string _remotestr))
                   {
-                      (remote as RefSystemRemote).Close(id);
+                      if (this.refSystems.TryRemove(_remotestr, out ISystemPipeline remote))
+                      {
+                          (remote as RefSystemRemote).Close(id);
+                      }
+                      Console.WriteLine("close line=" + id);
                   }
-                  Console.WriteLine("close line=" + id);
               };
             peer.OnLinkError += (id, err) =>
             {
@@ -322,10 +326,7 @@ namespace AllPet.Pipeline
         {
             var id = pipe.PeerID;
             this.peer.Disconnect(pipe.PeerID);
-            if(this.linkedIP.TryRemove(id,out string remotestr))
-            {
-                this.refSystems.TryRemove(remotestr,out ISystemPipeline _pipe);
-            }
+
         }
         public async Task<ISystemPipeline> ConnectAsync(IPEndPoint remote)
         {
