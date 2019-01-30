@@ -126,7 +126,8 @@ namespace AllPet.Pipeline
         }
         PipelineSystemV1 _System;
 
-        public event Action OnClose;
+        public event Action<UInt64> OnPeerLink;
+        public event Action<UInt64> OnPeerClose;
 
         public bool IsLocal => true;
 
@@ -134,10 +135,10 @@ namespace AllPet.Pipeline
 
         public bool linked => false;
 
-        public void Close()
-        {
-            this?.OnClose();
-        }
+        public bool IsHost => false;
+
+        public UInt64 PeerID => 0;
+
         public IModulePipeline GetPipeline(IModuleInstance user, string path)
         {
             var pipestr = path + "_";

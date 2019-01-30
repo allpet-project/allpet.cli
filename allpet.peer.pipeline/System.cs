@@ -180,7 +180,7 @@ namespace AllPet.Pipeline
                 }
                 else
                 {//没连接
-                    this.Connect(addr.AsIPEndPoint());
+                    refsys = this.Connect(addr.AsIPEndPoint());
                 }
                 return refsys.GetPipeline(user, path);
                 //refPipelines[refName] = new PipelineRefRemote(refSystemThis, userstr, refsys as RefSystemRemote, path);
@@ -208,18 +208,18 @@ namespace AllPet.Pipeline
                   var remotestr = linkedIP[id];
                   if (this.refSystems.TryRemove(remotestr, out ISystemPipeline remote))
                   {
-                      (remote as RefSystemRemote).Close();
+                      (remote as RefSystemRemote).Close(id);
                   }
                   Console.WriteLine("close line=" + id);
               };
             peer.OnLinkError += (id, err) =>
             {
                 Console.WriteLine("OnLinkError line=" + id + " ,err=" + err.ToString());
-                var remotestr = linkedIP[id];
-                if (this.refSystems.TryRemove(remotestr, out ISystemPipeline remote))
-                {
-                    (remote as RefSystemRemote).Close(); ;
-                }
+                //var remotestr = linkedIP[id];
+                //if (this.refSystems.TryRemove(remotestr, out ISystemPipeline remote))
+                //{
+                //    (remote as RefSystemRemote).Close(); ;
+                //}
             };
             peer.OnRecv += (id, data) =>
             {
@@ -254,6 +254,7 @@ namespace AllPet.Pipeline
                 linkedIP[id] = remotestr;
                 RefSystemRemote remote = new RefSystemRemote(this, peer, remotestr, id, true);
                 remote.linked = true;
+                (remote as RefSystemRemote).Linked(id);
                 this.refSystems[remotestr] = remote;
 
                 Console.WriteLine("on accepted." + id + " = " + endpoint);
@@ -264,6 +265,7 @@ namespace AllPet.Pipeline
                   var remotestr = this.linkedIP[id];
                   var remote = this.refSystems[remotestr] as RefSystemRemote;
                   remote.linked = true;
+                  (remote as RefSystemRemote).Linked(id);
                   //this.linkedIP[id] = endpoint.ToString();
 
                   ////主动连接成功，创建一个systemRef
@@ -314,6 +316,15 @@ namespace AllPet.Pipeline
                 this.refSystems[remotestr] = remote;
 
                 return remote;
+            }
+        }
+        public void DisConnect(ISystemPipeline pipe)
+        {
+            var id = pipe.PeerID;
+            this.peer.Disconnect(pipe.PeerID);
+            if(this.linkedIP.TryRemove(id,out string remotestr))
+            {
+                this.refSystems.TryRemove(remotestr,out ISystemPipeline _pipe);
             }
         }
         public async Task<ISystemPipeline> ConnectAsync(IPEndPoint remote)

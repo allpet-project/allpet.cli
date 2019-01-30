@@ -8,15 +8,19 @@ namespace AllPet.Pipeline
     class RefSystemRemote : ISystemPipeline
     {
         public AllPet.peer.tcp.IPeer peer;
-        public UInt64 peerid;
+        public UInt64 PeerID
+        {
+            get;
+            private set;
+        }
         PipelineSystemV1 _System;
         global::System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline> refPipelines;
-        public RefSystemRemote(PipelineSystemV1 system, AllPet.peer.tcp.IPeer peer, string remoteaddr, UInt64 id,bool host)
+        public RefSystemRemote(PipelineSystemV1 system, AllPet.peer.tcp.IPeer peer, string remoteaddr, UInt64 id, bool host)
         {
             this.IsHost = host;
             this._System = system;
             this.peer = peer;
-            this.peerid = id;
+            this.PeerID = id;
             this.remoteaddr = remoteaddr;
             refPipelines = new System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline>();
         }
@@ -38,15 +42,20 @@ namespace AllPet.Pipeline
             set;
         }
 
-        public event Action OnClose;
-        public void Close()
+        public event Action<UInt64> OnPeerLink;
+        public event Action<UInt64> OnPeerClose;
+        public void Close(UInt64 id)
         {
             this.linked = false;
-            foreach (var pipe in this.refPipelines)
-            {
 
-            }
-            this?.OnClose();
+            if (OnPeerClose != null)
+                this.OnPeerClose(id);
+        }
+        public void Linked(UInt64 id)
+        {
+            this.linked = true;
+            if (OnPeerLink != null)
+                this.OnPeerLink(id);
         }
         public IModulePipeline GetPipeline(IModuleInstance user, string path)
         {
@@ -136,7 +145,7 @@ namespace AllPet.Pipeline
                 Buffer.MemoryCopy(pdata, pdiao + seek, data.Length, data.Length);
 
             }
-            _remotesystem.peer.Send(_remotesystem.peerid, outbuf);
+            _remotesystem.peer.Send(_remotesystem.PeerID, outbuf);
         }
         public void TellLocalObj(object obj)
         {

@@ -25,6 +25,8 @@ namespace AllPet.Pipeline
         /// <param name="remote"></param>
         ISystemPipeline Connect(IPEndPoint remote);
         Task<ISystemPipeline> ConnectAsync(IPEndPoint remote);//一个system 可以连接到另外一个系统,
+
+        void DisConnect(ISystemPipeline pipe);
         ICollection<string> GetAllSystemsPath();
         ICollection<ISystemPipeline> GetAllSystems();
 
@@ -52,7 +54,16 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        event Action OnClose;
+        bool IsHost
+        {
+            get;
+        }
+        UInt64 PeerID
+        {
+            get;
+        }
+        event Action<UInt64> OnPeerClose;
+        event Action<UInt64> OnPeerLink;
         IModulePipeline GetPipeline(IModuleInstance user, string urlFrom);
         IModulePipeline GetPipeLineByFrom(IModulePipeline from, IModuleInstance to);
     }
