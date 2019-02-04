@@ -23,16 +23,20 @@ namespace AllPet.Pipeline
         /// 连接到另一个ActorSystem，也不是必须的，GetActorRemote会自己去做这件事
         /// </summary>
         /// <param name="remote"></param>
-        Task<ISystemPipeline> Connect(IPEndPoint remote);//一个system 可以连接到另外一个系统,
+        ISystemPipeline Connect(IPEndPoint remote);
+        Task<ISystemPipeline> ConnectAsync(IPEndPoint remote);//一个system 可以连接到另外一个系统,
+
+        void DisConnect(ISystemPipeline pipe);
         ICollection<string> GetAllSystemsPath();
         ICollection<ISystemPipeline> GetAllSystems();
 
-        IModulePipeline GetPipeline(IModuleInstance user, string urlActor);
+        IModulePipeline GetPipeline(IModuleInstance user, string urlFrom);
 
         void RegistModule(string path, IModuleInstance actor);
+        IModuleInstance GetModule(string path);
         string GetModulePath(IModuleInstance actor);
 
-        ICollection<string> GetAllPipelinePath();
+        //ICollection<string> GetAllPipelinePath();
         //void UnRegistModule(string path);
     }
 
@@ -50,6 +54,18 @@ namespace AllPet.Pipeline
         {
             get;
         }
+        bool IsHost
+        {
+            get;
+        }
+        UInt64 PeerID
+        {
+            get;
+        }
+        event Action<UInt64> OnPeerClose;
+        event Action<UInt64> OnPeerLink;
+        IModulePipeline GetPipeline(IModuleInstance user, string urlFrom);
+        IModulePipeline GetPipeLineByFrom(IModulePipeline from, IModuleInstance to);
     }
     //连接到的actor
     public interface IModulePipeline
@@ -92,8 +108,12 @@ namespace AllPet.Pipeline
         {
             get;
         }
+        string path
+        {
+            get;
+        }
         IModulePipeline GetPipeline(string urlActor);
-        void OnRegistered(ISystem system);
+        void OnRegistered(ISystem system,string path);
         void OnStart();
         void OnStarted();
         void OnTell(IModulePipeline from, byte[] data);

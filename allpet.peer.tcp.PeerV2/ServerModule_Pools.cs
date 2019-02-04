@@ -54,7 +54,16 @@ namespace light.asynctcp
         System.Collections.Concurrent.ConcurrentStack<LinkInfo> poolLinks;
         void PushBackLinks(LinkInfo link)
         {
-            link.Socket.Close();
+            try
+            {
+                link.Socket.Close();
+
+            }
+            catch(Exception err)
+            {
+
+            }
+
             link.Socket = null;
             link.Handle = 0;
 

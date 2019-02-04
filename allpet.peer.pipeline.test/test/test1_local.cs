@@ -10,7 +10,7 @@ namespace allpet.peer.pipeline.test.test
     {
         public static async Task Test()
         {
-            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             system.RegistModule("hello", new Hello());//actor习惯，连注册这个活都丢线程池，我这里简化一些
             system.RegistModule("hello2", new Hello2());//actor习惯，连注册这个活都丢线程池，我这里简化一些
             system.Start();
@@ -28,6 +28,8 @@ namespace allpet.peer.pipeline.test.test
                     system.Dispose();
                     break;
                 }
+                if (line == "")
+                    continue;
                 actor.Tell(System.Text.Encoding.UTF8.GetBytes(line));
 
             }
@@ -55,6 +57,11 @@ namespace allpet.peer.pipeline.test.test
                     from.Tell(global::System.Text.Encoding.UTF8.GetBytes("hihihihi"));
                 }
                 Console.WriteLine("Hello get info=" + global::System.Text.Encoding.UTF8.GetString(data));
+                if(from==null)
+                {
+                    var refhello2 = this.GetPipeline("this/hello2");
+                    refhello2.Tell(global::System.Text.Encoding.UTF8.GetBytes("abcde"));
+                }
             }
             public override void OnTellLocalObj(IModulePipeline from, object obj)
             {

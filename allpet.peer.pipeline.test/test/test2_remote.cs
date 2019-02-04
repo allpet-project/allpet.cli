@@ -11,8 +11,9 @@ namespace allpet.peer.pipeline.test.test
 
         public static async Task Test()
         {
+            var logger =new AllPet.Common.Logger();
             //服務器端
-            var systemR = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemR = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(logger);
             systemR.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemR.OpenListen(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 8888));
             systemR.RegistModule("hello", new Hello());
@@ -21,15 +22,15 @@ namespace allpet.peer.pipeline.test.test
 
 
             //客戶端
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(logger);
             systemL.RegistModule("me", new Local());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
             systemL.Start();
 
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
 
-            //連接
-            var systemref = await systemL.Connect(remote);
+            //連接,也可以GetPipeline的时候自动连接，自动连接就需要处理连接什么时候接通的问题了
+            var systemref = await systemL.ConnectAsync(remote);
 
             var actor = systemL.GetPipeline(null, "this/me");
             while (true)
@@ -44,6 +45,8 @@ namespace allpet.peer.pipeline.test.test
                     systemL.Dispose();
                     break;
                 }
+                if (line == "")
+                    continue;
                 actor.Tell(System.Text.Encoding.UTF8.GetBytes(line));
 
             }

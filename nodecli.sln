@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2000
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28407.52
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{33ED0B06-F18D-48CA-8493-39F1F319567D}"
 	ProjectSection(SolutionItems) = preProject
@@ -20,11 +20,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.httpserver", "allpet
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.db.simple", "allpet.db.simple\allpet.db.simple.csproj", "{C29E3065-0809-4ABB-9134-BF98FD636C61}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.node", "allpet.node\allpet.node.csproj", "{7B15FEDD-1406-4B71-BF37-ADFE0F4258C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.module.node", "allpet.node\allpet.module.node.csproj", "{7B15FEDD-1406-4B71-BF37-ADFE0F4258C1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.cryptology", "allpet.cryptology\allpet.cryptology.csproj", "{35EE8B32-90F0-48A4-ADDC-014DA88B0FF7}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.log", "allpet.log\allpet.log.csproj", "{B5AFAFCE-47D9-4D13-85E5-29910ED6E7B7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.peer.pipeline.test", "allpet.peer.pipeline.test\allpet.peer.pipeline.test.csproj", "{893245D1-4561-4DC6-B51D-E53FF9545745}"
 EndProject
@@ -47,6 +45,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "for_test", "for_test", "{19DB98B8-E6CD-4BF5-A93C-033E07158437}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "for_common", "for_common", "{F75C32BA-9FB3-4617-B38F-B3209CBA1CAF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.common", "allpet.common\allpet.common.csproj", "{4340CDF8-6902-4D5B-B96D-0FAE9F66DF05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "allpet.module.node.test", "allpet.module.node.test\allpet.module.node.test.csproj", "{971015EA-C561-4A92-81CC-F5783F103632}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -82,10 +84,6 @@ Global
 		{35EE8B32-90F0-48A4-ADDC-014DA88B0FF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35EE8B32-90F0-48A4-ADDC-014DA88B0FF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35EE8B32-90F0-48A4-ADDC-014DA88B0FF7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B5AFAFCE-47D9-4D13-85E5-29910ED6E7B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B5AFAFCE-47D9-4D13-85E5-29910ED6E7B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B5AFAFCE-47D9-4D13-85E5-29910ED6E7B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B5AFAFCE-47D9-4D13-85E5-29910ED6E7B7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{893245D1-4561-4DC6-B51D-E53FF9545745}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{893245D1-4561-4DC6-B51D-E53FF9545745}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{893245D1-4561-4DC6-B51D-E53FF9545745}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -118,6 +116,14 @@ Global
 		{21E6BCF1-B6A2-4ADC-9A22-CB46B936E7FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21E6BCF1-B6A2-4ADC-9A22-CB46B936E7FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21E6BCF1-B6A2-4ADC-9A22-CB46B936E7FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4340CDF8-6902-4D5B-B96D-0FAE9F66DF05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4340CDF8-6902-4D5B-B96D-0FAE9F66DF05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4340CDF8-6902-4D5B-B96D-0FAE9F66DF05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4340CDF8-6902-4D5B-B96D-0FAE9F66DF05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{971015EA-C561-4A92-81CC-F5783F103632}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{971015EA-C561-4A92-81CC-F5783F103632}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{971015EA-C561-4A92-81CC-F5783F103632}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{971015EA-C561-4A92-81CC-F5783F103632}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,7 +135,6 @@ Global
 		{C29E3065-0809-4ABB-9134-BF98FD636C61} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
 		{7B15FEDD-1406-4B71-BF37-ADFE0F4258C1} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
 		{35EE8B32-90F0-48A4-ADDC-014DA88B0FF7} = {F75C32BA-9FB3-4617-B38F-B3209CBA1CAF}
-		{B5AFAFCE-47D9-4D13-85E5-29910ED6E7B7} = {F75C32BA-9FB3-4617-B38F-B3209CBA1CAF}
 		{893245D1-4561-4DC6-B51D-E53FF9545745} = {F75C32BA-9FB3-4617-B38F-B3209CBA1CAF}
 		{37B53F13-4C6B-4F90-9002-E9EDE0C910B5} = {F75C32BA-9FB3-4617-B38F-B3209CBA1CAF}
 		{F79385F7-506F-4247-9388-47397E406FCC} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
@@ -139,6 +144,8 @@ Global
 		{2FD36790-A9DA-44C0-9810-52D096ABDA7B} = {1E8B2A67-DC94-46E5-B970-BE0FE3A0B7C2}
 		{0FE136E3-3A83-4122-A9E0-C2B4CF3C5133} = {1E8B2A67-DC94-46E5-B970-BE0FE3A0B7C2}
 		{21E6BCF1-B6A2-4ADC-9A22-CB46B936E7FE} = {19DB98B8-E6CD-4BF5-A93C-033E07158437}
+		{4340CDF8-6902-4D5B-B96D-0FAE9F66DF05} = {F75C32BA-9FB3-4617-B38F-B3209CBA1CAF}
+		{971015EA-C561-4A92-81CC-F5783F103632} = {A95C0306-4D5C-4593-8B85-C2708E07467E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD701AF9-F9D8-4D2B-A1C1-C7DB3265A6E5}

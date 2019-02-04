@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\allpet.common\allpet.common.csproj" />
     <ProjectReference Include="..\allpet.peer.tcp.Interface\allpet.Peer.Tcp.Interface.csproj" />
   </ItemGroup>
 

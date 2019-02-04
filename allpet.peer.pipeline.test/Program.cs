@@ -10,7 +10,7 @@ namespace AllPet.Pipeline.test
         static void Main(string[] args)
         {
             Console.WriteLine("pipeline test.");
-            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1();
+            var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
             system.RegistModule("mainloop", new Module_Loop());
             system.Start();
             var pipe = system.GetPipeline(null, "this/mainloop");

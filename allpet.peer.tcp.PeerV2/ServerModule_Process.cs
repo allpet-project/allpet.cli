@@ -92,8 +92,9 @@ namespace light.asynctcp
                 }
                 else
                 {
-                    throw new Exception("accept error.");
+                    logger.Error("error accept. continue." + e.SocketError);
                     //ProcessDisConnect(e, e.UserToken as LinkInfo);
+                    StartAccept(e);
                 }
             }
         }
@@ -149,9 +150,9 @@ namespace light.asynctcp
                                 seek += 4;
                                 link.lastPackege = new byte[link.lastPackageSize];
                                 link.lastPackegeSeek = 0;
-                                if (link.lastPackageSize > 9000)
+                                if (link.lastPackageSize > 16*1024*1024)
                                 {
-                                    Console.WriteLine("err");
+                                    throw new Exception("err package size is too big");
                                 }
                             }
                             else //长度不够，读部分长度
@@ -207,8 +208,16 @@ namespace light.asynctcp
                     }
                 }
             }
-            var asyncr = link.Socket.ReceiveAsync(link.recvArgs);
-            return asyncr;
+            try
+            {
+                var asyncr = link.Socket.ReceiveAsync(link.recvArgs);
+                return asyncr;
+            }
+            catch(Exception err)
+            {
+                logger.Error("error ProcessReceice. continue." + e.SocketError);
+                return true;
+            }
         }
 
         private unsafe void SendOnce(LinkInfo link, ArraySegment<byte> data)
@@ -282,10 +291,10 @@ namespace light.asynctcp
         {//收到这个是主动断线一方
             try
             {
-                this.PushBackLinks(link);
                 this.links.TryRemove(link.Handle, out LinkInfo v);
 
                 this.OnClosed(link.Handle);
+                this.PushBackLinks(link);
 
             }
             catch (Exception err)
@@ -300,12 +309,12 @@ namespace light.asynctcp
         /// <param name="link"></param>
         private void ProcessRecvZero(LinkInfo link)
         {
-            this.PushBackLinks(link);
             this.links.TryRemove(link.Handle, out LinkInfo v);
-            link.Handle = 0;
 
 
             this.OnClosed(link.Handle);
+            this.PushBackLinks(link);
+
         }
     }
 }

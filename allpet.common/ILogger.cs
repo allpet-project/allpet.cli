@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AllPet.Log
+namespace AllPet.Common
 {
     public interface ILogger
     {

@@ -30,6 +30,11 @@ namespace AllPet.Pipeline
                 return _inited > 0;
             }
         }
+        public string path
+        {
+            get;
+            private set;
+        }
         public bool HasDisposed
         {
             get;
@@ -39,8 +44,9 @@ namespace AllPet.Pipeline
         {
             return _System.GetPipeline(this, urlActor);
         }
-        public void OnRegistered(ISystem system)
+        public void OnRegistered(ISystem system, string path)
         {
+            this.path = path;
             this._System = system;
         }
         public virtual void Dispose()

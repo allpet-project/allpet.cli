@@ -8,15 +8,28 @@ namespace AllPet.Pipeline
     class RefSystemRemote : ISystemPipeline
     {
         public AllPet.peer.tcp.IPeer peer;
-        public UInt64 peerid;
-        public RefSystemRemote(AllPet.peer.tcp.IPeer peer, string remoteaddr, UInt64 id)
+        public UInt64 PeerID
         {
+            get;
+            private set;
+        }
+        PipelineSystemV1 _System;
+        global::System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline> refPipelines;
+        public RefSystemRemote(PipelineSystemV1 system, AllPet.peer.tcp.IPeer peer, string remoteaddr, UInt64 id, bool host)
+        {
+            this.IsHost = host;
+            this._System = system;
             this.peer = peer;
-            this.peerid = id;
+            this.PeerID = id;
             this.remoteaddr = remoteaddr;
+            refPipelines = new System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline>();
         }
         public bool IsLocal => false;
-
+        public bool IsHost
+        {
+            get;
+            private set;
+        }
         public string remoteaddr
         {
             get;
@@ -28,10 +41,43 @@ namespace AllPet.Pipeline
             get;
             set;
         }
+
+        public event Action<UInt64> OnPeerLink;
+        public event Action<UInt64> OnPeerClose;
+        public void Close(UInt64 id)
+        {
+            this.linked = false;
+
+            if (OnPeerClose != null)
+                this.OnPeerClose(id);
+        }
+        public void Linked(UInt64 id)
+        {
+            this.linked = true;
+            if (OnPeerLink != null)
+                this.OnPeerLink(id);
+        }
+        public IModulePipeline GetPipeline(IModuleInstance user, string path)
+        {
+            var pipestr = this.remoteaddr + "/" + path + "_" + user.path;
+            if (this.refPipelines.TryGetValue(pipestr, out IModulePipeline pipe))
+            {
+                return pipe;
+            }
+            PipelineRefRemote _pipe = new PipelineRefRemote(_System.refSystemThis, user.path, this, path);
+            this.refPipelines[pipestr] = _pipe;
+
+            return _pipe;
+        }
+
+        public IModulePipeline GetPipeLineByFrom(IModulePipeline from, IModuleInstance to)
+        {
+            throw new NotImplementedException("all GetPipeline By From is To Local");
+        }
     }
     class PipelineRefRemote : IModulePipeline
     {
-        public PipelineRefRemote(ISystemPipeline usersystem, string userPath, RefSystemRemote remotesystem,  string path)
+        public PipelineRefRemote(ISystemPipeline usersystem, string userPath, RefSystemRemote remotesystem, string path)
         {
             this._usersystem = usersystem;
             this.userpath = userPath;
@@ -81,7 +127,7 @@ namespace AllPet.Pipeline
             byte[] from = GetFromBytes();
             byte[] to = GetToBytes();
             byte[] outbuf = new byte[from.Length + 1 + to.Length + 1 + data.Length];
-            fixed (byte* pdiao = outbuf,pfrom=from,pto=to,pdata=data)
+            fixed (byte* pdiao = outbuf, pfrom = from, pto = to, pdata = data)
             {
                 int seek = 0;
                 outbuf[seek] = (byte)from.Length;
@@ -99,7 +145,7 @@ namespace AllPet.Pipeline
                 Buffer.MemoryCopy(pdata, pdiao + seek, data.Length, data.Length);
 
             }
-            _remotesystem.peer.Send(_remotesystem.peerid, outbuf);
+            _remotesystem.peer.Send(_remotesystem.PeerID, outbuf);
         }
         public void TellLocalObj(object obj)
         {
