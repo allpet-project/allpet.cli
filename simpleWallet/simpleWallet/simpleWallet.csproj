@@ -68,12 +68,10 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="lib\app.js.map" />
-    <Content Include="lib\app2.js.map" />
-    <Content Include="lib\app3.js.map" />
     <Content Include="lib\code.js.map" />
     <Content Include="lib\neo-ts.js.map" />
     <Content Include="app\tsconfig.json" />
+    <Content Include="code\tsconfig.json" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -84,9 +82,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
-    <Content Include="lib\app.js" />
-    <Content Include="lib\app2.js" />
-    <Content Include="lib\app3.js" />
     <Content Include="lib\asset\asmjs.js" />
     <Content Include="lib\asset\flash.swf" />
     <Content Include="lib\base64js.min.js" />
@@ -129,9 +124,10 @@
     <TypeScriptCompile Include="app\test4_getNep5Info.ts" />
     <TypeScriptCompile Include="app\test4_scriptbuilder.ts" />
     <TypeScriptCompile Include="app\test5_multiSign.ts" />
-    <TypeScriptCompile Include="lib\app.d.ts" />
-    <TypeScriptCompile Include="lib\app2.d.ts" />
-    <TypeScriptCompile Include="lib\app3.d.ts" />
+    <TypeScriptCompile Include="code\Main.ts" />
+    <TypeScriptCompile Include="code\NetAPI.ts" />
+    <TypeScriptCompile Include="code\NetHelper.ts" />
+    <TypeScriptCompile Include="code\RPC.ts" />
     <TypeScriptCompile Include="lib\code.d.ts" />
     <TypeScriptCompile Include="lib\codemirror\index.d.ts" />
     <TypeScriptCompile Include="lib\neo-ts.d.ts" />
@@ -139,6 +135,7 @@
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
