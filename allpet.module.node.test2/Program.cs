@@ -1,7 +1,7 @@
 ﻿using AllPet.Common;
 using Newtonsoft.Json.Linq;
 using System;
-
+using AllPet.Pipeline.MsgPack;
 namespace allpet.module.node.test
 {
     class Program
@@ -59,7 +59,20 @@ namespace allpet.module.node.test
             var pipeline = system.GetPipeline(null, "this/node");
             while (pipeline.IsVaild)
             {
-                System.Threading.Thread.Sleep(100);
+                var line = Console.ReadLine();
+                if (string.IsNullOrEmpty(line)==false)
+                {
+                    var cmds = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    var dict = new MsgPack.MessagePackObjectDictionary();
+                    dict["cmd"] = (UInt16)AllPet.Module.CmdList.Local_Cmd;
+                    var list = new MsgPack.MessagePackObject[cmds.Length];
+                    for (var i = 0; i < cmds.Length; i++)
+                    {
+                        list[i] = cmds[i];
+                    }
+                    dict["params"] = list;
+                    pipeline.Tell(new MsgPack.MessagePackObject(dict));
+                }
             }
         }
     }

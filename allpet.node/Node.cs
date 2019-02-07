@@ -46,27 +46,7 @@ namespace AllPet.Module
             ChainInfo = new ChainInfo(json["ChainInfo"] as JObject);
         }
     }
-    public enum CmdList : UInt16
-    {
-        //Request_ 开头的都是一对一消息，发往单个节点
-        //Response_ 开头的都是一对一消息，发往单个节点
-        //BoardCast_ 开头的，会向自己平级和低级的节点发送
-        //POST_ 开头的,会向比自己高级的节点发送
 
-        Request_JoinPeer = 0x0100,//告知其他节点我的存在，包括是不是共识节点之类的
-        Response_AcceptJoin,//同意他加入，并给他一个测试信息
-        Request_ProvePeer,//用测试信息+响应信息，做一个签名返回，对方就知道我拥有某一个公钥
-
-        Request_PeerList,//询问一个节点所能到达的节点
-        Response_PeerList,//告知一个节点所能到达的节点
-
-        Post_TouchProvedPeer,//请求寻找一个证明的节点
-        Response_Iamhere,
-        Post_SendRaw,//产生新的消息
-
-        BoradCast_PeerState,//一个节点证明了他自己
-        BoardCast_NewBlock,//新的块产生了
-    }
     public class LinkObj
     {
         public Hash256 ID;//节点ID，不能重复，每个节点自己生成，重复则不接受第二个节点
@@ -76,7 +56,32 @@ namespace AllPet.Module
         public byte[] CheckInfo;
         public byte[] PublicKey;
     }
-    public class Module_Node : Module_MsgPack
+    public class CanLinkObj : IEquatable<CanLinkObj>
+    {
+        public override string ToString()
+        {
+            return remote.ToString();
+        }
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
+        public override bool Equals(object obj)
+        {
+            return ToString().Equals(obj.ToString());
+        }
+        public bool Equals(CanLinkObj other)
+        {
+            return ToString().Equals(other.ToString());
+        }
+
+
+        public IPEndPoint remote;
+        public Hash256 ID;
+        public byte[] PublicKey;
+    }
+
+    public partial class Module_Node : Module_MsgPack
     {
         AllPet.Common.ILogger logger;
         Config_Module config;
@@ -87,6 +92,8 @@ namespace AllPet.Module
         byte[] pubkey;
 
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> linkNodes;
+        System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
+        Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
         public Module_Node(AllPet.Common.ILogger logger, Newtonsoft.Json.Linq.JObject configJson) : base(true)
         {
             this.guid = Helper_NEO.CalcHash256(Guid.NewGuid().ToByteArray());
@@ -95,12 +102,22 @@ namespace AllPet.Module
             this.chainHash = Helper_NEO.CalcHash256(this.config.ChainInfo.ToInitScript());
             //this.config = new Config_ChainInit(configJson);
             this.linkNodes = new System.Collections.Concurrent.ConcurrentDictionary<ulong, LinkObj>();
-            if (configJson.ContainsKey("Key_Nep2") && configJson.ContainsKey("Key_Password"))
+            this.linkIDs = new System.Collections.Concurrent.ConcurrentDictionary<string, ulong>();
+            this.listCanlink = new Struct.ThreadSafeQueueWithKey<CanLinkObj>();
+            try
             {
-                var nep2 = configJson["Key_Nep2"].AsString();
-                var password = configJson["Key_Password"].AsString();
-                this.prikey = Helper_NEO.GetPrivateKeyFromNEP2(nep2, password);
-                this.pubkey = Helper_NEO.GetPublicKey_FromPrivateKey(prikey);
+                if (configJson.ContainsKey("Key_Nep2") && configJson.ContainsKey("Key_Password"))
+                {
+                    var nep2 = configJson["Key_Nep2"].AsString();
+                    var password = configJson["Key_Password"].AsString();
+                    this.prikey = Helper_NEO.GetPrivateKeyFromNEP2(nep2, password);
+                    this.pubkey = Helper_NEO.GetPublicKey_FromPrivateKey(prikey);
+                }
+            }
+            catch (Exception err)
+            {
+                logger.Error("Error in Get Prikey：" + err.ToString());
+                throw new Exception("error in get prikey.", err);
             }
         }
         //peerid 是连接id，而每个节点，需要一个唯一不重复的节点ID，以方便进行识别
@@ -130,6 +147,8 @@ namespace AllPet.Module
         void _OnPeerClose(UInt64 id)
         {
             linkNodes.TryRemove(id, out LinkObj node);
+            var remotestr = node.remoteNode.system.Remote.ToString();
+            this.linkIDs.TryRemove(remotestr, out ulong v);
             logger.Info("_OnPeerClose" + id);
 
         }
@@ -137,161 +156,83 @@ namespace AllPet.Module
         {
             foreach (var p in this.config.InitPeer)
             {
-                //让GetPipeline来自动连接
-                var remotenode = this.GetPipeline(p.ToString() + "/node");//模块的名称是固定的
-                linkNodes[remotenode.system.PeerID] = new LinkObj()
-                {
-                    ID = null,
-                    remoteNode = remotenode,
-                    publicEndPoint = null
-                };
-                RegNetEvent(remotenode.system);
+                //initpeer 作为入口，就不尝试重新连接了
 
+                //CanLinkObj link = new CanLinkObj();
+                //link.PublicKey = null;
+                //link.remote = p;
+                //link.ID = new Hash256(new byte[32]);
+                //this.listCanlink.Enqueue(link);
+                ConnectOne(p);
                 //actorpeer.IsVaild 此时这个pipeline不是立即可用的，需要等待
             }
+            WatchNetwork();
+
         }
 
-        public override void OnTell(IModulePipeline from, MessagePackObject? obj)
-        {
-            if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link) == false)
+        private void ConnectOne(IPEndPoint p)
+        {                
+            //让GetPipeline来自动连接,此时remotenode 不可立即通讯，等回调，见RegNetEvent
+            var remotenode = this.GetPipeline(p.ToString() + "/node");//模块的名称是固定的
+            linkNodes[remotenode.system.PeerID] = new LinkObj()
             {
-                linkNodes[from.system.PeerID] = new LinkObj()
+                ID = null,
+                remoteNode = remotenode,
+                publicEndPoint = null
+            };
+            linkIDs[remotenode.system.Remote.ToString()] = remotenode.system.PeerID;
+            RegNetEvent(remotenode.system);
+            logger.Info("try to link to=>" + remotenode.system.Remote.ToString());
+
+        }
+
+        public async void WatchNetwork()
+        {
+            int refreshnetwaiter = 0;
+            int connectwaiter = 0;
+            while (true)
+            {
+                refreshnetwaiter++;
+                if (refreshnetwaiter > 60)
                 {
-                    ID = null,
-                    remoteNode = from,
-                    publicEndPoint = null
-                };
-                RegNetEvent(from.system);
-            }
-            var dict = obj.Value.AsDictionary();
-            var cmd = (CmdList)dict["cmd"].AsInt16();
-            logger.Info(obj.Value.ToString());
-            switch (cmd)
-            {
-                case CmdList.Request_JoinPeer:
+                    refreshnetwaiter = 0;
+                    //一分钟刷新一下网络
+                    foreach (var n in this.linkNodes.Values)
                     {
-                        OnRecv_RequestJoinPeer(from, dict);
+                        if (n.hadJoin)
+                            this.Tell_Request_PeerList(n.remoteNode);
                     }
-                    break;
-                case CmdList.Response_AcceptJoin:
-                    {
-                        OnRecv_ResponseAcceptJoin(from, dict);
-                    }
-                    break;
-                case CmdList.Request_ProvePeer:
-                    {
-                        OnRecv_RequestProvePeer(from, dict);
-                    }
-                    break;
-                case CmdList.Request_PeerList:
-                    break;
-                case CmdList.Response_PeerList:
-                    break;
-
-            }
-        }
-        void Tell_ReqJoinPeer(IModulePipeline remote)
-        {
-            var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Request_JoinPeer;
-            dict["id"] = this.guid.data;
-            dict["pubep"] = this.config.PublicEndPoint.ToString();
-            dict["chaininfo"] = chainHash.data;
-            remote.Tell(new MessagePackObject(dict));
-        }
-        void Tell_ResponseAcceptJoin(IModulePipeline remote)
-        {
-            var link = this.linkNodes[remote.system.PeerID];
-            link.CheckInfo = Guid.NewGuid().ToByteArray();
-            var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Response_AcceptJoin;
-            dict["checkinfo"] = link.CheckInfo;
-            //选个挑战信息
-            remote.Tell(new MessagePackObject(dict));
-        }
-        void Tell_Request_ProvePeer(IModulePipeline remote, byte[] addinfo, byte[] signdata)
-        {
-            var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Request_ProvePeer;
-            dict["pubkey"] = this.pubkey;
-            dict["addinfo"] = addinfo;
-            dict["signdata"] = signdata;
-            remote.Tell(new MessagePackObject(dict));
-        }
-
-        void OnRecv_RequestJoinPeer(IModulePipeline from, MessagePackObjectDictionary dict)
-        {
-            logger.Info("there is a peer what to join here.:");
-
-            Hash256 id = dict["id"].AsBinary();
-            if (this.guid.Equals(id))
-            {
-                logger.Warn("Join Err:my self in.");
-                this._System.DisConnect(from.system);//断开这个连接
-                return;
-            }
-
-            Hash256 hash = dict["chaininfo"].AsBinary();
-            if (hash.Equals(this.chainHash) == false)
-            {
-                logger.Warn("Join Err:chaininfo is diff.");
-                //this._System.Disconnect(from.system);//断开这个连接
-                //return;
-            }
-            var link = this.linkNodes[from.system.PeerID];
-            link.ID = id;
-            System.Net.IPEndPoint pubeb = null;
-            if (dict.ContainsKey("pubep"))
-            {
-                pubeb = dict["pubep"].AsString().AsIPEndPoint();
-            }
-            if (pubeb.Port != 0)
-            {
-                if (pubeb.Address == IPAddress.Any)
-                {
-                    pubeb.Address = from.system.Remote.Address;
-
                 }
-                link.publicEndPoint = pubeb;
-            }
 
+                connectwaiter++;
+                if (connectwaiter > 5)
+                {
+                    connectwaiter = 0;
+                    //5秒钟处理一下连接
+                    int linked = 0;
+                    foreach (var n in this.linkNodes.Values)
+                    {
+                        if (n.hadJoin)
+                            linked++;
+                    }
+                    var maxc = Math.Min(100 - linked, this.listCanlink.Count);
+                    for (var i = 0; i < maxc; i++)
+                    {
+                        var canlink = listCanlink.Dequeue();
+                        if (canlink.ID.Equals(this.guid))//这是我自己，不要连
+                            continue;
+                        if (this.linkIDs.ContainsKey(canlink.remote.ToString()) == false)
+                        {
+                            ConnectOne(canlink.remote);
+                        }
+                        listCanlink.Enqueue(canlink);
+                    }
+                }
 
-
-            //and accept
-            Tell_ResponseAcceptJoin(from);
-        }
-        void OnRecv_ResponseAcceptJoin(IModulePipeline from, MessagePackObjectDictionary dict)
-        {
-            logger.Info("had join chain");
-            var link = this.linkNodes[from.system.PeerID];
-            link.hadJoin = true;//已经和某个节点接通
-
-            if (this.prikey != null)//有私钥证明一下
-            {
-                var check = dict["checkinfo"].AsBinary();
-                var addinfo = Guid.NewGuid().ToByteArray();
-                var message = addinfo.Concat(check).ToArray();
-                var signdata = Helper_NEO.Sign(message, this.prikey);
-                Tell_Request_ProvePeer(from, addinfo, signdata);
-            }
-        }
-        void OnRecv_RequestProvePeer(IModulePipeline from, MessagePackObjectDictionary dict)
-        {
-            var link = this.linkNodes[from.system.PeerID];
-            var addinfo = dict["addinfo"].AsBinary();
-            var pubkey = dict["pubkey"].AsBinary();
-            var signdata = dict["signdata"].AsBinary();
-            var message = addinfo.Concat(link.CheckInfo).ToArray();
-            bool sign = Helper_NEO.VerifySignature(message, signdata, pubkey);
-            if (sign)
-            {
-                link.PublicKey = pubkey;
-                logger.Info("had a proved peer:" + Helper.Bytes2HexString(pubkey));
-            }
-            else
-            {
-                logger.Info("had a error proved peer:" + Helper.Bytes2HexString(pubkey));
+                await System.Threading.Tasks.Task.Delay(1000);//1秒刷新一次
             }
         }
+
+
     }
 }
