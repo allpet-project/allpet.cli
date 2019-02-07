@@ -41,7 +41,7 @@ namespace allpet.module.node.test
 
             system.OpenNetwork(new AllPet.peer.tcp.PeerOption() { });
             var endpoint = config.GetIPEndPoint("config.json", ".ListenEndPoint");
-            if (endpoint != null)
+            if (endpoint != null && endpoint.Port != 0)
             {
                 try
                 {

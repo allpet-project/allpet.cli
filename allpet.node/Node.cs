@@ -3,7 +3,7 @@ using AllPet.Pipeline;
 using AllPet.Pipeline.MsgPack;
 using MsgPack;
 using System;
-
+using System.Linq;
 using AllPet.Common;
 using Newtonsoft.Json.Linq;
 using System.Net;
@@ -64,7 +64,7 @@ namespace AllPet.Module
         Response_Iamhere,
         Post_SendRaw,//产生新的消息
 
-        BoradCast_PeerProved,//一个节点证明了他自己
+        BoradCast_PeerState,//一个节点证明了他自己
         BoardCast_NewBlock,//新的块产生了
     }
     public class LinkObj
@@ -73,6 +73,8 @@ namespace AllPet.Module
         public IModulePipeline remoteNode;
         public System.Net.IPEndPoint publicEndPoint;//公开的地址好让人进行P2P连接
         public bool hadJoin;//是否被允许加入了网络
+        public byte[] CheckInfo;
+        public byte[] PublicKey;
     }
     public class Module_Node : Module_MsgPack
     {
@@ -80,6 +82,10 @@ namespace AllPet.Module
         Config_Module config;
         Hash256 guid;
         Hash256 chainHash;
+
+        byte[] prikey;
+        byte[] pubkey;
+
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> linkNodes;
         public Module_Node(AllPet.Common.ILogger logger, Newtonsoft.Json.Linq.JObject configJson) : base(true)
         {
@@ -89,6 +95,13 @@ namespace AllPet.Module
             this.chainHash = Helper_NEO.CalcHash256(this.config.ChainInfo.ToInitScript());
             //this.config = new Config_ChainInit(configJson);
             this.linkNodes = new System.Collections.Concurrent.ConcurrentDictionary<ulong, LinkObj>();
+            if (configJson.ContainsKey("Key_Nep2") && configJson.ContainsKey("Key_Password"))
+            {
+                var nep2 = configJson["Key_Nep2"].AsString();
+                var password = configJson["Key_Password"].AsString();
+                this.prikey = Helper_NEO.GetPrivateKeyFromNEP2(nep2, password);
+                this.pubkey = Helper_NEO.GetPublicKey_FromPrivateKey(prikey);
+            }
         }
         //peerid 是连接id，而每个节点，需要一个唯一不重复的节点ID，以方便进行识别
 
@@ -162,7 +175,12 @@ namespace AllPet.Module
                     break;
                 case CmdList.Response_AcceptJoin:
                     {
-                        OnRecv_ResponseJoin(from, dict);
+                        OnRecv_ResponseAcceptJoin(from, dict);
+                    }
+                    break;
+                case CmdList.Request_ProvePeer:
+                    {
+                        OnRecv_RequestProvePeer(from, dict);
                     }
                     break;
                 case CmdList.Request_PeerList:
@@ -183,11 +201,24 @@ namespace AllPet.Module
         }
         void Tell_ResponseAcceptJoin(IModulePipeline remote)
         {
+            var link = this.linkNodes[remote.system.PeerID];
+            link.CheckInfo = Guid.NewGuid().ToByteArray();
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Response_AcceptJoin;
+            dict["checkinfo"] = link.CheckInfo;
             //选个挑战信息
             remote.Tell(new MessagePackObject(dict));
         }
+        void Tell_Request_ProvePeer(IModulePipeline remote, byte[] addinfo, byte[] signdata)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_ProvePeer;
+            dict["pubkey"] = this.pubkey;
+            dict["addinfo"] = addinfo;
+            dict["signdata"] = signdata;
+            remote.Tell(new MessagePackObject(dict));
+        }
+
         void OnRecv_RequestJoinPeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {
             logger.Info("there is a peer what to join here.:");
@@ -229,11 +260,38 @@ namespace AllPet.Module
             //and accept
             Tell_ResponseAcceptJoin(from);
         }
-        void OnRecv_ResponseJoin(IModulePipeline from, MessagePackObjectDictionary dict)
+        void OnRecv_ResponseAcceptJoin(IModulePipeline from, MessagePackObjectDictionary dict)
         {
             logger.Info("had join chain");
             var link = this.linkNodes[from.system.PeerID];
             link.hadJoin = true;//已经和某个节点接通
+
+            if (this.prikey != null)//有私钥证明一下
+            {
+                var check = dict["checkinfo"].AsBinary();
+                var addinfo = Guid.NewGuid().ToByteArray();
+                var message = addinfo.Concat(check).ToArray();
+                var signdata = Helper_NEO.Sign(message, this.prikey);
+                Tell_Request_ProvePeer(from, addinfo, signdata);
+            }
+        }
+        void OnRecv_RequestProvePeer(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var link = this.linkNodes[from.system.PeerID];
+            var addinfo = dict["addinfo"].AsBinary();
+            var pubkey = dict["pubkey"].AsBinary();
+            var signdata = dict["signdata"].AsBinary();
+            var message = addinfo.Concat(link.CheckInfo).ToArray();
+            bool sign = Helper_NEO.VerifySignature(message, signdata, pubkey);
+            if (sign)
+            {
+                link.PublicKey = pubkey;
+                logger.Info("had a proved peer:" + Helper.Bytes2HexString(pubkey));
+            }
+            else
+            {
+                logger.Info("had a error proved peer:" + Helper.Bytes2HexString(pubkey));
+            }
         }
     }
 }
