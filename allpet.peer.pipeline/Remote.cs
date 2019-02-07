@@ -13,15 +13,20 @@ namespace AllPet.Pipeline
             get;
             private set;
         }
+        public IPEndPoint Remote
+        {
+            get;
+            private set;
+        }
         PipelineSystemV1 _System;
         global::System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline> refPipelines;
-        public RefSystemRemote(PipelineSystemV1 system, AllPet.peer.tcp.IPeer peer, string remoteaddr, UInt64 id, bool host)
+        public RefSystemRemote(PipelineSystemV1 system, AllPet.peer.tcp.IPeer peer, IPEndPoint remote, UInt64 id, bool host)
         {
             this.IsHost = host;
             this._System = system;
             this.peer = peer;
             this.PeerID = id;
-            this.remoteaddr = remoteaddr;
+            this.Remote = remote;
             refPipelines = new System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline>();
         }
         public bool IsLocal => false;
@@ -32,8 +37,10 @@ namespace AllPet.Pipeline
         }
         public string remoteaddr
         {
-            get;
-            private set;
+            get
+            {
+                return Remote.ToString();
+            }
         }
 
         public bool linked
@@ -42,7 +49,7 @@ namespace AllPet.Pipeline
             set;
         }
 
-        public event Action<UInt64> OnPeerLink;
+        public event Action<UInt64,bool,IPEndPoint> OnPeerLink;
         public event Action<UInt64> OnPeerClose;
         public void Close(UInt64 id)
         {
@@ -51,15 +58,15 @@ namespace AllPet.Pipeline
             if (OnPeerClose != null)
                 this.OnPeerClose(id);
         }
-        public void Linked(UInt64 id)
+        public void Linked(UInt64 id,bool accept,IPEndPoint remote)
         {
             this.linked = true;
             if (OnPeerLink != null)
-                this.OnPeerLink(id);
+                this.OnPeerLink(id,accept,remote);
         }
         public IModulePipeline GetPipeline(IModuleInstance user, string path)
         {
-            var pipestr = this.remoteaddr + "/" + path + "_" + user.path;
+            var pipestr = this.Remote.ToString() + "/" + path + "_" + user.path;
             if (this.refPipelines.TryGetValue(pipestr, out IModulePipeline pipe))
             {
                 return pipe;

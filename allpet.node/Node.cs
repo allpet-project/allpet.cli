@@ -6,6 +6,7 @@ using System;
 
 using AllPet.Common;
 using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace AllPet.Module
 {
@@ -81,7 +82,7 @@ namespace AllPet.Module
         {
             if (syspipe.linked)
             {
-                _OnPeerLink(syspipe.PeerID);
+                _OnPeerLink(syspipe.PeerID,syspipe.IsHost,syspipe.Remote);
             }
             else
             {
@@ -89,7 +90,7 @@ namespace AllPet.Module
             }
             syspipe.OnPeerClose += _OnPeerClose;
         }
-        void _OnPeerLink(UInt64 id)//不知道这个连接是进来的，还是我连出去的，也不知道这个是不是我自己
+        void _OnPeerLink(UInt64 id, bool accept, IPEndPoint remote)//不知道这个连接是进来的，还是我连出去的，也不知道这个是不是我自己
         {
             var pipe = linkNodes[id];
             var dict = new MessagePackObjectDictionary();

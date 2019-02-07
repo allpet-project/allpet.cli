@@ -256,9 +256,9 @@ namespace AllPet.Pipeline
             {
                 var remotestr = endpoint.ToString();
                 linkedIP[id] = remotestr;
-                RefSystemRemote remote = new RefSystemRemote(this, peer, remotestr, id, true);
+                RefSystemRemote remote = new RefSystemRemote(this, peer, endpoint, id, true);
                 remote.linked = true;
-                (remote as RefSystemRemote).Linked(id);
+                (remote as RefSystemRemote).Linked(id,true,endpoint);
                 this.refSystems[remotestr] = remote;
 
                 Console.WriteLine("on accepted." + id + " = " + endpoint);
@@ -270,7 +270,7 @@ namespace AllPet.Pipeline
                   {
                       var __remotestr = endpoint.ToString();
                       this.linkedIP[id] = __remotestr;
-                      RefSystemRemote __remote = new RefSystemRemote(this, peer, __remotestr, id, false);
+                      RefSystemRemote __remote = new RefSystemRemote(this, peer, endpoint, id, false);
                       __remote.linked = false;
                       this.refSystems[__remotestr] = __remote;
                   }
@@ -278,7 +278,7 @@ namespace AllPet.Pipeline
                   var remotestr = this.linkedIP[id];
                   var remote = this.refSystems[remotestr] as RefSystemRemote;
                   remote.linked = true;
-                  (remote as RefSystemRemote).Linked(id);
+                  (remote as RefSystemRemote).Linked(id,false,endpoint);
                   //this.linkedIP[id] = endpoint.ToString();
 
                   ////主动连接成功，创建一个systemRef
@@ -324,7 +324,7 @@ namespace AllPet.Pipeline
                 this.linkedIP[linkid] = remotestr;
 
                 //主动连接成功，创建一个systemRef
-                RefSystemRemote remote = new RefSystemRemote(this, peer, remotestr, linkid, false);
+                RefSystemRemote remote = new RefSystemRemote(this, peer, _remote, linkid, false);
                 remote.linked = false;
                 this.refSystems[remotestr] = remote;
 
