@@ -46,10 +46,6 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        string remoteaddr
-        {
-            get;
-        }
         bool linked
         {
             get;

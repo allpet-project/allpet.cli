@@ -286,7 +286,7 @@ namespace AllPet.Pipeline
                   //RefSystemRemote remote = new RefSystemRemote(peer, remotestr, id);
                   //remote.linked = true;
                   //this.refSystems[remotestr] = remote;
-                  Console.WriteLine("on OnConnected.");
+                  Console.WriteLine("on OnConnected." + id + " = " + endpoint);
               };
         }
         public void CloseNetwork()
@@ -316,20 +316,27 @@ namespace AllPet.Pipeline
             if (peer == null)
                 throw new Exception("not init peer.");
 
-            lock (this)
-            {
+            //lock (this)
+            //{
                 var linkid = peer.Connect(_remote);
+                if (this.linkedIP.ContainsKey(linkid) == false)
+                {
+                    var remotestr = _remote.ToString();
+                    this.linkedIP[linkid] = remotestr;
 
-                var remotestr = _remote.ToString();
-                this.linkedIP[linkid] = remotestr;
+                    //主动连接成功，创建一个systemRef
+                    RefSystemRemote remote = new RefSystemRemote(this, peer, _remote, linkid, false);
+                    remote.linked = false;
+                    this.refSystems[remotestr] = remote;
+                    return remote;
 
-                //主动连接成功，创建一个systemRef
-                RefSystemRemote remote = new RefSystemRemote(this, peer, _remote, linkid, false);
-                remote.linked = false;
-                this.refSystems[remotestr] = remote;
-
-                return remote;
-            }
+                }
+                else
+                {
+                    var remotestr = this.linkedIP[linkid];
+                    return this.refSystems[remotestr];
+                }
+            //}
         }
         public void DisConnect(ISystemPipeline pipe)
         {

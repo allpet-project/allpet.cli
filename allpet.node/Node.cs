@@ -48,16 +48,31 @@ namespace AllPet.Module
     }
     public enum CmdList : UInt16
     {
-        Want_JoinPeer = 0x0100,//告知其他节点我的存在
-        Tell_AcceptJoin,//同意他加入
-        Want_PeerList,//询问一个节点所能到达的节点
-        Tell_PeerList,//告知一个节点所能到达的节点
+        //Request_ 开头的都是一对一消息，发往单个节点
+        //Response_ 开头的都是一对一消息，发往单个节点
+        //BoardCast_ 开头的，会向自己平级和低级的节点发送
+        //POST_ 开头的,会向比自己高级的节点发送
+
+        Request_JoinPeer = 0x0100,//告知其他节点我的存在，包括是不是共识节点之类的
+        Response_AcceptJoin,//同意他加入，并给他一个测试信息
+        Request_ProvePeer,//用测试信息+响应信息，做一个签名返回，对方就知道我拥有某一个公钥
+
+        Request_PeerList,//询问一个节点所能到达的节点
+        Response_PeerList,//告知一个节点所能到达的节点
+
+        Post_TouchProvedPeer,//请求寻找一个证明的节点
+        Response_Iamhere,
+        Post_SendRaw,//产生新的消息
+
+        BoradCast_PeerProved,//一个节点证明了他自己
+        BoardCast_NewBlock,//新的块产生了
     }
     public class LinkObj
     {
         public Hash256 ID;//节点ID，不能重复，每个节点自己生成，重复则不接受第二个节点
         public IModulePipeline remoteNode;
         public System.Net.IPEndPoint publicEndPoint;//公开的地址好让人进行P2P连接
+        public bool hadJoin;//是否被允许加入了网络
     }
     public class Module_Node : Module_MsgPack
     {
@@ -82,7 +97,7 @@ namespace AllPet.Module
         {
             if (syspipe.linked)
             {
-                _OnPeerLink(syspipe.PeerID,syspipe.IsHost,syspipe.Remote);
+                _OnPeerLink(syspipe.PeerID, syspipe.IsHost, syspipe.Remote);
             }
             else
             {
@@ -90,15 +105,13 @@ namespace AllPet.Module
             }
             syspipe.OnPeerClose += _OnPeerClose;
         }
-        void _OnPeerLink(UInt64 id, bool accept, IPEndPoint remote)//不知道这个连接是进来的，还是我连出去的，也不知道这个是不是我自己
+        void _OnPeerLink(UInt64 id, bool accept, IPEndPoint remote)//现在能区分主叫 connect 和 被叫 accept了
         {
             var pipe = linkNodes[id];
-            var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Want_JoinPeer;
-            dict["id"] = this.guid.data;
-            dict["pubep"] = this.config.PublicEndPoint.ToString();
-            dict["chaininfo"] = chainHash.data;
-            pipe.remoteNode.Tell(new MessagePackObject(dict));
+
+            //主叫被叫都尝试加入对方网络
+
+            Tell_ReqJoinPeer(pipe.remoteNode);
             logger.Info("_OnPeerLink" + id);
         }
         void _OnPeerClose(UInt64 id)
@@ -127,7 +140,7 @@ namespace AllPet.Module
 
         public override void OnTell(IModulePipeline from, MessagePackObject? obj)
         {
-            if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link)==false)
+            if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link) == false)
             {
                 linkNodes[from.system.PeerID] = new LinkObj()
                 {
@@ -142,48 +155,85 @@ namespace AllPet.Module
             logger.Info(obj.Value.ToString());
             switch (cmd)
             {
-                case CmdList.Want_JoinPeer:
+                case CmdList.Request_JoinPeer:
                     {
-                        Want_JoinPeer(from, dict);
+                        OnRecv_RequestJoinPeer(from, dict);
                     }
                     break;
-                case CmdList.Tell_AcceptJoin:
+                case CmdList.Response_AcceptJoin:
+                    {
+                        OnRecv_ResponseJoin(from, dict);
+                    }
                     break;
-                case CmdList.Want_PeerList:
+                case CmdList.Request_PeerList:
                     break;
-                case CmdList.Tell_PeerList:
+                case CmdList.Response_PeerList:
                     break;
 
             }
         }
-        void Want_JoinPeer(IModulePipeline from, MessagePackObjectDictionary dict)
+        void Tell_ReqJoinPeer(IModulePipeline remote)
         {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_JoinPeer;
+            dict["id"] = this.guid.data;
+            dict["pubep"] = this.config.PublicEndPoint.ToString();
+            dict["chaininfo"] = chainHash.data;
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void Tell_ResponseAcceptJoin(IModulePipeline remote)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Response_AcceptJoin;
+            //选个挑战信息
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void OnRecv_RequestJoinPeer(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            logger.Info("there is a peer what to join here.:");
 
             Hash256 id = dict["id"].AsBinary();
             if (this.guid.Equals(id))
             {
-                logger.Info("my self in.");
+                logger.Warn("Join Err:my self in.");
                 this._System.DisConnect(from.system);//断开这个连接
                 return;
             }
-            
+
             Hash256 hash = dict["chaininfo"].AsBinary();
-            if (hash.Equals(this.chainHash)==false)
+            if (hash.Equals(this.chainHash) == false)
             {
-                logger.Info("join hash is diff.");
+                logger.Warn("Join Err:chaininfo is diff.");
                 //this._System.Disconnect(from.system);//断开这个连接
                 //return;
             }
+            var link = this.linkNodes[from.system.PeerID];
+            link.ID = id;
             System.Net.IPEndPoint pubeb = null;
             if (dict.ContainsKey("pubep"))
             {
                 pubeb = dict["pubep"].AsString().AsIPEndPoint();
             }
+            if (pubeb.Port != 0)
+            {
+                if (pubeb.Address == IPAddress.Any)
+                {
+                    pubeb.Address = from.system.Remote.Address;
 
+                }
+                link.publicEndPoint = pubeb;
+            }
+
+
+
+            //and accept
+            Tell_ResponseAcceptJoin(from);
+        }
+        void OnRecv_ResponseJoin(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            logger.Info("had join chain");
             var link = this.linkNodes[from.system.PeerID];
-            link.ID = id;
-            logger.Info("there is a peer what to join here.:");
-
+            link.hadJoin = true;//已经和某个节点接通
         }
     }
 }
