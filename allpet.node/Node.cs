@@ -3,9 +3,10 @@ using AllPet.Pipeline;
 using AllPet.Pipeline.MsgPack;
 using MsgPack;
 using System;
-
+using System.Linq;
 using AllPet.Common;
 using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace AllPet.Module
 {
@@ -45,26 +46,54 @@ namespace AllPet.Module
             ChainInfo = new ChainInfo(json["ChainInfo"] as JObject);
         }
     }
-    public enum CmdList : UInt16
-    {
-        Want_JoinPeer = 0x0100,//告知其他节点我的存在
-        Tell_AcceptJoin,//同意他加入
-        Want_PeerList,//询问一个节点所能到达的节点
-        Tell_PeerList,//告知一个节点所能到达的节点
-    }
+
     public class LinkObj
     {
         public Hash256 ID;//节点ID，不能重复，每个节点自己生成，重复则不接受第二个节点
         public IModulePipeline remoteNode;
         public System.Net.IPEndPoint publicEndPoint;//公开的地址好让人进行P2P连接
+        public bool hadJoin;//是否被允许加入了网络
+        public byte[] CheckInfo;
+        public byte[] PublicKey;
     }
-    public class Module_Node : Module_MsgPack
+    public class CanLinkObj : IEquatable<CanLinkObj>
+    {
+        public override string ToString()
+        {
+            return remote.ToString();
+        }
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
+        public override bool Equals(object obj)
+        {
+            return ToString().Equals(obj.ToString());
+        }
+        public bool Equals(CanLinkObj other)
+        {
+            return ToString().Equals(other.ToString());
+        }
+
+
+        public IPEndPoint remote;
+        public Hash256 ID;
+        public byte[] PublicKey;
+    }
+
+    public partial class Module_Node : Module_MsgPack
     {
         AllPet.Common.ILogger logger;
         Config_Module config;
         Hash256 guid;
         Hash256 chainHash;
+
+        byte[] prikey;
+        byte[] pubkey;
+
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> linkNodes;
+        System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
+        Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
         public Module_Node(AllPet.Common.ILogger logger, Newtonsoft.Json.Linq.JObject configJson) : base(true)
         {
             this.guid = Helper_NEO.CalcHash256(Guid.NewGuid().ToByteArray());
@@ -73,6 +102,23 @@ namespace AllPet.Module
             this.chainHash = Helper_NEO.CalcHash256(this.config.ChainInfo.ToInitScript());
             //this.config = new Config_ChainInit(configJson);
             this.linkNodes = new System.Collections.Concurrent.ConcurrentDictionary<ulong, LinkObj>();
+            this.linkIDs = new System.Collections.Concurrent.ConcurrentDictionary<string, ulong>();
+            this.listCanlink = new Struct.ThreadSafeQueueWithKey<CanLinkObj>();
+            try
+            {
+                if (configJson.ContainsKey("Key_Nep2") && configJson.ContainsKey("Key_Password"))
+                {
+                    var nep2 = configJson["Key_Nep2"].AsString();
+                    var password = configJson["Key_Password"].AsString();
+                    this.prikey = Helper_NEO.GetPrivateKeyFromNEP2(nep2, password);
+                    this.pubkey = Helper_NEO.GetPublicKey_FromPrivateKey(prikey);
+                }
+            }
+            catch (Exception err)
+            {
+                logger.Error("Error in Get Prikey：" + err.ToString());
+                throw new Exception("error in get prikey.", err);
+            }
         }
         //peerid 是连接id，而每个节点，需要一个唯一不重复的节点ID，以方便进行识别
 
@@ -81,7 +127,7 @@ namespace AllPet.Module
         {
             if (syspipe.linked)
             {
-                _OnPeerLink(syspipe.PeerID);
+                _OnPeerLink(syspipe.PeerID, syspipe.IsHost, syspipe.Remote);
             }
             else
             {
@@ -89,20 +135,20 @@ namespace AllPet.Module
             }
             syspipe.OnPeerClose += _OnPeerClose;
         }
-        void _OnPeerLink(UInt64 id)//不知道这个连接是进来的，还是我连出去的，也不知道这个是不是我自己
+        void _OnPeerLink(UInt64 id, bool accept, IPEndPoint remote)//现在能区分主叫 connect 和 被叫 accept了
         {
             var pipe = linkNodes[id];
-            var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Want_JoinPeer;
-            dict["id"] = this.guid.data;
-            dict["pubep"] = this.config.PublicEndPoint.ToString();
-            dict["chaininfo"] = chainHash.data;
-            pipe.remoteNode.Tell(new MessagePackObject(dict));
+
+            //主叫被叫都尝试加入对方网络
+
+            Tell_ReqJoinPeer(pipe.remoteNode);
             logger.Info("_OnPeerLink" + id);
         }
         void _OnPeerClose(UInt64 id)
         {
             linkNodes.TryRemove(id, out LinkObj node);
+            var remotestr = node.remoteNode.system.Remote.ToString();
+            this.linkIDs.TryRemove(remotestr, out ulong v);
             logger.Info("_OnPeerClose" + id);
 
         }
@@ -110,79 +156,83 @@ namespace AllPet.Module
         {
             foreach (var p in this.config.InitPeer)
             {
-                //让GetPipeline来自动连接
-                var remotenode = this.GetPipeline(p.ToString() + "/node");//模块的名称是固定的
-                linkNodes[remotenode.system.PeerID] = new LinkObj()
-                {
-                    ID = null,
-                    remoteNode = remotenode,
-                    publicEndPoint = null
-                };
-                RegNetEvent(remotenode.system);
+                //initpeer 作为入口，就不尝试重新连接了
 
+                //CanLinkObj link = new CanLinkObj();
+                //link.PublicKey = null;
+                //link.remote = p;
+                //link.ID = new Hash256(new byte[32]);
+                //this.listCanlink.Enqueue(link);
+                ConnectOne(p);
                 //actorpeer.IsVaild 此时这个pipeline不是立即可用的，需要等待
             }
+            WatchNetwork();
+
         }
 
-        public override void OnTell(IModulePipeline from, MessagePackObject? obj)
-        {
-            if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link)==false)
+        private void ConnectOne(IPEndPoint p)
+        {                
+            //让GetPipeline来自动连接,此时remotenode 不可立即通讯，等回调，见RegNetEvent
+            var remotenode = this.GetPipeline(p.ToString() + "/node");//模块的名称是固定的
+            linkNodes[remotenode.system.PeerID] = new LinkObj()
             {
-                linkNodes[from.system.PeerID] = new LinkObj()
+                ID = null,
+                remoteNode = remotenode,
+                publicEndPoint = null
+            };
+            linkIDs[remotenode.system.Remote.ToString()] = remotenode.system.PeerID;
+            RegNetEvent(remotenode.system);
+            logger.Info("try to link to=>" + remotenode.system.Remote.ToString());
+
+        }
+
+        public async void WatchNetwork()
+        {
+            int refreshnetwaiter = 0;
+            int connectwaiter = 0;
+            while (true)
+            {
+                refreshnetwaiter++;
+                if (refreshnetwaiter > 60)
                 {
-                    ID = null,
-                    remoteNode = from,
-                    publicEndPoint = null
-                };
-                RegNetEvent(from.system);
-            }
-            var dict = obj.Value.AsDictionary();
-            var cmd = (CmdList)dict["cmd"].AsInt16();
-            logger.Info(obj.Value.ToString());
-            switch (cmd)
-            {
-                case CmdList.Want_JoinPeer:
+                    refreshnetwaiter = 0;
+                    //一分钟刷新一下网络
+                    foreach (var n in this.linkNodes.Values)
                     {
-                        Want_JoinPeer(from, dict);
+                        if (n.hadJoin)
+                            this.Tell_Request_PeerList(n.remoteNode);
                     }
-                    break;
-                case CmdList.Tell_AcceptJoin:
-                    break;
-                case CmdList.Want_PeerList:
-                    break;
-                case CmdList.Tell_PeerList:
-                    break;
+                }
 
+                connectwaiter++;
+                if (connectwaiter > 5)
+                {
+                    connectwaiter = 0;
+                    //5秒钟处理一下连接
+                    int linked = 0;
+                    foreach (var n in this.linkNodes.Values)
+                    {
+                        if (n.hadJoin)
+                            linked++;
+                    }
+                    var maxc = Math.Min(100 - linked, this.listCanlink.Count);
+                    for (var i = 0; i < maxc; i++)
+                    {
+                        var canlink = listCanlink.Dequeue();
+                        if (canlink.ID.Equals(this.guid))//这是我自己，不要连
+                            continue;
+                        if (this.linkIDs.ContainsKey(canlink.remote.ToString()) == false)
+                        {
+                            ConnectOne(canlink.remote);
+                        }
+                        listCanlink.Enqueue(canlink);
+                    }
+                }
+
+                await System.Threading.Tasks.Task.Delay(1000);//1秒刷新一次
             }
         }
-        void Want_JoinPeer(IModulePipeline from, MessagePackObjectDictionary dict)
-        {
 
-            Hash256 id = dict["id"].AsBinary();
-            if (this.guid.Equals(id))
-            {
-                logger.Info("my self in.");
-                this._System.DisConnect(from.system);//断开这个连接
-                return;
-            }
-            
-            Hash256 hash = dict["chaininfo"].AsBinary();
-            if (hash.Equals(this.chainHash)==false)
-            {
-                logger.Info("join hash is diff.");
-                //this._System.Disconnect(from.system);//断开这个连接
-                //return;
-            }
-            System.Net.IPEndPoint pubeb = null;
-            if (dict.ContainsKey("pubep"))
-            {
-                pubeb = dict["pubep"].AsString().AsIPEndPoint();
-            }
 
-            var link = this.linkNodes[from.system.PeerID];
-            link.ID = id;
-            logger.Info("there is a peer what to join here.:");
-
-        }
     }
 }

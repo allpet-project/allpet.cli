@@ -24,13 +24,15 @@ namespace AllPet.Common
         }
         public static System.Net.IPEndPoint AsIPEndPoint(this JToken json)
         {
-            var ip = ((string)json).Split(':');
-            return new System.Net.IPEndPoint(System.Net.IPAddress.Parse(ip[0]), int.Parse(ip[1]));
+            return AsIPEndPoint((string)json);
         }
         public static System.Net.IPEndPoint AsIPEndPoint(this string str)
         {
+            var ipi = str.LastIndexOf(':');
+            var strport = str.Substring(ipi + 1);
+            var strip = str.Substring(0, ipi);
             var ip = str.Split(':');
-            return new System.Net.IPEndPoint(System.Net.IPAddress.Parse(ip[0]), int.Parse(ip[1]));
+            return new System.Net.IPEndPoint(System.Net.IPAddress.Parse(strip), int.Parse(strport));
         }
         public static System.Net.IPEndPoint[] AsIPEndPointArray(this JToken json)
         {

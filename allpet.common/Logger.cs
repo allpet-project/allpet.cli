@@ -113,15 +113,18 @@ namespace AllPet.Common
                 System.Diagnostics.Debug.Write(tag);
                 System.Diagnostics.Debug.WriteLine(str);
             }
-            if ((outtag & OUTPosition.File) > 0)
+            lock (this)
             {
-                try
+                if ((outtag & OUTPosition.File) > 0)
                 {
-                    System.IO.File.AppendAllText(outfilepath, tag + str, System.Text.Encoding.UTF8);
-                }
-                catch
-                {
-                    Console.Write("<LOG ERROR>cant write to file:" + outfilepath + "=" + str);
+                    try
+                    {
+                        System.IO.File.AppendAllText(outfilepath, tag + str, System.Text.Encoding.UTF8);
+                    }
+                    catch
+                    {
+                        Console.Write("<LOG ERROR>cant write to file:" + outfilepath + "=" + str);
+                    }
                 }
             }
             if (otherLogger != null && (outtag_info & OUTPosition.Other) > 0)

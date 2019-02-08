@@ -51,9 +51,9 @@ namespace allpet.peer.pipeline.test.test
             }
             public override void OnTell(IModulePipeline from, byte[] data)
             {
-                if (from != null && from.system.remoteaddr != null)//从远程投递而来
+                if (from != null && from.system.Remote != null)//从远程投递而来
                 {
-                    Console.WriteLine("Hello get from:" + from.system.remoteaddr + " // " + from.path);
+                    Console.WriteLine("Hello get from:" + from.system.Remote + " // " + from.path);
                     from.Tell(global::System.Text.Encoding.UTF8.GetBytes("hihihihi"));
                 }
                 Console.WriteLine("Hello get info=" + global::System.Text.Encoding.UTF8.GetString(data));

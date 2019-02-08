@@ -46,10 +46,6 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        string remoteaddr
-        {
-            get;
-        }
         bool linked
         {
             get;
@@ -62,8 +58,12 @@ namespace AllPet.Pipeline
         {
             get;
         }
+        IPEndPoint Remote
+        {
+            get;
+        }
         event Action<UInt64> OnPeerClose;
-        event Action<UInt64> OnPeerLink;
+        event Action<UInt64, bool, IPEndPoint> OnPeerLink;
         IModulePipeline GetPipeline(IModuleInstance user, string urlFrom);
         IModulePipeline GetPipeLineByFrom(IModulePipeline from, IModuleInstance to);
     }

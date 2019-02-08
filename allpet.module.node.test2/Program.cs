@@ -2,7 +2,6 @@
 using Newtonsoft.Json.Linq;
 using System;
 using AllPet.Pipeline.MsgPack;
-
 namespace allpet.module.node.test
 {
     class Program
@@ -48,7 +47,7 @@ namespace allpet.module.node.test
                 {
                     system.OpenListen(endpoint);
                 }
-                catch(Exception err)
+                catch (Exception err)
                 {
                     logger.Error("listen error:" + err.ToString());
                 }

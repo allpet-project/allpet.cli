@@ -126,7 +126,7 @@ namespace AllPet.Pipeline
         }
         PipelineSystemV1 _System;
 
-        public event Action<UInt64> OnPeerLink;
+        public event Action<UInt64, bool, IPEndPoint> OnPeerLink;
         public event Action<UInt64> OnPeerClose;
 
         public bool IsLocal => true;
@@ -138,6 +138,7 @@ namespace AllPet.Pipeline
         public bool IsHost => false;
 
         public UInt64 PeerID => 0;
+        public IPEndPoint Remote => null;
 
         public IModulePipeline GetPipeline(IModuleInstance user, string path)
         {
@@ -159,7 +160,7 @@ namespace AllPet.Pipeline
 
         public IModulePipeline GetPipeLineByFrom(IModulePipeline from, IModuleInstance to)
         {
-            var fromstr = from.IsLocal ? from.path : (from.system.remoteaddr + "/" + from.path);
+            var fromstr = from.IsLocal ? from.path : (from.system.Remote.ToString() + "/" + from.path);
             var pipestr = to.path + "_" + fromstr;
             if (this.refPipelines.TryGetValue(pipestr, out IModulePipeline pipe))
             {

@@ -30,6 +30,12 @@ namespace AllPet.nodecli
 
             var config_cli = config.GetJson("config.json", ".ModulesConfig.Cli") as JObject;
             var config_node = config.GetJson("config.json", ".ModulesConfig.Node") as JObject;
+            if (config_node.ContainsKey("Key_Nep2") && config_node.ContainsKey("Key_Password")==false)
+            {
+                Console.Write("input Key for Nep2>");
+                var pass = Console.ReadLine();
+                config_node["Key_Password"] = pass;
+            }
             if (Config.IsOpen(config_cli))
             {
                 system.RegistModule("cli", new Module_Cli(logger, config_cli));
@@ -46,13 +52,13 @@ namespace AllPet.nodecli
             });
 
             var endpoint = config.GetIPEndPoint("config.json", ".ListenEndPoint");
-            if (endpoint != null)
+            if (endpoint != null && endpoint.Port != 0)
             {
                 try
                 {
                     system.OpenListen(endpoint);
                 }
-                catch(Exception err)
+                catch (Exception err)
                 {
                     logger.Error("open listen err:" + err);
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using AllPet.nodecli.httpinterface;
 using AllPet.Pipeline;
+using AllPet.Pipeline.MsgPack;
 
 namespace AllPet.nodecli
 {
@@ -10,7 +11,7 @@ namespace AllPet.nodecli
     {
         public AllPet.Common.ILogger logger;
         public Newtonsoft.Json.Linq.JObject configJson;
-        public Module_Cli(AllPet.Common.ILogger logger,Newtonsoft.Json.Linq.JObject configJson) :base(false)
+        public Module_Cli(AllPet.Common.ILogger logger, Newtonsoft.Json.Linq.JObject configJson) : base(false)
         {
             this.logger = logger;
             this.configJson = configJson;
@@ -41,6 +42,21 @@ namespace AllPet.nodecli
                 this.Dispose();
             });
             AddMenu("help", "show help", ShowMenu);
+            AddMenu("node", "node cmds", NodeCmd);
+        }
+        void NodeCmd(string[] words = null)
+        {
+            var pipeline = this.GetPipeline("this/node");
+
+            var dict = new MsgPack.MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)AllPet.Module.CmdList.Local_Cmd;
+            var list = new MsgPack.MessagePackObject[words.Length - 1];
+            for (var i = 1; i < words.Length; i++)
+            {
+                list[i-1] = words[i];
+            }
+            dict["params"] = list;
+            pipeline.Tell(new MsgPack.MessagePackObject(dict));
         }
         #region MenuSystem
         static System.Collections.Generic.Dictionary<string, Action<string[]>> menuItem = new System.Collections.Generic.Dictionary<string, Action<string[]>>();
