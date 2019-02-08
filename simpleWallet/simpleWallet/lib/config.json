@@ -1,5 +1,5 @@
 ﻿{
   "petid": "0x6112d5ec36d299a6a8c87ebde6f3782f7ac74118",
-  "APiUrl": "http://localhost:63494/api/mainnet",
+  "APiUrl": "http://localhost:64055/api/mainnet",
   "targetAddr": "AH2ADnKSuJrhHefqeJ9j83HcNXPfipwr6V"
 }

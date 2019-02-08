@@ -74,6 +74,9 @@ namespace NetAPI.ctr
                     case "getnep5decimals":
                         result = transactionServer.getnep5decimals(req.@params[0].ToString());
                         break;
+                    case "checktxboolexisted":
+                        result = transactionServer.checktxboolexisted((string)req.@params[0]);
+                        break;
                 }
                 if (result.Count == 0)
                 {
