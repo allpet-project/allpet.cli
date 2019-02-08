@@ -12,6 +12,7 @@ declare namespace simpleWallet {
     }
     class Account {
         addr: string;
+        wif: string;
         prikey: string;
         pubkey: string;
         neo: number;
@@ -26,22 +27,15 @@ declare namespace simpleWallet {
     }
     class PageCtr {
         static start(): void;
+        static sign(wif: string): void;
+        static transactionGas(count: number, from: Account, to: Account): void;
+        static transactionPet(count: number, from: Account, to: Account): void;
     }
 }
 declare namespace NetApi {
-    function getAssetUtxo(url: string, address: string, asset: string): Promise<UTXO[]>;
+    function getAssetUtxo(url: string, address: string, asset: string): Promise<tool.UTXO[]>;
     function getnep5balancebyaddress(url: string, address: string, asset: string): Promise<number>;
-    class UTXO {
-        addr: string;
-        txid: string;
-        n: number;
-        asset: string;
-        value: number;
-        createHeight: number;
-        used: boolean;
-        useHeight: number;
-        claimed: string;
-    }
+    function sendrawtransaction(url: string, rawdata: string): Promise<string>;
 }
 declare namespace tool {
     function makeRpcPostBody(method: string, ..._params: any[]): {};
@@ -49,4 +43,19 @@ declare namespace tool {
 declare namespace tool {
     function getassetutxobyaddress(url: string, address: string, asset: string): Promise<any>;
     function getnep5balancebyaddress(url: string, address: string, asset: string): Promise<any>;
+    function sendrawtransaction(url: string, rawdata: string): Promise<any>;
+}
+declare namespace tool {
+    class CoinTool {
+        static makeTran(utxos: UTXO[], targetaddr: string, assetid: string, sendcount: Neo.Fixed8): ThinNeo.Transaction;
+    }
+    class UTXO {
+        addr: string;
+        txid: string;
+        n: number;
+        asset: string;
+        count: Neo.Fixed8;
+        name: string;
+        value: number;
+    }
 }

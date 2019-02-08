@@ -15,4 +15,12 @@
         var result = res["result"];
         return result;
     }
+
+    export async function sendrawtransaction(url: string, rawdata: string): Promise<any> {
+        var body = makeRpcPostBody("sendrawtransaction", rawdata);
+        var response = await fetch(url, { "method": "post", "body": JSON.stringify(body) });
+        var res = await response.json();
+        var result = res["result"];
+        return result;
+    }
 }

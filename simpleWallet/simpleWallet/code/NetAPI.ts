@@ -1,8 +1,8 @@
 ﻿namespace NetApi {
 
-    export function getAssetUtxo(url: string, address: string, asset: string): Promise<UTXO[]>{
+    export function getAssetUtxo(url: string, address: string, asset: string): Promise<tool.UTXO[]>{
         return tool.getassetutxobyaddress(url, address, asset).then((result) => {
-            let arr: UTXO[] = [];
+            let arr: tool.UTXO[] = [];
             if (result == null || (result as any[]).length==0) return arr;
             let assetInfo = result[0];
 
@@ -10,16 +10,17 @@
             let assetArr: any[] = assetInfo["arr"];
             for (let i = 0; i < assetArr.length; i++) {
                 let item = assetArr[i];
-                let utxo = new UTXO();
+                let utxo = new tool.UTXO();
                 utxo.addr = item["addr"];
                 utxo.txid = item["txid"];
                 utxo.n = item["n"];
                 utxo.asset = item["asset"];
                 utxo.value = Number.parseFloat(item["value"]);
-                utxo.createHeight = item["createHeight"];
-                utxo.used = item["used"];
-                utxo.useHeight = item["useHeight"];
-                utxo.claimed = item["claimed"];
+                utxo.count = Neo.Fixed8.parse(item["value"]);
+                //utxo.createHeight = item["createHeight"];
+                //utxo.used = item["used"];
+                //utxo.useHeight = item["useHeight"];
+                //utxo.claimed = item["claimed"];
 
                 arr.push(utxo);
             }
@@ -43,16 +44,33 @@
     }
 
 
-    export class UTXO {
-        addr: string;
-        txid: string;
-        n: number;
-        asset: string;
-        value: number;
-        createHeight: number;
-        used: boolean;
-        useHeight: number;
-        claimed: string;
+    export function sendrawtransaction(url: string, rawdata: string): Promise<string>
+    {
+        return tool.sendrawtransaction(url, rawdata).then((result) => {
+            console.warn(result);
+            if (result != null && result[0] != null) {
+                let besucced = result[0]["sendrawtransactionresult"];
+                if (besucced) {
+                    return result[0]["txid"];
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        });
     }
+
+    //export class UTXO {
+    //    addr: string;
+    //    txid: string;
+    //    n: number;
+    //    asset: string;
+    //    value: number;
+    //    createHeight: number;
+    //    used: boolean;
+    //    useHeight: number;
+    //    claimed: string;
+    //}
 
 }

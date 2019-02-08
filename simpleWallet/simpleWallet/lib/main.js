@@ -45,6 +45,7 @@ var simpleWallet;
             this.prikey = prihexstr;
             this.pubkey = pubhexstr;
             this.addr = address;
+            this.wif = wif;
         }
         refreshAssetCount(url) {
             NetApi.getAssetUtxo(DataInfo.APiUrl, this.addr, DataInfo.Gas).then((asset) => {
@@ -80,17 +81,53 @@ var simpleWallet;
             wifinput.value = "KwUhZzS6wrdsF4DjVKt2XQd3QJoidDhckzHfZJdQ3gzUUJSr8MDd";
             signBtn.onclick = () => {
                 console.warn("sign!!!" + wifinput.value);
-                DataInfo.currentAccount = new Account();
-                DataInfo.currentAccount.neoInput = document.getElementById("c_neoinput");
-                DataInfo.currentAccount.gasInput = document.getElementById("c_gasinput");
-                DataInfo.currentAccount.PetInput = document.getElementById("c_petinput");
-                try {
-                    DataInfo.currentAccount.setFromWIF(wifinput.value);
-                    DataInfo.currentAccount.refreshAssetCount(DataInfo.APiUrl);
-                }
-                catch (_a) {
-                }
+                this.sign(wifinput.value);
             };
+            let btn_transgas = document.getElementById("trans_gas");
+            btn_transgas.onclick = () => {
+                console.log("gas 交易： start！");
+                let gasinput = document.getElementById("gascount");
+                let value = parseFloat(gasinput.value);
+                this.transactionGas(value, DataInfo.currentAccount, DataInfo.targetAccount);
+            };
+            let btn_transpet = document.getElementById("trans_pet");
+            btn_transpet.onclick = () => {
+                let petinput = document.getElementById("petcount");
+                let value = parseFloat(petinput.value);
+                this.transactionPet(value, DataInfo.currentAccount, DataInfo.targetAccount);
+            };
+        }
+        static sign(wif) {
+            DataInfo.currentAccount = new Account();
+            DataInfo.currentAccount.neoInput = document.getElementById("c_neoinput");
+            DataInfo.currentAccount.gasInput = document.getElementById("c_gasinput");
+            DataInfo.currentAccount.PetInput = document.getElementById("c_petinput");
+            try {
+                DataInfo.currentAccount.setFromWIF(wif);
+                DataInfo.currentAccount.refreshAssetCount(DataInfo.APiUrl);
+            }
+            catch (_a) {
+            }
+        }
+        static transactionGas(count, from, to) {
+            NetApi.getAssetUtxo(DataInfo.APiUrl, from.addr, DataInfo.Gas).then((utxos) => {
+                let trans = tool.CoinTool.makeTran(utxos, to.addr, DataInfo.Gas, Neo.Fixed8.fromNumber(count));
+                let msg = trans.GetMessage();
+                let prikey = ThinNeo.Helper.GetPrivateKeyFromWIF(from.wif);
+                let pubkey = ThinNeo.Helper.GetPublicKeyFromPrivateKey(prikey);
+                let address = ThinNeo.Helper.GetAddressFromPublicKey(pubkey);
+                let signData = ThinNeo.Helper.Sign(msg, prikey);
+                trans.AddWitness(signData, pubkey, address);
+                let data = trans.GetRawData();
+                let rawdata = data.toHexString();
+                let txid1 = trans.GetHash().clone().reverse().toHexString();
+                console.warn("transaction hash txid:" + txid1);
+                NetApi.sendrawtransaction(DataInfo.APiUrl, rawdata).then((txid) => {
+                    console.warn("发送交易成功txid:" + txid);
+                });
+            });
+        }
+        static transactionPet(count, from, to) {
         }
     }
     simpleWallet.PageCtr = PageCtr;
@@ -110,16 +147,13 @@ var NetApi;
             let assetArr = assetInfo["arr"];
             for (let i = 0; i < assetArr.length; i++) {
                 let item = assetArr[i];
-                let utxo = new UTXO();
+                let utxo = new tool.UTXO();
                 utxo.addr = item["addr"];
                 utxo.txid = item["txid"];
                 utxo.n = item["n"];
                 utxo.asset = item["asset"];
                 utxo.value = Number.parseFloat(item["value"]);
-                utxo.createHeight = item["createHeight"];
-                utxo.used = item["used"];
-                utxo.useHeight = item["useHeight"];
-                utxo.claimed = item["claimed"];
+                utxo.count = Neo.Fixed8.parse(item["value"]);
                 arr.push(utxo);
             }
             return arr;
@@ -139,9 +173,24 @@ var NetApi;
         });
     }
     NetApi.getnep5balancebyaddress = getnep5balancebyaddress;
-    class UTXO {
+    function sendrawtransaction(url, rawdata) {
+        return tool.sendrawtransaction(url, rawdata).then((result) => {
+            console.warn(result);
+            if (result != null && result[0] != null) {
+                let besucced = result[0]["sendrawtransactionresult"];
+                if (besucced) {
+                    return result[0]["txid"];
+                }
+                else {
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
+        });
     }
-    NetApi.UTXO = UTXO;
+    NetApi.sendrawtransaction = sendrawtransaction;
 })(NetApi || (NetApi = {}));
 var tool;
 (function (tool) {
@@ -181,5 +230,72 @@ var tool;
         });
     }
     tool.getnep5balancebyaddress = getnep5balancebyaddress;
+    function sendrawtransaction(url, rawdata) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var body = tool.makeRpcPostBody("sendrawtransaction", rawdata);
+            var response = yield fetch(url, { "method": "post", "body": JSON.stringify(body) });
+            var res = yield response.json();
+            var result = res["result"];
+            return result;
+        });
+    }
+    tool.sendrawtransaction = sendrawtransaction;
+})(tool || (tool = {}));
+var tool;
+(function (tool) {
+    class CoinTool {
+        static makeTran(utxos, targetaddr, assetid, sendcount) {
+            var tran = new ThinNeo.Transaction();
+            tran.type = ThinNeo.TransactionType.ContractTransaction;
+            tran.version = 0;
+            tran.extdata = null;
+            tran.attributes = [];
+            tran.inputs = [];
+            var scraddr = "";
+            var us = utxos;
+            us.sort((a, b) => {
+                return a.count.compareTo(b.count);
+            });
+            var count = Neo.Fixed8.Zero;
+            for (var i = 0; i < us.length; i++) {
+                var input = new ThinNeo.TransactionInput();
+                input.hash = us[i].txid.hexToBytes().reverse();
+                input.index = us[i].n;
+                input["_addr"] = us[i].addr;
+                tran.inputs.push(input);
+                count = count.add(us[i].count);
+                scraddr = us[i].addr;
+                if (count.compareTo(sendcount) > 0) {
+                    break;
+                }
+            }
+            if (count.compareTo(sendcount) >= 0) {
+                tran.outputs = [];
+                if (sendcount.compareTo(Neo.Fixed8.Zero) > 0) {
+                    var output = new ThinNeo.TransactionOutput();
+                    output.assetId = assetid.hexToBytes().reverse();
+                    output.value = sendcount;
+                    output.toAddress = ThinNeo.Helper.GetPublicKeyScriptHash_FromAddress(targetaddr);
+                    tran.outputs.push(output);
+                }
+                var change = count.subtract(sendcount);
+                if (change.compareTo(Neo.Fixed8.Zero) > 0) {
+                    var outputchange = new ThinNeo.TransactionOutput();
+                    outputchange.toAddress = ThinNeo.Helper.GetPublicKeyScriptHash_FromAddress(scraddr);
+                    outputchange.value = change;
+                    outputchange.assetId = assetid.hexToBytes().reverse();
+                    tran.outputs.push(outputchange);
+                }
+            }
+            else {
+                throw new Error("no enough money.");
+            }
+            return tran;
+        }
+    }
+    tool.CoinTool = CoinTool;
+    class UTXO {
+    }
+    tool.UTXO = UTXO;
 })(tool || (tool = {}));
 //# sourceMappingURL=main.js.map

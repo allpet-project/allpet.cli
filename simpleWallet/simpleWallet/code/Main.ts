@@ -18,6 +18,7 @@ namespace simpleWallet {
     export class Account
     {
         addr: string;
+        wif: string;
         prikey: string;
         pubkey: string;
 
@@ -60,6 +61,7 @@ namespace simpleWallet {
             this.prikey = prihexstr;
             this.pubkey = pubhexstr;
             this.addr = address;
+            this.wif = wif;
         }
 
         refreshAssetCount(url: string) {
@@ -85,6 +87,7 @@ namespace simpleWallet {
     export class PageCtr {
 
         public static start() {
+            //------------------账户资产展示
             DataInfo.targetAccount = new Account();
             DataInfo.targetAccount.neoInput = document.getElementById("t_neoinput") as HTMLInputElement;
             DataInfo.targetAccount.gasInput = document.getElementById("t_gasinput") as HTMLInputElement;
@@ -97,21 +100,74 @@ namespace simpleWallet {
             wifinput.value = "KwUhZzS6wrdsF4DjVKt2XQd3QJoidDhckzHfZJdQ3gzUUJSr8MDd";
             signBtn.onclick = () => {
                 console.warn("sign!!!" + wifinput.value);
-
-                DataInfo.currentAccount = new Account();
-                DataInfo.currentAccount.neoInput = document.getElementById("c_neoinput") as HTMLInputElement;
-                DataInfo.currentAccount.gasInput = document.getElementById("c_gasinput") as HTMLInputElement;
-                DataInfo.currentAccount.PetInput = document.getElementById("c_petinput") as HTMLInputElement;
-
-                try {
-                    DataInfo.currentAccount.setFromWIF(wifinput.value);
-                    DataInfo.currentAccount.refreshAssetCount(DataInfo.APiUrl);
-                }
-                catch
-                {
-                }
+                this.sign(wifinput.value);
             }
 
+            //------------------交易
+            let btn_transgas = document.getElementById("trans_gas") as HTMLButtonElement;
+            btn_transgas.onclick = () => {
+                console.log("gas 交易： start！");
+                let gasinput = document.getElementById("gascount") as HTMLInputElement;
+                let value = parseFloat(gasinput.value);
+                this.transactionGas(value, DataInfo.currentAccount, DataInfo.targetAccount);
+            };
+
+            let btn_transpet = document.getElementById("trans_pet") as HTMLButtonElement;
+            btn_transpet.onclick = () => {
+                let petinput = document.getElementById("petcount") as HTMLInputElement;
+                let value = parseFloat(petinput.value);
+                this.transactionPet(value, DataInfo.currentAccount, DataInfo.targetAccount);
+            };
+
+
+        }
+
+        /**
+         * 登录账户
+         * @param wif
+         */
+        static sign(wif: string) {
+
+            DataInfo.currentAccount = new Account();
+            DataInfo.currentAccount.neoInput = document.getElementById("c_neoinput") as HTMLInputElement;
+            DataInfo.currentAccount.gasInput = document.getElementById("c_gasinput") as HTMLInputElement;
+            DataInfo.currentAccount.PetInput = document.getElementById("c_petinput") as HTMLInputElement;
+
+            try {
+                DataInfo.currentAccount.setFromWIF(wif);
+                DataInfo.currentAccount.refreshAssetCount(DataInfo.APiUrl);
+            }
+            catch
+            {
+            }
+        }
+
+        static transactionGas(count: number, from: Account, to: Account) {
+            NetApi.getAssetUtxo(DataInfo.APiUrl, from.addr, DataInfo.Gas).then((utxos) => {
+                let trans = tool.CoinTool.makeTran(utxos, to.addr, DataInfo.Gas, Neo.Fixed8.fromNumber(count));
+                let msg = trans.GetMessage();
+                let prikey = ThinNeo.Helper.GetPrivateKeyFromWIF(from.wif);
+                let pubkey = ThinNeo.Helper.GetPublicKeyFromPrivateKey(prikey);
+                let address = ThinNeo.Helper.GetAddressFromPublicKey(pubkey);
+
+                let signData = ThinNeo.Helper.Sign(msg, prikey);
+                trans.AddWitness(signData, pubkey, address);
+
+                let data = trans.GetRawData();
+                let rawdata = data.toHexString();
+
+
+                let txid1 = trans.GetHash().clone().reverse().toHexString();
+                console.warn("transaction hash txid:" + txid1);
+
+                NetApi.sendrawtransaction(DataInfo.APiUrl, rawdata).then((txid) => {
+                    console.warn("发送交易成功txid:" + txid);
+
+                })
+            })
+        }
+
+        static transactionPet(count: number, from: Account, to: Account) {
 
         }
     }
