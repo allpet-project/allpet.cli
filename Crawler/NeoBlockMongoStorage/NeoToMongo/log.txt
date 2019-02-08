@@ -279,3 +279,5 @@
 2019-02-08 19-08-06   ---   failed to get application log.param(txid):0xfa5d8af65cf39425e959640166ef1c3be29dd92a07b6b68a71eacf513768d85eresStr:{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
 2019-02-08 19-20-23   ---   failed to get application log.param(txid):0xc24c60f4f89d88d33e701716a3f53857abc51c2c63134bfee2efd9bca55a4e89resStr:{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
 2019-02-08 19-22-09   ---   failed to get application log.param(txid):0x42a9e90d7f7236725c8891407c3a709e43c64d7ae069f1c7d852f37e304eccceresStr:{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+2019-02-08 19-41-23   ---   failed to get application log.param(txid):0xf0de1275c054336e2eac4196ea4b0b54f3525359e94eb6305dc2502e600a6f9aresStr:{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}
+2019-02-08 19-51-31   ---   failed to get application log.param(txid):0x3bb027ed863eefeca68540977ef35b7b25104a7127f6f16e2a354d64272fa4a9resStr:{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Method not found"}}

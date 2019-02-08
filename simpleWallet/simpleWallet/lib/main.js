@@ -6,13 +6,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var tool;
+(function (tool) {
+    function loadJson(url, callback) {
+        var req = new XMLHttpRequest();
+        req.open("GET", url);
+        req.responseType = "json";
+        req.onreadystatechange = () => {
+            if (req.readyState === 4) {
+                callback(req.response);
+            }
+        };
+        req.send();
+    }
+    tool.loadJson = loadJson;
+})(tool || (tool = {}));
 var simpleWallet;
 (function (simpleWallet) {
     class DataInfo {
     }
     DataInfo.Neo = "0xc56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b";
     DataInfo.Gas = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
-    DataInfo.Pet = "0x6112d5ec36d299a6a8c87ebde6f3782f7ac74118";
+    DataInfo.Pet = null;
     DataInfo.APiUrl = "http://localhost:63494/api/mainnet";
     DataInfo.targetAddr = "AH2ADnKSuJrhHefqeJ9j83HcNXPfipwr6V";
     simpleWallet.DataInfo = DataInfo;
@@ -93,6 +108,9 @@ var simpleWallet;
     simpleWallet.Account = Account;
     class PageCtr {
         static start() {
+            tool.loadJson("../lib/config.json", (json) => {
+                DataInfo.Pet = json["petid"];
+            });
             DataInfo.targetAccount = new Account();
             DataInfo.targetAccount.neoInput = document.getElementById("t_neoinput");
             DataInfo.targetAccount.gasInput = document.getElementById("t_gasinput");
@@ -125,6 +143,9 @@ var simpleWallet;
             btn_transpet.onclick = () => {
                 if (DataInfo.currentAccount == null) {
                     alert("请登录账户！");
+                }
+                else if (DataInfo.Pet == null) {
+                    alert("petid 未配置成功！");
                 }
                 else if (TransactionState.bePetTransing) {
                     alert("pet 交易进行中，请等待！");

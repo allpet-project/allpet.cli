@@ -1,4 +1,7 @@
 /// <reference path="neo-ts.d.ts" />
+declare namespace tool {
+    function loadJson(url: string, callback: (json) => void): void;
+}
 declare namespace simpleWallet {
     class DataInfo {
         static Neo: string;

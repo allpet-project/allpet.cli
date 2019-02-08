@@ -6,7 +6,7 @@ namespace simpleWallet {
     export class DataInfo {
         static Neo: string = "0xc56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b";
         static Gas: string = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
-        static Pet: string = "0x6112d5ec36d299a6a8c87ebde6f3782f7ac74118";
+        static Pet: string = null;
 
         static APiUrl: string ="http://localhost:63494/api/mainnet";
         static WIF: string;
@@ -107,6 +107,10 @@ namespace simpleWallet {
     export class PageCtr {
 
         public static start() {
+            tool.loadJson("../lib/config.json", (json) => {
+                DataInfo.Pet = json["petid"];
+            });
+
             //------------------账户资产展示
             DataInfo.targetAccount = new Account();
             DataInfo.targetAccount.neoInput = document.getElementById("t_neoinput") as HTMLInputElement;
@@ -143,6 +147,8 @@ namespace simpleWallet {
             btn_transpet.onclick = () => {
                 if (DataInfo.currentAccount == null) {
                     alert("请登录账户！");
+                } else if (DataInfo.Pet == null) {
+                    alert("petid 未配置成功！");
                 }
                 else if (TransactionState.bePetTransing) {
                     alert("pet 交易进行中，请等待！");
