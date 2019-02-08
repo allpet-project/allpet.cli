@@ -16,8 +16,13 @@ var simpleWallet;
     DataInfo.APiUrl = "http://localhost:63494/api/mainnet";
     DataInfo.targetAddr = "AH2ADnKSuJrhHefqeJ9j83HcNXPfipwr6V";
     simpleWallet.DataInfo = DataInfo;
+    class TransactionState {
+    }
+    TransactionState.beGasTransing = false;
+    TransactionState.bePetTransing = false;
+    simpleWallet.TransactionState = TransactionState;
     class Account {
-        refreshAsset(type, count) {
+        setAssetCount(type, count) {
             switch (type) {
                 case "neo":
                     this.neo = count;
@@ -47,23 +52,41 @@ var simpleWallet;
             this.addr = address;
             this.wif = wif;
         }
-        refreshAssetCount(url) {
+        refreshAssetCount(type) {
+            switch (type) {
+                case "gas":
+                    NetApi.getAssetUtxo(DataInfo.APiUrl, this.addr, DataInfo.Gas).then((asset) => {
+                        let totleCount = 0;
+                        for (let i = 0; i < asset.length; i++) {
+                            totleCount += asset[i].value;
+                        }
+                        this.setAssetCount("gas", totleCount);
+                    });
+                    break;
+                case "pet":
+                    NetApi.getnep5balancebyaddress(DataInfo.APiUrl, this.addr, DataInfo.Pet).then((result) => {
+                        this.setAssetCount("pet", result);
+                    });
+                    break;
+            }
+        }
+        refreshAllAssetCount() {
             NetApi.getAssetUtxo(DataInfo.APiUrl, this.addr, DataInfo.Gas).then((asset) => {
                 let totleCount = 0;
                 for (let i = 0; i < asset.length; i++) {
                     totleCount += asset[i].value;
                 }
-                this.refreshAsset("gas", totleCount);
+                this.setAssetCount("gas", totleCount);
             });
             NetApi.getAssetUtxo(DataInfo.APiUrl, this.addr, DataInfo.Neo).then((asset) => {
                 let totleCount = 0;
                 for (let i = 0; i < asset.length; i++) {
                     totleCount += asset[i].value;
                 }
-                this.refreshAsset("neo", totleCount);
+                this.setAssetCount("neo", totleCount);
             });
             NetApi.getnep5balancebyaddress(DataInfo.APiUrl, this.addr, DataInfo.Pet).then((result) => {
-                this.refreshAsset("pet", result);
+                this.setAssetCount("pet", result);
             });
         }
     }
@@ -75,7 +98,7 @@ var simpleWallet;
             DataInfo.targetAccount.gasInput = document.getElementById("t_gasinput");
             DataInfo.targetAccount.PetInput = document.getElementById("t_petinput");
             DataInfo.targetAccount.addr = DataInfo.targetAddr;
-            DataInfo.targetAccount.refreshAssetCount(DataInfo.APiUrl);
+            DataInfo.targetAccount.refreshAllAssetCount();
             var signBtn = document.getElementById("signin");
             var wifinput = document.getElementById("wif");
             wifinput.value = "KwUhZzS6wrdsF4DjVKt2XQd3QJoidDhckzHfZJdQ3gzUUJSr8MDd";
@@ -85,10 +108,18 @@ var simpleWallet;
             };
             let btn_transgas = document.getElementById("trans_gas");
             btn_transgas.onclick = () => {
-                console.log("gas 交易： start！");
-                let gasinput = document.getElementById("gascount");
-                let value = parseFloat(gasinput.value);
-                this.transactionGas(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                if (DataInfo.currentAccount == null) {
+                    alert("请登录账户！");
+                }
+                else if (TransactionState.beGasTransing) {
+                    alert("gas 交易进行中，请等待！");
+                }
+                else {
+                    console.log("gas 交易： start！");
+                    let gasinput = document.getElementById("gascount");
+                    let value = parseFloat(gasinput.value);
+                    this.transactionGas(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                }
             };
             let btn_transpet = document.getElementById("trans_pet");
             btn_transpet.onclick = () => {
@@ -104,7 +135,7 @@ var simpleWallet;
             DataInfo.currentAccount.PetInput = document.getElementById("c_petinput");
             try {
                 DataInfo.currentAccount.setFromWIF(wif);
-                DataInfo.currentAccount.refreshAssetCount(DataInfo.APiUrl);
+                DataInfo.currentAccount.refreshAllAssetCount();
             }
             catch (_a) {
             }
@@ -122,12 +153,34 @@ var simpleWallet;
                 let rawdata = data.toHexString();
                 let txid1 = trans.GetHash().clone().reverse().toHexString();
                 console.warn("transaction hash txid:" + txid1);
-                NetApi.sendrawtransaction(DataInfo.APiUrl, rawdata).then((txid) => {
-                    console.warn("发送交易成功txid:" + txid);
-                });
+                TransactionState.beGasTransing = true;
+                document.getElementById("trans_gas_info").innerHTML = "正在交易@@@";
+                NetApi.sendrawtransaction(DataInfo.APiUrl, rawdata).then((txid) => __awaiter(this, void 0, void 0, function* () {
+                    document.getElementById("trans_gas_info").innerHTML = "发送交易成功,待确认@@@";
+                    let func = () => __awaiter(this, void 0, void 0, function* () {
+                        let bexisted = yield PageCtr.checkTxExisted(txid);
+                        if (bexisted) {
+                            TransactionState.beGasTransing = false;
+                            document.getElementById("trans_gas_info").innerHTML = "null";
+                            from.refreshAssetCount("gas");
+                            to.refreshAssetCount("gas");
+                        }
+                        else {
+                            setTimeout(() => {
+                                func();
+                            }, 300);
+                        }
+                    });
+                    func();
+                }));
             });
         }
         static transactionPet(count, from, to) {
+        }
+        static checkTxExisted(txid) {
+            return NetApi.checktxboolexisted(DataInfo.APiUrl, txid).then((beExisted) => {
+                return beExisted;
+            });
         }
     }
     simpleWallet.PageCtr = PageCtr;
@@ -191,6 +244,18 @@ var NetApi;
         });
     }
     NetApi.sendrawtransaction = sendrawtransaction;
+    function checktxboolexisted(url, txid) {
+        return tool.checktxboolexisted(url, txid).then((result) => {
+            if (result != null) {
+                let bools = result[0]["beExisted"];
+                return bools;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+    NetApi.checktxboolexisted = checktxboolexisted;
 })(NetApi || (NetApi = {}));
 var tool;
 (function (tool) {
@@ -240,6 +305,16 @@ var tool;
         });
     }
     tool.sendrawtransaction = sendrawtransaction;
+    function checktxboolexisted(url, txid) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var body = tool.makeRpcPostBody("checktxboolexisted", txid);
+            var response = yield fetch(url, { "method": "post", "body": JSON.stringify(body) });
+            var res = yield response.json();
+            var result = res["result"];
+            return result;
+        });
+    }
+    tool.checktxboolexisted = checktxboolexisted;
 })(tool || (tool = {}));
 var tool;
 (function (tool) {

@@ -10,6 +10,10 @@ declare namespace simpleWallet {
         static currentAccount: Account;
         static targetAccount: Account;
     }
+    class TransactionState {
+        static beGasTransing: boolean;
+        static bePetTransing: boolean;
+    }
     class Account {
         addr: string;
         wif: string;
@@ -21,21 +25,24 @@ declare namespace simpleWallet {
         neoInput: HTMLInputElement;
         gasInput: HTMLInputElement;
         PetInput: HTMLInputElement;
-        refreshAsset(type: string, count: any): void;
+        setAssetCount(type: string, count: any): void;
         setFromWIF(wif: string): void;
-        refreshAssetCount(url: string): void;
+        refreshAssetCount(type: string): void;
+        refreshAllAssetCount(): void;
     }
     class PageCtr {
         static start(): void;
         static sign(wif: string): void;
         static transactionGas(count: number, from: Account, to: Account): void;
         static transactionPet(count: number, from: Account, to: Account): void;
+        static checkTxExisted(txid: string): Promise<boolean>;
     }
 }
 declare namespace NetApi {
     function getAssetUtxo(url: string, address: string, asset: string): Promise<tool.UTXO[]>;
     function getnep5balancebyaddress(url: string, address: string, asset: string): Promise<number>;
     function sendrawtransaction(url: string, rawdata: string): Promise<string>;
+    function checktxboolexisted(url: string, txid: string): Promise<boolean>;
 }
 declare namespace tool {
     function makeRpcPostBody(method: string, ..._params: any[]): {};
@@ -44,6 +51,7 @@ declare namespace tool {
     function getassetutxobyaddress(url: string, address: string, asset: string): Promise<any>;
     function getnep5balancebyaddress(url: string, address: string, asset: string): Promise<any>;
     function sendrawtransaction(url: string, rawdata: string): Promise<any>;
+    function checktxboolexisted(url: string, txid: string): Promise<any>;
 }
 declare namespace tool {
     class CoinTool {

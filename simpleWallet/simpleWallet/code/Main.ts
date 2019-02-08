@@ -14,7 +14,10 @@ namespace simpleWallet {
         static currentAccount: Account;
         static targetAccount: Account;
     }
-
+    export class TransactionState {
+        static beGasTransing = false;
+        static bePetTransing = false;
+    }
     export class Account
     {
         addr: string;
@@ -30,7 +33,7 @@ namespace simpleWallet {
         gasInput: HTMLInputElement;
         PetInput: HTMLInputElement;
 
-        refreshAsset(type: string, count: any) {
+        setAssetCount(type: string, count: any) {
             switch (type) {
                 case "neo":
                     this.neo = count;
@@ -63,24 +66,41 @@ namespace simpleWallet {
             this.addr = address;
             this.wif = wif;
         }
-
-        refreshAssetCount(url: string) {
+        refreshAssetCount(type: string) {
+            switch (type) {
+                case "gas":
+                    NetApi.getAssetUtxo(DataInfo.APiUrl, this.addr, DataInfo.Gas).then((asset) => {
+                        let totleCount = 0;
+                        for (let i = 0; i < asset.length; i++) {
+                            totleCount += asset[i].value;
+                        }
+                        this.setAssetCount("gas", totleCount);
+                    });
+                    break;
+                case "pet":
+                    NetApi.getnep5balancebyaddress(DataInfo.APiUrl, this.addr, DataInfo.Pet).then((result) => {
+                        this.setAssetCount("pet", result);
+                    });
+                    break;
+            }
+        }
+        refreshAllAssetCount() {
             NetApi.getAssetUtxo(DataInfo.APiUrl, this.addr, DataInfo.Gas).then((asset) => {
                 let totleCount = 0;
                 for (let i = 0; i < asset.length; i++) {
                     totleCount += asset[i].value;
                 }
-                this.refreshAsset("gas", totleCount);
+                this.setAssetCount("gas", totleCount);
             });
             NetApi.getAssetUtxo(DataInfo.APiUrl, this.addr, DataInfo.Neo).then((asset) => {
                 let totleCount = 0;
                 for (let i = 0; i < asset.length; i++) {
                     totleCount += asset[i].value;
                 }
-                this.refreshAsset("neo", totleCount);
+                this.setAssetCount("neo", totleCount);
             });
             NetApi.getnep5balancebyaddress(DataInfo.APiUrl, this.addr, DataInfo.Pet).then((result) => {
-                this.refreshAsset("pet", result);
+                this.setAssetCount("pet", result);
             });
         }
     }
@@ -93,7 +113,7 @@ namespace simpleWallet {
             DataInfo.targetAccount.gasInput = document.getElementById("t_gasinput") as HTMLInputElement;
             DataInfo.targetAccount.PetInput = document.getElementById("t_petinput") as HTMLInputElement;
             DataInfo.targetAccount.addr = DataInfo.targetAddr;
-            DataInfo.targetAccount.refreshAssetCount(DataInfo.APiUrl);
+            DataInfo.targetAccount.refreshAllAssetCount();
 
             var signBtn = document.getElementById("signin") as HTMLButtonElement;
             var wifinput = document.getElementById("wif") as HTMLInputElement;
@@ -106,10 +126,17 @@ namespace simpleWallet {
             //------------------交易
             let btn_transgas = document.getElementById("trans_gas") as HTMLButtonElement;
             btn_transgas.onclick = () => {
-                console.log("gas 交易： start！");
-                let gasinput = document.getElementById("gascount") as HTMLInputElement;
-                let value = parseFloat(gasinput.value);
-                this.transactionGas(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                if (DataInfo.currentAccount == null) {
+                    alert("请登录账户！");
+                }
+                else if (TransactionState.beGasTransing) {
+                    alert("gas 交易进行中，请等待！");
+                } else {
+                    console.log("gas 交易： start！");
+                    let gasinput = document.getElementById("gascount") as HTMLInputElement;
+                    let value = parseFloat(gasinput.value);
+                    this.transactionGas(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                }
             };
 
             let btn_transpet = document.getElementById("trans_pet") as HTMLButtonElement;
@@ -135,7 +162,7 @@ namespace simpleWallet {
 
             try {
                 DataInfo.currentAccount.setFromWIF(wif);
-                DataInfo.currentAccount.refreshAssetCount(DataInfo.APiUrl);
+                DataInfo.currentAccount.refreshAllAssetCount();
             }
             catch
             {
@@ -160,9 +187,29 @@ namespace simpleWallet {
                 let txid1 = trans.GetHash().clone().reverse().toHexString();
                 console.warn("transaction hash txid:" + txid1);
 
-                NetApi.sendrawtransaction(DataInfo.APiUrl, rawdata).then((txid) => {
-                    console.warn("发送交易成功txid:" + txid);
+                //---------------正在交易
+                TransactionState.beGasTransing = true;
+                document.getElementById("trans_gas_info").innerHTML="正在交易@@@";
 
+                NetApi.sendrawtransaction(DataInfo.APiUrl, rawdata).then(async (txid) => {
+                    document.getElementById("trans_gas_info").innerHTML = "发送交易成功,待确认@@@";
+                    let func = async () => {
+                        let bexisted = await PageCtr.checkTxExisted(txid);
+                        if (bexisted) {
+                            TransactionState.beGasTransing = false;
+                            document.getElementById("trans_gas_info").innerHTML = "null";
+
+                            from.refreshAssetCount("gas");
+                            to.refreshAssetCount("gas");
+
+                        } else {
+                            //console.log("check again");
+                            setTimeout(() => {
+                                func();
+                            },300);
+                        }
+                    }
+                    func();
                 })
             })
         }
@@ -170,6 +217,15 @@ namespace simpleWallet {
         static transactionPet(count: number, from: Account, to: Account) {
 
         }
+
+
+        static checkTxExisted(txid: string): Promise<boolean>
+        {
+            return NetApi.checktxboolexisted(DataInfo.APiUrl, txid).then((beExisted) => {
+                return beExisted;
+            });
+        }
+
     }
 }
 

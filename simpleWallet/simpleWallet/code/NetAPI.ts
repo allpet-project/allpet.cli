@@ -61,6 +61,19 @@
         });
     }
 
+
+    export function checktxboolexisted(url: string, txid: string): Promise<boolean>{
+        return tool.checktxboolexisted(url, txid).then((result) => {
+            if (result != null) {
+                let bools = result[0]["beExisted"];
+                return bools;
+            } else {
+                return false;
+            }
+            
+        })
+    }
+
     //export class UTXO {
     //    addr: string;
     //    txid: string;

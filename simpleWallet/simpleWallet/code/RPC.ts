@@ -23,4 +23,12 @@
         var result = res["result"];
         return result;
     }
+    export async function checktxboolexisted(url: string, txid: string): Promise<any> {
+        var body = makeRpcPostBody("checktxboolexisted", txid);
+        var response = await fetch(url, { "method": "post", "body": JSON.stringify(body) });
+        var res = await response.json();
+        var result = res["result"];
+        return result;
+    }
+    
 }

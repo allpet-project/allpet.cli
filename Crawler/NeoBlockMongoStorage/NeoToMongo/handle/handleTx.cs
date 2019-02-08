@@ -35,19 +35,16 @@ namespace NeoToMongo
             for(int i= 0; i< blockTx.Count;i++)
             {
                 var item = blockTx[i] as MyJson.JsonNode_Object;
-
-                //var quaryArr=Mongo.Find(Collection, "txid", item["txid"].AsString());
-                //if(quaryArr.Count==0)
-                //{
-                //    item.SetDictValue("txindex", i);
-                //    item.AsDict().SetDictValue("blockindex", blockindex);
-                //    listbson.Add(BsonDocument.Parse(item.ToString()));
-                //    Collection.InsertOne(BsonDocument.Parse(item.ToString()));
-                //    //Mongo.SetSystemCounter(collectionType, blockindex, i);
-                //}else
                 {
                     item.SetDictValue("txindex", i);
                     item.AsDict().SetDictValue("blockindex", blockindex);
+                }
+                var quaryArr = Mongo.Find(Collection, "txid", item["txid"].AsString());
+                if (quaryArr.Count == 0)
+                {
+                    //listbson.Add(BsonDocument.Parse(item.ToString()));
+                    Collection.InsertOne(BsonDocument.Parse(item.ToString()));
+                    //Mongo.SetSystemCounter(collectionType, blockindex, i);
                 }
                 if(assetCheck.CheckTxAsset(item))
                 {
