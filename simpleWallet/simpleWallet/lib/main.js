@@ -123,9 +123,17 @@ var simpleWallet;
             };
             let btn_transpet = document.getElementById("trans_pet");
             btn_transpet.onclick = () => {
-                let petinput = document.getElementById("petcount");
-                let value = parseFloat(petinput.value);
-                this.transactionPet(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                if (DataInfo.currentAccount == null) {
+                    alert("请登录账户！");
+                }
+                else if (TransactionState.bePetTransing) {
+                    alert("pet 交易进行中，请等待！");
+                }
+                else {
+                    let petinput = document.getElementById("petcount");
+                    let value = parseFloat(petinput.value);
+                    this.transactionPet(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                }
             };
         }
         static sign(wif) {
@@ -176,6 +184,53 @@ var simpleWallet;
             });
         }
         static transactionPet(count, from, to) {
+            let tasks = [];
+            tasks.push(NetApi.getnep5decimals(DataInfo.APiUrl, DataInfo.Pet));
+            tasks.push(NetApi.getAssetUtxo(DataInfo.APiUrl, from.addr, DataInfo.Gas));
+            Promise.all(tasks).then((res) => {
+                let decimal = res[0];
+                let utxos = res[1];
+                let trans = tool.CoinTool.makeTran(utxos, from.addr, DataInfo.Gas, Neo.Fixed8.Zero);
+                trans.type = ThinNeo.TransactionType.InvocationTransaction;
+                trans.extdata = new ThinNeo.InvokeTransData();
+                var sb = new ThinNeo.ScriptBuilder();
+                var scriptaddress = DataInfo.Pet.hexToBytes().reverse();
+                sb.EmitParamJson(["(address)" + from.addr, "(address)" + to.addr, "(integer)" + count * Math.pow(10, decimal)]);
+                sb.EmitPushString("transfer");
+                sb.EmitAppCall(scriptaddress);
+                trans.extdata.script = sb.ToArray();
+                trans.extdata.gas = Neo.Fixed8.fromNumber(1.0);
+                let msg = trans.GetMessage();
+                let prikey = ThinNeo.Helper.GetPrivateKeyFromWIF(from.wif);
+                let pubkey = ThinNeo.Helper.GetPublicKeyFromPrivateKey(prikey);
+                let address = ThinNeo.Helper.GetAddressFromPublicKey(pubkey);
+                let signData = ThinNeo.Helper.Sign(msg, prikey);
+                trans.AddWitness(signData, pubkey, address);
+                let data = trans.GetRawData();
+                let rawdata = data.toHexString();
+                let txid1 = trans.GetHash().clone().reverse().toHexString();
+                console.warn("transaction hash txid:" + txid1);
+                TransactionState.bePetTransing = true;
+                document.getElementById("trans_pet_info").innerHTML = "正在交易@@@";
+                NetApi.sendrawtransaction(DataInfo.APiUrl, rawdata).then((txid) => __awaiter(this, void 0, void 0, function* () {
+                    document.getElementById("trans_pet_info").innerHTML = "发送交易成功,待确认@@@";
+                    let func = () => __awaiter(this, void 0, void 0, function* () {
+                        let bexisted = yield PageCtr.checkTxExisted(txid);
+                        if (bexisted) {
+                            TransactionState.beGasTransing = false;
+                            document.getElementById("trans_pet_info").innerHTML = "null";
+                            from.refreshAssetCount("pet");
+                            to.refreshAssetCount("pet");
+                        }
+                        else {
+                            setTimeout(() => {
+                                func();
+                            }, 300);
+                        }
+                    });
+                    func();
+                }));
+            });
         }
         static checkTxExisted(txid) {
             return NetApi.checktxboolexisted(DataInfo.APiUrl, txid).then((beExisted) => {
@@ -226,6 +281,18 @@ var NetApi;
         });
     }
     NetApi.getnep5balancebyaddress = getnep5balancebyaddress;
+    function getnep5decimals(url, asset) {
+        return tool.getnep5decimals(url, asset).then((result) => {
+            if (result) {
+                let count = result[0]["value"];
+                return count;
+            }
+            else {
+                return 0;
+            }
+        });
+    }
+    NetApi.getnep5decimals = getnep5decimals;
     function sendrawtransaction(url, rawdata) {
         return tool.sendrawtransaction(url, rawdata).then((result) => {
             console.warn(result);
@@ -295,6 +362,16 @@ var tool;
         });
     }
     tool.getnep5balancebyaddress = getnep5balancebyaddress;
+    function getnep5decimals(url, asset) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var body = tool.makeRpcPostBody("getnep5decimals", asset);
+            var response = yield fetch(url, { "method": "post", "body": JSON.stringify(body) });
+            var res = yield response.json();
+            var result = res["result"];
+            return result;
+        });
+    }
+    tool.getnep5decimals = getnep5decimals;
     function sendrawtransaction(url, rawdata) {
         return __awaiter(this, void 0, void 0, function* () {
             var body = tool.makeRpcPostBody("sendrawtransaction", rawdata);

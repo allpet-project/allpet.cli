@@ -42,7 +42,16 @@
             //console.debug(result);
         });
     }
-
+    export function getnep5decimals(url: string, asset: string): Promise<number> {
+        return tool.getnep5decimals(url, asset).then((result) => {
+            if (result) {
+                let count = result[0]["value"];
+                return count;
+            } else {
+                return 0;
+            }
+        })
+    }
 
     export function sendrawtransaction(url: string, rawdata: string): Promise<string>
     {

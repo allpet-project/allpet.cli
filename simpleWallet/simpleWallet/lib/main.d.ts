@@ -41,6 +41,7 @@ declare namespace simpleWallet {
 declare namespace NetApi {
     function getAssetUtxo(url: string, address: string, asset: string): Promise<tool.UTXO[]>;
     function getnep5balancebyaddress(url: string, address: string, asset: string): Promise<number>;
+    function getnep5decimals(url: string, asset: string): Promise<number>;
     function sendrawtransaction(url: string, rawdata: string): Promise<string>;
     function checktxboolexisted(url: string, txid: string): Promise<boolean>;
 }
@@ -50,6 +51,7 @@ declare namespace tool {
 declare namespace tool {
     function getassetutxobyaddress(url: string, address: string, asset: string): Promise<any>;
     function getnep5balancebyaddress(url: string, address: string, asset: string): Promise<any>;
+    function getnep5decimals(url: string, asset: string): Promise<any>;
     function sendrawtransaction(url: string, rawdata: string): Promise<any>;
     function checktxboolexisted(url: string, txid: string): Promise<any>;
 }

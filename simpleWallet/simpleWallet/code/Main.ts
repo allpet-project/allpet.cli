@@ -141,9 +141,17 @@ namespace simpleWallet {
 
             let btn_transpet = document.getElementById("trans_pet") as HTMLButtonElement;
             btn_transpet.onclick = () => {
-                let petinput = document.getElementById("petcount") as HTMLInputElement;
-                let value = parseFloat(petinput.value);
-                this.transactionPet(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                if (DataInfo.currentAccount == null) {
+                    alert("请登录账户！");
+                }
+                else if (TransactionState.bePetTransing) {
+                    alert("pet 交易进行中，请等待！");
+                } else {
+                    let petinput = document.getElementById("petcount") as HTMLInputElement;
+                    let value = parseFloat(petinput.value);
+                    
+                    this.transactionPet(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                }
             };
 
 
@@ -215,6 +223,66 @@ namespace simpleWallet {
         }
 
         static transactionPet(count: number, from: Account, to: Account) {
+            let tasks = [];
+            tasks.push(NetApi.getnep5decimals(DataInfo.APiUrl, DataInfo.Pet));
+            tasks.push(NetApi.getAssetUtxo(DataInfo.APiUrl, from.addr, DataInfo.Gas));
+            Promise.all(tasks).then((res) => {
+                let decimal: number = res[0];
+                let utxos: tool.UTXO[] = res[1];
+
+                let trans = tool.CoinTool.makeTran(utxos, from.addr, DataInfo.Gas, Neo.Fixed8.Zero);
+                trans.type = ThinNeo.TransactionType.InvocationTransaction;
+                trans.extdata = new ThinNeo.InvokeTransData();
+
+                var sb = new ThinNeo.ScriptBuilder();
+                var scriptaddress = DataInfo.Pet.hexToBytes().reverse();
+                //Parameter inversion 
+                sb.EmitParamJson(["(address)" + from.addr, "(address)" + to.addr, "(integer)" + count * Math.pow(10, decimal)]);//Parameter list 
+                sb.EmitPushString("transfer");//Method
+                sb.EmitAppCall(scriptaddress);  //Asset contract 
+                (trans.extdata as ThinNeo.InvokeTransData).script = sb.ToArray();
+                (trans.extdata as ThinNeo.InvokeTransData).gas = Neo.Fixed8.fromNumber(1.0);
+
+                let msg = trans.GetMessage();
+                let prikey = ThinNeo.Helper.GetPrivateKeyFromWIF(from.wif);
+                let pubkey = ThinNeo.Helper.GetPublicKeyFromPrivateKey(prikey);
+                let address = ThinNeo.Helper.GetAddressFromPublicKey(pubkey);
+
+                let signData = ThinNeo.Helper.Sign(msg, prikey);
+                trans.AddWitness(signData, pubkey, address);
+
+                let data = trans.GetRawData();
+                let rawdata = data.toHexString();
+
+
+                let txid1 = trans.GetHash().clone().reverse().toHexString();
+                console.warn("transaction hash txid:" + txid1);
+
+                //---------------正在交易
+                TransactionState.bePetTransing = true;
+                document.getElementById("trans_pet_info").innerHTML = "正在交易@@@";
+
+                NetApi.sendrawtransaction(DataInfo.APiUrl, rawdata).then(async (txid) => {
+                    document.getElementById("trans_pet_info").innerHTML = "发送交易成功,待确认@@@";
+                    let func = async () => {
+                        let bexisted = await PageCtr.checkTxExisted(txid);
+                        if (bexisted) {
+                            TransactionState.beGasTransing = false;
+                            document.getElementById("trans_pet_info").innerHTML = "null";
+
+                            from.refreshAssetCount("pet");
+                            to.refreshAssetCount("pet");
+
+                        } else {
+                            //console.log("check again");
+                            setTimeout(() => {
+                                func();
+                            }, 300);
+                        }
+                    }
+                    func();
+                })
+            });
 
         }
 
