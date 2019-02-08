@@ -28,8 +28,6 @@ var simpleWallet;
     DataInfo.Neo = "0xc56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b";
     DataInfo.Gas = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
     DataInfo.Pet = null;
-    DataInfo.APiUrl = "http://localhost:63494/api/mainnet";
-    DataInfo.targetAddr = "AH2ADnKSuJrhHefqeJ9j83HcNXPfipwr6V";
     simpleWallet.DataInfo = DataInfo;
     class TransactionState {
     }
@@ -108,9 +106,6 @@ var simpleWallet;
     simpleWallet.Account = Account;
     class PageCtr {
         static start() {
-            tool.loadJson("../lib/config.json", (json) => {
-                DataInfo.Pet = json["petid"];
-            });
             DataInfo.targetAccount = new Account();
             DataInfo.targetAccount.neoInput = document.getElementById("t_neoinput");
             DataInfo.targetAccount.gasInput = document.getElementById("t_gasinput");
@@ -262,7 +257,12 @@ var simpleWallet;
     simpleWallet.PageCtr = PageCtr;
 })(simpleWallet || (simpleWallet = {}));
 window.onload = () => {
-    simpleWallet.PageCtr.start();
+    tool.loadJson("../lib/config.json", (json) => {
+        simpleWallet.DataInfo.Pet = json["petid"];
+        simpleWallet.DataInfo.APiUrl = json["APiUrl"];
+        simpleWallet.DataInfo.targetAddr = json["targetAddr"];
+        simpleWallet.PageCtr.start();
+    });
 };
 var NetApi;
 (function (NetApi) {

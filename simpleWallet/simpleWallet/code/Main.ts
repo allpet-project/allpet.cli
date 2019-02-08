@@ -8,9 +8,9 @@ namespace simpleWallet {
         static Gas: string = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
         static Pet: string = null;
 
-        static APiUrl: string ="http://localhost:63494/api/mainnet";
+        static APiUrl: string;
         static WIF: string;
-        static targetAddr: string = "AH2ADnKSuJrhHefqeJ9j83HcNXPfipwr6V";
+        static targetAddr: string;
         static currentAccount: Account;
         static targetAccount: Account;
     }
@@ -107,9 +107,7 @@ namespace simpleWallet {
     export class PageCtr {
 
         public static start() {
-            tool.loadJson("../lib/config.json", (json) => {
-                DataInfo.Pet = json["petid"];
-            });
+
 
             //------------------账户资产展示
             DataInfo.targetAccount = new Account();
@@ -305,6 +303,13 @@ namespace simpleWallet {
 
 
 window.onload = () => {
-    simpleWallet.PageCtr.start();
+    tool.loadJson("../lib/config.json", (json) => {
+        simpleWallet.DataInfo.Pet = json["petid"];
+        simpleWallet.DataInfo.APiUrl = json["APiUrl"];
+        simpleWallet.DataInfo.targetAddr = json["targetAddr"];
+
+        simpleWallet.PageCtr.start();
+    });
+
 }
 
