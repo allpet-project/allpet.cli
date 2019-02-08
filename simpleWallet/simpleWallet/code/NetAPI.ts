@@ -1,10 +1,10 @@
 ﻿namespace NetApi {
 
     export function getAssetUtxo(url: string, address: string, asset: string): Promise<UTXO[]>{
-        return tool.getassetutxobyaddress(url, address, asset).then((json) => {
+        return tool.getassetutxobyaddress(url, address, asset).then((result) => {
             let arr: UTXO[] = [];
-
-            let assetInfo = json[0];
+            if (result == null || (result as any[]).length==0) return arr;
+            let assetInfo = result[0];
 
             let assetId = assetInfo["asset"];
             let assetArr: any[] = assetInfo["arr"];
@@ -27,6 +27,19 @@
             return arr;
         });
 
+    }
+
+    export function getnep5balancebyaddress(url: string, address: string, asset: string): Promise<number> {
+        return tool.getnep5balancebyaddress(url, address, asset).then((result) => {
+            if (result) {
+                let count = result[0]["value"];
+                let bnum = parseFloat(count);
+                return bnum;
+            } else {
+                return 0;
+            }
+            //console.debug(result);
+        });
     }
 
 

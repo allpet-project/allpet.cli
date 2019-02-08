@@ -8,8 +8,9 @@ namespace simpleWallet {
         static Gas: string = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
         static Pet: string = "0x6112d5ec36d299a6a8c87ebde6f3782f7ac74118";
 
-        static APiUrl: string ="http://127.0.0.1:63494/";
+        static APiUrl: string ="http://localhost:63494/api/mainnet";
         static WIF: string;
+        static targetAddr: string = "AH2ADnKSuJrhHefqeJ9j83HcNXPfipwr6V";
         static currentAccount: Account;
         static targetAccount: Account;
     }
@@ -28,19 +29,19 @@ namespace simpleWallet {
         gasInput: HTMLInputElement;
         PetInput: HTMLInputElement;
 
-        refreshAsset(type: string, count: number) {
+        refreshAsset(type: string, count: any) {
             switch (type) {
                 case "neo":
                     this.neo = count;
-                    this.neoInput.value = count.toString();
+                    this.neoInput.textContent = count.toString();
                     break;
                 case "gas":
                     this.gas = count;
-                    this.gasInput.value = count.toString();
+                    this.gasInput.textContent = count.toString();
                     break;
                 case "pet":
                     this.pet = count;
-                    this.PetInput.value = count.toString();
+                    this.PetInput.textContent = (count as Neo.BigInteger).toString();
                     break;
             }
         }
@@ -69,12 +70,27 @@ namespace simpleWallet {
                 }
                 this.refreshAsset("gas", totleCount);
             });
+            NetApi.getAssetUtxo(DataInfo.APiUrl, this.addr, DataInfo.Neo).then((asset) => {
+                let totleCount = 0;
+                for (let i = 0; i < asset.length; i++) {
+                    totleCount += asset[i].value;
+                }
+                this.refreshAsset("neo", totleCount);
+            });
+            NetApi.getnep5balancebyaddress(DataInfo.APiUrl, this.addr, DataInfo.Pet).then((result) => {
+                this.refreshAsset("pet", result);
+            });
         }
     }
     export class PageCtr {
 
         public static start() {
             DataInfo.targetAccount = new Account();
+            DataInfo.targetAccount.neoInput = document.getElementById("t_neoinput") as HTMLInputElement;
+            DataInfo.targetAccount.gasInput = document.getElementById("t_gasinput") as HTMLInputElement;
+            DataInfo.targetAccount.PetInput = document.getElementById("t_petinput") as HTMLInputElement;
+            DataInfo.targetAccount.addr = DataInfo.targetAddr;
+            DataInfo.targetAccount.refreshAssetCount(DataInfo.APiUrl);
 
             var signBtn = document.getElementById("signin") as HTMLButtonElement;
             var wifinput = document.getElementById("wif") as HTMLInputElement;
@@ -83,6 +99,10 @@ namespace simpleWallet {
                 console.warn("sign!!!" + wifinput.value);
 
                 DataInfo.currentAccount = new Account();
+                DataInfo.currentAccount.neoInput = document.getElementById("c_neoinput") as HTMLInputElement;
+                DataInfo.currentAccount.gasInput = document.getElementById("c_gasinput") as HTMLInputElement;
+                DataInfo.currentAccount.PetInput = document.getElementById("c_petinput") as HTMLInputElement;
+
                 try {
                     DataInfo.currentAccount.setFromWIF(wifinput.value);
                     DataInfo.currentAccount.refreshAssetCount(DataInfo.APiUrl);
@@ -91,6 +111,8 @@ namespace simpleWallet {
                 {
                 }
             }
+
+
         }
     }
 }

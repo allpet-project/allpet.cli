@@ -6,6 +6,7 @@ declare namespace simpleWallet {
         static Pet: string;
         static APiUrl: string;
         static WIF: string;
+        static targetAddr: string;
         static currentAccount: Account;
         static targetAccount: Account;
     }
@@ -19,7 +20,7 @@ declare namespace simpleWallet {
         neoInput: HTMLInputElement;
         gasInput: HTMLInputElement;
         PetInput: HTMLInputElement;
-        refreshAsset(type: string, count: number): void;
+        refreshAsset(type: string, count: any): void;
         setFromWIF(wif: string): void;
         refreshAssetCount(url: string): void;
     }
@@ -29,6 +30,7 @@ declare namespace simpleWallet {
 }
 declare namespace NetApi {
     function getAssetUtxo(url: string, address: string, asset: string): Promise<UTXO[]>;
+    function getnep5balancebyaddress(url: string, address: string, asset: string): Promise<number>;
     class UTXO {
         addr: string;
         txid: string;
@@ -46,4 +48,5 @@ declare namespace tool {
 }
 declare namespace tool {
     function getassetutxobyaddress(url: string, address: string, asset: string): Promise<any>;
+    function getnep5balancebyaddress(url: string, address: string, asset: string): Promise<any>;
 }
