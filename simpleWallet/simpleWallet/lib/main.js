@@ -359,7 +359,7 @@ var simpleWallet;
     simpleWallet.PageCtr = PageCtr;
 })(simpleWallet || (simpleWallet = {}));
 window.onload = () => {
-    simpleWallet.config.loadFromPath("../lib/config.json", () => {
+    simpleWallet.config.loadFromPath("lib/config.json", () => {
         simpleWallet.PageCtr.start();
     });
 };

@@ -395,7 +395,7 @@ namespace simpleWallet {
 
 
 window.onload = () => {
-    simpleWallet.config.loadFromPath("../lib/config.json", () => {
+    simpleWallet.config.loadFromPath("lib/config.json", () => {
         simpleWallet.PageCtr.start();
 
     })
