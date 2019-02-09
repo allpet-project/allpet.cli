@@ -27,6 +27,11 @@ namespace NetAPI.services
                 this.Block_mongodbConnStr = Config.mongodbConnStr;
                 this.Block_mongodbDatabase = Config.mongodbDatabase;
                 this.neoCliJsonRPCUrl = Config.NeoCliJsonRPCUrl;
+            }else if(net== "privatenet")
+            {
+                this.Block_mongodbConnStr = Config.privateNet.mongodbConnStr;
+                this.Block_mongodbDatabase = Config.privateNet.mongodbDatabase;
+                this.neoCliJsonRPCUrl = Config.privateNet.NeoCliJsonRPCUrl;
             }
         }
         public mongoHelper mh = new mongoHelper();
@@ -220,19 +225,26 @@ namespace NetAPI.services
                 sb.EmitParamJson(JAParams);
                 sb.EmitParamJson(new MyJson.JsonNode_ValueString("(str)balanceOf"));
                 sb.EmitAppCall(shash);
+
+                sb.EmitParamJson(new MyJson.JsonNode_Array());
+                sb.EmitParamJson(new MyJson.JsonNode_ValueString("(str)decimals"));
+                sb.EmitAppCall(shash);
+
                 var data = sb.ToArray();
                 script = ThinNeo.Helper.Bytes2HexString(data);
 
             }
-            var res = Rpc.invokescript(Config.NeoCliJsonRPCUrl, script).Result;
+            var res = Rpc.invokescript(this.neoCliJsonRPCUrl, script).Result;
             var arr=res.GetDictItem("stack").AsList().ToArray();
             var valueString = arr[0].AsDict()["value"].AsString();
 
+            var decimalString = arr[1].AsDict()["value"].AsString();
+            int decimals = int.Parse(decimalString);
             //-----------精度
-            string findStr = "{{assetid:'{0}'}}";
-            findStr = string.Format(findStr, nep5Hash);
-            JArray utxoArr=mh.GetData(Block_mongodbConnStr, Block_mongodbDatabase, "NEP5asset", findStr);
-            int decimals=(int)((JObject)utxoArr[0])["decimals"];
+            //string findStr = "{{assetid:'{0}'}}";
+            //findStr = string.Format(findStr, nep5Hash);
+            //JArray utxoArr=mh.GetData(Block_mongodbConnStr, Block_mongodbDatabase, "NEP5asset", findStr);
+            //int decimals=(int)((JObject)utxoArr[0])["decimals"];
 
             decimal value = decimal.Parse(Number.getNumStrFromHexStr(valueString, decimals));
 
@@ -241,15 +253,37 @@ namespace NetAPI.services
 
         public JArray getnep5decimals(string nep5Hash)
         {
-            string findStr = "{{assetid:'{0}'}}";
-            findStr = string.Format(findStr, nep5Hash);
-            JArray utxoArr = mh.GetData(Block_mongodbConnStr, Block_mongodbDatabase, "NEP5asset", findStr);
-            int decimals = (int)((JObject)utxoArr[0])["decimals"];
+            //Console.WriteLine("assetid:" + nep5Hash);
+
+            string script = null;
+            using (var sb = new ThinNeo.ScriptBuilder())
+            {
+                ThinNeo.Hash160 shash = new ThinNeo.Hash160(nep5Hash);
+
+                sb.EmitParamJson(new MyJson.JsonNode_Array());
+                sb.EmitParamJson(new MyJson.JsonNode_ValueString("(str)decimals"));
+                sb.EmitAppCall(shash);
+
+                var data = sb.ToArray();
+                script = ThinNeo.Helper.Bytes2HexString(data);
+            }
+            var res = Rpc.invokescript(this.neoCliJsonRPCUrl, script).Result;
+            var arr = res.GetDictItem("stack").AsList().ToArray();
+            //Console.WriteLine("rpc info:"+ arr[0].ToString());
+            var decimalString = arr[0].AsDict()["value"].AsString();
+            int decimals = int.Parse(decimalString);
 
             return new JArray(new JObject() { { "value", decimals } });
         }
 
-
+        public JArray checktxboolexisted(string txid)
+        {
+            string findStr = "{{txid:'{0}'}}";
+            findStr = string.Format(findStr, txid);
+            JArray txArr = mh.GetData(Block_mongodbConnStr, Block_mongodbDatabase, "tx", findStr);
+            bool beExisted = txArr.Count > 0;
+            return new JArray(new JObject() { { "beExisted", beExisted } });
+        }
 
     }
 }

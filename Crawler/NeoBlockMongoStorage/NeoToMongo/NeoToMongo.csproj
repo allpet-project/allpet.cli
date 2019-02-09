@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Content Include="bin\Debug\netcoreapp2.1\setting\appsettings.json" />
+    <Content Include="bin\Release\NeoToMongo\setting\appsettings.json" />
     <Content Include="setting\appsettings.json" />
   </ItemGroup>
 

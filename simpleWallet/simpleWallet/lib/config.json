@@ -1,0 +1,15 @@
+﻿{
+  "mainNet": {
+    "petid": "0x6112d5ec36d299a6a8c87ebde6f3782f7ac74118",
+    "APiUrl": "http://192.144.165.72:7878/api/mainnet",
+    "wif": "",
+    "targetAddr": ""
+  },
+  "privateNet": {
+    "petid": "0x6112d5ec36d299a6a8c87ebde6f3782f7ac74118",
+    "APiUrl": "http://192.144.165.72:7878/api/PrivateNet",
+    "wif": "KwUhZzS6wrdsF4DjVKt2XQd3QJoidDhckzHfZJdQ3gzUUJSr8MDd",
+    "targetAddr": "AH2ADnKSuJrhHefqeJ9j83HcNXPfipwr6V"
+  }
+
+}

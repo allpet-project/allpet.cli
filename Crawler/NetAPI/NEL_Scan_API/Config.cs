@@ -3,6 +3,13 @@ using System.IO;
 
 namespace NetAPI
 {
+
+    public class PrivateNetConfig
+    {
+        public string mongodbConnStr = string.Empty;
+        public string mongodbDatabase = string.Empty;
+        public string NeoCliJsonRPCUrl = string.Empty;
+    }
     class Config
     {
         public static string mongodbConnStr = string.Empty;
@@ -12,6 +19,7 @@ namespace NetAPI
         public static bool beUtxoSleep = false;
         public static bool startMonitorFlag = true;
 
+        public static PrivateNetConfig privateNet = new PrivateNetConfig();
 
         /// <summary>
         /// 加载配置
@@ -26,6 +34,11 @@ namespace NetAPI
             startMonitorFlag = config.AsDict().GetDictItem("startMonitorFlag").AsBool();
 
             sleepTime = config.AsDict().GetDictItem("sleepTime").AsInt();
+
+            MyJson.JsonNode_Object privateNetInfo = config["privateChain"].AsDict();
+            privateNet.mongodbConnStr = privateNetInfo["mongodbConnStr"].AsString();
+            privateNet.mongodbDatabase = privateNetInfo["mongodbDatabase"].AsString();
+            privateNet.NeoCliJsonRPCUrl = privateNetInfo["NeoCliJsonRPCUrl"].AsString();
         }
 
     }

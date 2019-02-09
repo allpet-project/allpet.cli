@@ -11,7 +11,7 @@ namespace NeoToMongo
         {
             while (true)
             {
-                Console.Write("cmd>");
+                Console.Write("cmd（1=showblockCount）>");
                 string cmd = Console.ReadLine();
                 cmd = cmd.Replace(" ", "");
                 if (cmd == "") continue;
