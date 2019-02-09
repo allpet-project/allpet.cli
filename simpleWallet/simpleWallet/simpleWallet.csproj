@@ -109,6 +109,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="code\config.ts" />
     <TypeScriptCompile Include="code\IO.ts" />
     <TypeScriptCompile Include="code\Main.ts" />
     <TypeScriptCompile Include="code\NetAPI.ts" />

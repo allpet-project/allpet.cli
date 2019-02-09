@@ -27,6 +27,11 @@ namespace NetAPI.services
                 this.Block_mongodbConnStr = Config.mongodbConnStr;
                 this.Block_mongodbDatabase = Config.mongodbDatabase;
                 this.neoCliJsonRPCUrl = Config.NeoCliJsonRPCUrl;
+            }else if(net== "privatenet")
+            {
+                this.Block_mongodbConnStr = Config.privateNet.mongodbConnStr;
+                this.Block_mongodbDatabase = Config.privateNet.mongodbDatabase;
+                this.neoCliJsonRPCUrl = Config.privateNet.NeoCliJsonRPCUrl;
             }
         }
         public mongoHelper mh = new mongoHelper();
@@ -229,7 +234,7 @@ namespace NetAPI.services
                 script = ThinNeo.Helper.Bytes2HexString(data);
 
             }
-            var res = Rpc.invokescript(Config.NeoCliJsonRPCUrl, script).Result;
+            var res = Rpc.invokescript(this.neoCliJsonRPCUrl, script).Result;
             var arr=res.GetDictItem("stack").AsList().ToArray();
             var valueString = arr[0].AsDict()["value"].AsString();
 
@@ -248,6 +253,8 @@ namespace NetAPI.services
 
         public JArray getnep5decimals(string nep5Hash)
         {
+            //Console.WriteLine("assetid:" + nep5Hash);
+
             string script = null;
             using (var sb = new ThinNeo.ScriptBuilder())
             {
@@ -260,9 +267,9 @@ namespace NetAPI.services
                 var data = sb.ToArray();
                 script = ThinNeo.Helper.Bytes2HexString(data);
             }
-            var res = Rpc.invokescript(Config.NeoCliJsonRPCUrl, script).Result;
+            var res = Rpc.invokescript(this.neoCliJsonRPCUrl, script).Result;
             var arr = res.GetDictItem("stack").AsList().ToArray();
-
+            //Console.WriteLine("rpc info:"+ arr[0].ToString());
             var decimalString = arr[0].AsDict()["value"].AsString();
             int decimals = int.Parse(decimalString);
 

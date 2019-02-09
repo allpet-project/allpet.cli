@@ -6,6 +6,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var simpleWallet;
+(function (simpleWallet) {
+    class NetInfo {
+    }
+    simpleWallet.NetInfo = NetInfo;
+    class config {
+        static loadFromPath(path = "../lib/config.json", callback) {
+            tool.loadJson(path, (json) => {
+                let privateNetjson = json["privateNet"];
+                config.privateNetInfo.petid = privateNetjson["petid"];
+                config.privateNetInfo.APiUrl = privateNetjson["APiUrl"];
+                config.privateNetInfo.wif = privateNetjson["wif"];
+                config.privateNetInfo.targetAddr = privateNetjson["targetAddr"];
+                let mainNetjson = json["mainNet"];
+                config.mainNetInfo.petid = mainNetjson["petid"];
+                config.mainNetInfo.APiUrl = mainNetjson["APiUrl"];
+                config.mainNetInfo.wif = mainNetjson["wif"];
+                config.mainNetInfo.targetAddr = mainNetjson["targetAddr"];
+                if (callback) {
+                    callback();
+                }
+            });
+        }
+    }
+    config.privateNetInfo = new NetInfo();
+    config.mainNetInfo = new NetInfo();
+    simpleWallet.config = config;
+})(simpleWallet || (simpleWallet = {}));
 var tool;
 (function (tool) {
     function loadJson(url, callback) {
@@ -23,11 +51,17 @@ var tool;
 })(tool || (tool = {}));
 var simpleWallet;
 (function (simpleWallet) {
+    let NetEnum;
+    (function (NetEnum) {
+        NetEnum["Main"] = "\u4E3B\u7F51";
+        NetEnum["privateChain"] = "\u79C1\u94FE";
+    })(NetEnum = simpleWallet.NetEnum || (simpleWallet.NetEnum = {}));
     class DataInfo {
     }
     DataInfo.Neo = "0xc56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b";
     DataInfo.Gas = "0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7";
     DataInfo.Pet = null;
+    DataInfo.beMainNet = false;
     simpleWallet.DataInfo = DataInfo;
     class TransactionState {
     }
@@ -84,6 +118,13 @@ var simpleWallet;
             }
         }
         refreshAllAssetCount() {
+            if (this.addr == null) {
+                this.setAssetCount("gas", 0);
+                this.setAssetCount("neo", 0);
+                this.setAssetCount("pet", 0);
+                console.warn("当前账户为空，请设置账户！！");
+                return;
+            }
             NetApi.getAssetUtxo(DataInfo.APiUrl, this.addr, DataInfo.Gas).then((asset) => {
                 let totleCount = 0;
                 for (let i = 0; i < asset.length; i++) {
@@ -106,63 +147,124 @@ var simpleWallet;
     simpleWallet.Account = Account;
     class PageCtr {
         static start() {
-            DataInfo.targetAccount = new Account();
-            DataInfo.targetAccount.neoInput = document.getElementById("t_neoinput");
-            DataInfo.targetAccount.gasInput = document.getElementById("t_gasinput");
-            DataInfo.targetAccount.PetInput = document.getElementById("t_petinput");
-            DataInfo.targetAccount.addr = DataInfo.targetAddr;
-            DataInfo.targetAccount.refreshAllAssetCount();
-            var signBtn = document.getElementById("signin");
-            var wifinput = document.getElementById("wif");
-            wifinput.value = "KwUhZzS6wrdsF4DjVKt2XQd3QJoidDhckzHfZJdQ3gzUUJSr8MDd";
-            signBtn.onclick = () => {
-                console.warn("sign!!!" + wifinput.value);
-                this.sign(wifinput.value);
+            let changeBtn = document.getElementById("changeChain");
+            changeBtn.onclick = () => {
+                DataInfo.beMainNet = !DataInfo.beMainNet;
+                document.getElementById("NetTag").innerHTML = DataInfo.beMainNet ? "当前网：主网" : "当前网：私链";
+                let net = DataInfo.beMainNet ? NetEnum.Main : NetEnum.privateChain;
+                this.chooseNet(net);
+            };
+            simpleWallet.PageCtr.chooseNet(simpleWallet.NetEnum.privateChain);
+            let changePetBtn = document.getElementById("changePet");
+            let PetInput = document.getElementById("petTag");
+            PetInput.value = DataInfo.Pet;
+            changePetBtn.onclick = () => {
+                let asset = PetInput.value;
+                if (asset != null) {
+                    DataInfo.Pet = PetInput.value;
+                }
             };
             let btn_transgas = document.getElementById("trans_gas");
             btn_transgas.onclick = () => {
-                if (DataInfo.currentAccount == null) {
-                    alert("请登录账户！");
-                }
-                else if (TransactionState.beGasTransing) {
-                    alert("gas 交易进行中，请等待！");
-                }
-                else {
-                    console.log("gas 交易： start！");
-                    let gasinput = document.getElementById("gascount");
-                    let value = parseFloat(gasinput.value);
-                    this.transactionGas(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                if (this.checkBeforeTransaction()) {
+                    if (TransactionState.beGasTransing) {
+                        alert("gas 交易进行中，请等待！");
+                    }
+                    else {
+                        console.log("gas 交易： start！");
+                        let gasinput = document.getElementById("gascount");
+                        let value = parseFloat(gasinput.value);
+                        this.transactionGas(value, this.currentAccount, this.targetAccount);
+                    }
                 }
             };
             let btn_transpet = document.getElementById("trans_pet");
             btn_transpet.onclick = () => {
-                if (DataInfo.currentAccount == null) {
-                    alert("请登录账户！");
-                }
-                else if (DataInfo.Pet == null) {
-                    alert("petid 未配置成功！");
-                }
-                else if (TransactionState.bePetTransing) {
-                    alert("pet 交易进行中，请等待！");
-                }
-                else {
-                    let petinput = document.getElementById("petcount");
-                    let value = parseFloat(petinput.value);
-                    this.transactionPet(value, DataInfo.currentAccount, DataInfo.targetAccount);
+                if (this.checkBeforeTransaction()) {
+                    if (TransactionState.bePetTransing) {
+                        alert("pet 交易进行中，请等待！");
+                    }
+                    else {
+                        let petinput = document.getElementById("petcount");
+                        let value = parseFloat(petinput.value);
+                        this.transactionPet(value, this.currentAccount, this.targetAccount);
+                    }
                 }
             };
         }
+        static chooseNet(net) {
+            switch (net) {
+                case NetEnum.Main:
+                    DataInfo.APiUrl = simpleWallet.config.mainNetInfo.APiUrl;
+                    DataInfo.targetAddr = simpleWallet.config.mainNetInfo.targetAddr;
+                    DataInfo.WIF = simpleWallet.config.mainNetInfo.wif;
+                    DataInfo.Pet = simpleWallet.config.mainNetInfo.petid;
+                    break;
+                case NetEnum.privateChain:
+                    DataInfo.APiUrl = simpleWallet.config.privateNetInfo.APiUrl;
+                    DataInfo.targetAddr = simpleWallet.config.privateNetInfo.targetAddr;
+                    DataInfo.WIF = simpleWallet.config.privateNetInfo.wif;
+                    DataInfo.Pet = simpleWallet.config.privateNetInfo.petid;
+                    break;
+            }
+            var signBtn = document.getElementById("signin");
+            var wifinput = document.getElementById("wif");
+            wifinput.value = DataInfo.WIF;
+            signBtn.onclick = () => {
+                console.warn("sign!!!" + wifinput.value);
+                let wif = wifinput.value;
+                DataInfo.WIF = wif;
+                this.sign(wif);
+            };
+            this.sign(DataInfo.WIF);
+            let targetInput = document.getElementById("targetAddr");
+            var targetBtn = document.getElementById("changeTarget");
+            targetInput.value = DataInfo.targetAddr;
+            targetBtn.onclick = () => {
+                let addr = targetInput.value;
+                if (addr != null) {
+                    console.warn("addr 为null，请重新设置目标账户！！");
+                    return;
+                }
+                DataInfo.targetAddr = addr;
+                this.setTargetAddr(addr);
+            };
+            this.setTargetAddr(DataInfo.targetAddr);
+        }
         static sign(wif) {
-            DataInfo.currentAccount = new Account();
-            DataInfo.currentAccount.neoInput = document.getElementById("c_neoinput");
-            DataInfo.currentAccount.gasInput = document.getElementById("c_gasinput");
-            DataInfo.currentAccount.PetInput = document.getElementById("c_petinput");
+            this.currentAccount = new Account();
+            this.currentAccount.neoInput = document.getElementById("c_neoinput");
+            this.currentAccount.gasInput = document.getElementById("c_gasinput");
+            this.currentAccount.PetInput = document.getElementById("c_petinput");
             try {
-                DataInfo.currentAccount.setFromWIF(wif);
-                DataInfo.currentAccount.refreshAllAssetCount();
+                this.currentAccount.setFromWIF(wif);
+                this.currentAccount.refreshAllAssetCount();
             }
             catch (_a) {
             }
+        }
+        static setTargetAddr(addr) {
+            this.targetAccount = new Account();
+            this.targetAccount.neoInput = document.getElementById("t_neoinput");
+            this.targetAccount.gasInput = document.getElementById("t_gasinput");
+            this.targetAccount.PetInput = document.getElementById("t_petinput");
+            this.targetAccount.addr = DataInfo.targetAddr;
+            this.targetAccount.refreshAllAssetCount();
+        }
+        static checkBeforeTransaction() {
+            if (this.currentAccount == null) {
+                alert("请登录账户！");
+                return false;
+            }
+            else if (this.targetAccount == null) {
+                alert("请设置目标账户！");
+                return false;
+            }
+            else if (DataInfo.Pet == null) {
+                alert("petid 未配置成功！");
+                return false;
+            }
+            return true;
         }
         static transactionGas(count, from, to) {
             NetApi.getAssetUtxo(DataInfo.APiUrl, from.addr, DataInfo.Gas).then((utxos) => {
@@ -257,10 +359,7 @@ var simpleWallet;
     simpleWallet.PageCtr = PageCtr;
 })(simpleWallet || (simpleWallet = {}));
 window.onload = () => {
-    tool.loadJson("../lib/config.json", (json) => {
-        simpleWallet.DataInfo.Pet = json["petid"];
-        simpleWallet.DataInfo.APiUrl = json["APiUrl"];
-        simpleWallet.DataInfo.targetAddr = json["targetAddr"];
+    simpleWallet.config.loadFromPath("../lib/config.json", () => {
         simpleWallet.PageCtr.start();
     });
 };

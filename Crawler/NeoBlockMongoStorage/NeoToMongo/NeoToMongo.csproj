@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Content Include="bin\Debug\netcoreapp2.1\setting\appsettings.json" />
+    <Content Include="bin\Release\NeoToMongo\setting\appsettings.json" />
     <Content Include="setting\appsettings.json" />
   </ItemGroup>
 

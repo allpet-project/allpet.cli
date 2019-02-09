@@ -1,17 +1,33 @@
 /// <reference path="neo-ts.d.ts" />
+declare namespace simpleWallet {
+    class NetInfo {
+        petid: string;
+        APiUrl: string;
+        wif: string;
+        targetAddr: string;
+    }
+    class config {
+        static privateNetInfo: NetInfo;
+        static mainNetInfo: NetInfo;
+        static loadFromPath(path: string, callback: () => void): void;
+    }
+}
 declare namespace tool {
     function loadJson(url: string, callback: (json) => void): void;
 }
 declare namespace simpleWallet {
+    enum NetEnum {
+        Main = "\u4E3B\u7F51",
+        privateChain = "\u79C1\u94FE",
+    }
     class DataInfo {
         static Neo: string;
         static Gas: string;
         static Pet: string;
+        static beMainNet: boolean;
         static APiUrl: string;
         static WIF: string;
         static targetAddr: string;
-        static currentAccount: Account;
-        static targetAccount: Account;
     }
     class TransactionState {
         static beGasTransing: boolean;
@@ -34,8 +50,13 @@ declare namespace simpleWallet {
         refreshAllAssetCount(): void;
     }
     class PageCtr {
+        static currentAccount: Account;
+        static targetAccount: Account;
         static start(): void;
+        static chooseNet(net: NetEnum): void;
         static sign(wif: string): void;
+        static setTargetAddr(addr: string): void;
+        static checkBeforeTransaction(): boolean;
         static transactionGas(count: number, from: Account, to: Account): void;
         static transactionPet(count: number, from: Account, to: Account): void;
         static checkTxExisted(txid: string): Promise<boolean>;

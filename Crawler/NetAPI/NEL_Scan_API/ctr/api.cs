@@ -10,6 +10,8 @@ namespace NetAPI.ctr
     public class Api
     {
         public static Api mainApi = new Api("mainnet");
+        public static Api privateNetApi = new Api("privatenet");
+
 
 
         private string netnode { get; set; }
@@ -26,6 +28,9 @@ namespace NetAPI.ctr
             switch (netnode)
             {
                 case "mainnet":
+                    transactionServer = new transactionServer(netnode);
+                    break;
+                case "privatenet":
                     transactionServer = new transactionServer(netnode);
                     break;
             }
@@ -72,7 +77,8 @@ namespace NetAPI.ctr
                         result = transactionServer.getAddressNep5Asset(req.@params[0].ToString(), req.@params[1].ToString());
                         break;
                     case "getnep5decimals":
-                        result = transactionServer.getnep5decimals(req.@params[0].ToString());
+                        string assetid =(string)req.@params[0];
+                        result = transactionServer.getnep5decimals(assetid);
                         break;
                     case "checktxboolexisted":
                         result = transactionServer.checktxboolexisted((string)req.@params[0]);
