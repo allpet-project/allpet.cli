@@ -94,6 +94,9 @@ namespace AllPet.Module
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> linkNodes;
         System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
         Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
+
+
+        public Node.TXPool txpool;//交易池
         public Module_Node(AllPet.Common.ILogger logger, Newtonsoft.Json.Linq.JObject configJson) : base(true)
         {
             this.guid = Helper_NEO.CalcHash256(Guid.NewGuid().ToByteArray());
@@ -119,6 +122,8 @@ namespace AllPet.Module
                 logger.Error("Error in Get Prikey：" + err.ToString());
                 throw new Exception("error in get prikey.", err);
             }
+
+            this.txpool = new Node.TXPool();
         }
         //peerid 是连接id，而每个节点，需要一个唯一不重复的节点ID，以方便进行识别
 

@@ -12,7 +12,6 @@ namespace AllPet.Module
     public enum CmdList : UInt16
     {
         Local_Cmd = 0x0000,
-
         //Request_ 开头的都是一对一消息，发往单个节点
         //Response_ 开头的都是一对一消息，发往单个节点
         //BoardCast_ 开头的，会向自己平级和低级的节点发送
@@ -31,15 +30,61 @@ namespace AllPet.Module
 
         BoradCast_PeerState,//一个节点证明了他自己
         BoardCast_NewBlock,//新的块产生了
+
+        /// <summary>
+        /// RPC开头的都是对称响应式的消息，收到的命令中必须有一个id，必须返回发送，返回的id就是收到的id
+        /// </summary>
+        RPC = 0x0300,
+
     }
     public partial class Module_Node : Module_MsgPack
     {
+
         public override void OnTell(IModulePipeline from, MessagePackObject? obj)
         {
-            if (from == null || from.IsLocal)//本地发来的消息
+            var dict = obj.Value.AsDictionary();
+            var cmd = (CmdList)dict["cmd"].AsUInt16();
+            //rpc消息无所谓本地还是远程
+            if (cmd == CmdList.RPC)
             {
-                var dict = obj.Value.AsDictionary();
-                var cmd = (CmdList)dict["cmd"].AsInt16();
+                MessagePackObjectDictionary msgBack = new MessagePackObjectDictionary();
+                msgBack["cmd"] = (UInt16)cmd;
+                msgBack["id"] = dict["id"];
+                string method = dict["method"].AsString();
+                msgBack["method"] = method;
+                var _params = dict.ContainsKey("params") ? dict["params"].AsList() : null;
+                RPC_Result result = null;
+                switch (method)
+                {
+                    case "listpeer":
+                        result = RPC_ListPeer(_params);
+                        break;
+                    case "sendrawtransaction":
+                        result = RPC_SendRawTransaction(_params);
+                        break;
+                    case "gettransactioncount":
+                        result = RPC_GetTXCount(_params);
+                        break;
+                    case "gettransaction":
+                        result = RPC_GetTX(_params);
+                        break;
+                    default:
+                        result = new RPC_Result(null, -100, "not found that RPC command.");
+                        break;
+                }
+                if (result.error_code != 0)
+                {
+                    msgBack["error"] = result.error_msg;
+                    msgBack["errorcode"] = result.error_code;
+                }
+                if (result.result != null)
+                    msgBack["result"] = result.result.Value;
+
+                from.Tell(new MessagePackObject(msgBack));
+                //rpc消息处理完
+            }
+            else if (from == null || from.IsLocal)//本地发来的消息
+            {
                 logger.Info("local msg:" + obj.Value.ToString());
 
                 switch (cmd)
@@ -77,9 +122,9 @@ namespace AllPet.Module
                 }
                 return;
             }
-            else
+            else //远程发来的消息
             {
-                //远程发来的消息
+
                 if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link) == false)
                 {
                     linkNodes[from.system.PeerID] = new LinkObj()
@@ -90,8 +135,6 @@ namespace AllPet.Module
                     };
                     RegNetEvent(from.system);
                 }
-                var dict = obj.Value.AsDictionary();
-                var cmd = (CmdList)dict["cmd"].AsInt16();
                 logger.Info("remote msg:" + obj.Value.ToString());
                 switch (cmd)
                 {

@@ -30,6 +30,7 @@ namespace AllPet.nodecli
 
             var config_cli = config.GetJson("config.json", ".ModulesConfig.Cli") as JObject;
             var config_node = config.GetJson("config.json", ".ModulesConfig.Node") as JObject;
+            var config_rpc = config.GetJson("config.json", ".ModulesConfig.RPC") as JObject;
             if (config_node.ContainsKey("Key_Nep2") && config_node.ContainsKey("Key_Password")==false)
             {
                 Console.Write("input Key for Nep2>");
@@ -45,7 +46,10 @@ namespace AllPet.nodecli
             {
                 system.RegistModule("node", new AllPet.Module.Module_Node(logger, config_node));
             }
-
+            if(Config.IsOpen(config_rpc))
+            {
+                system.RegistModule("rpc", new AllPet.Module.Module_RPC(logger, config_rpc));
+            }
             system.OpenNetwork(new AllPet.peer.tcp.PeerOption()
             {
 

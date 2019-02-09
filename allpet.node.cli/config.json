@@ -19,6 +19,14 @@
       "Key_Nep2": "6PYT8kA51wDoG1zHMVPVEnWKM2ptRoUTSxa2EWumAEahBtkuimfMuwWsBj",
       //Key密码，如果配置了Nep2 确没有配置密码，则需要输入密码
       "Key_Password": "12345678"
+    },
+    "RPC": {
+      "Open": true,
+      "HttpListenEndPoint": "0.0.0.0:30080",
+      //https 端口设置为零表示不开https，开https就必须提供pfx证书和密码 一起
+      "HttpsListenEndPoint": "0.0.0.0:0",
+      "HttpsPFXFilePath": "",
+      "HttpsPFXFilePassword": ""
     }
   },
   "ListenEndPoint": "0.0.0.0:2080"
