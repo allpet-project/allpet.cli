@@ -114,6 +114,12 @@ namespace simpleWallet {
                 this.setAssetCount("pet", result);
             });
         }
+
+        existAccount() {
+            this.setAssetCount("gas", 0);
+            this.setAssetCount("neo", 0);
+            this.setAssetCount("pet", 0);
+        }
     }
     export class PageCtr {
         static currentAccount: Account;
@@ -199,6 +205,8 @@ namespace simpleWallet {
                 console.warn("sign!!!" + wifinput.value);
                 let wif = wifinput.value;
                 DataInfo.WIF = wif;
+                console.log("@设置目标账户");
+
                 this.sign(wif);
             }
             this.sign(DataInfo.WIF);
@@ -208,8 +216,9 @@ namespace simpleWallet {
             var targetBtn = document.getElementById("changeTarget") as HTMLButtonElement;
             targetInput.value = DataInfo.targetAddr;
             targetBtn.onclick = () => {
+                
                 let addr = targetInput.value;
-                if (addr != null) {
+                if (addr == null) {
                     console.warn("addr 为null，请重新设置目标账户！！");
                     return;
                 }
@@ -225,6 +234,10 @@ namespace simpleWallet {
          * @param wif
          */
         static sign(wif: string) {
+            if (this.currentAccount) {
+                this.currentAccount.existAccount();
+            }
+            console.log("@登录账户");
 
             this.currentAccount = new Account();
             this.currentAccount.neoInput = document.getElementById("c_neoinput") as HTMLInputElement;
@@ -244,6 +257,11 @@ namespace simpleWallet {
          * @param addr
          */
         static setTargetAddr(addr: string) {
+            if (this.targetAccount) {
+                this.targetAccount.existAccount();
+            }
+                console.log("@设置目标账户");
+
                 this.targetAccount = new Account();
                 this.targetAccount.neoInput = document.getElementById("t_neoinput") as HTMLInputElement;
                 this.targetAccount.gasInput = document.getElementById("t_gasinput") as HTMLInputElement;

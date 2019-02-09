@@ -143,6 +143,11 @@ var simpleWallet;
                 this.setAssetCount("pet", result);
             });
         }
+        existAccount() {
+            this.setAssetCount("gas", 0);
+            this.setAssetCount("neo", 0);
+            this.setAssetCount("pet", 0);
+        }
     }
     simpleWallet.Account = Account;
     class PageCtr {
@@ -214,6 +219,7 @@ var simpleWallet;
                 console.warn("sign!!!" + wifinput.value);
                 let wif = wifinput.value;
                 DataInfo.WIF = wif;
+                console.log("@设置目标账户");
                 this.sign(wif);
             };
             this.sign(DataInfo.WIF);
@@ -222,7 +228,7 @@ var simpleWallet;
             targetInput.value = DataInfo.targetAddr;
             targetBtn.onclick = () => {
                 let addr = targetInput.value;
-                if (addr != null) {
+                if (addr == null) {
                     console.warn("addr 为null，请重新设置目标账户！！");
                     return;
                 }
@@ -232,6 +238,10 @@ var simpleWallet;
             this.setTargetAddr(DataInfo.targetAddr);
         }
         static sign(wif) {
+            if (this.currentAccount) {
+                this.currentAccount.existAccount();
+            }
+            console.log("@登录账户");
             this.currentAccount = new Account();
             this.currentAccount.neoInput = document.getElementById("c_neoinput");
             this.currentAccount.gasInput = document.getElementById("c_gasinput");
@@ -244,6 +254,10 @@ var simpleWallet;
             }
         }
         static setTargetAddr(addr) {
+            if (this.targetAccount) {
+                this.targetAccount.existAccount();
+            }
+            console.log("@设置目标账户");
             this.targetAccount = new Account();
             this.targetAccount.neoInput = document.getElementById("t_neoinput");
             this.targetAccount.gasInput = document.getElementById("t_gasinput");

@@ -1,9 +1,9 @@
 ﻿{
   "mainNet": {
     "petid": "0x6112d5ec36d299a6a8c87ebde6f3782f7ac74118",
-    "APiUrl": "http://localhost:64055/api/mainnet",
+    "APiUrl": "http://192.144.165.72:7878/api/mainnet",
     "wif": "",
-    "targetAddr": "AH2ADnKSuJrhHefqeJ9j83HcNXPfipwr6V"
+    "targetAddr": ""
   },
   "privateNet": {
     "petid": "0x6112d5ec36d299a6a8c87ebde6f3782f7ac74118",

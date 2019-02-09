@@ -48,6 +48,7 @@ declare namespace simpleWallet {
         setFromWIF(wif: string): void;
         refreshAssetCount(type: string): void;
         refreshAllAssetCount(): void;
+        existAccount(): void;
     }
     class PageCtr {
         static currentAccount: Account;
