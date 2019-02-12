@@ -24,10 +24,10 @@
 	  那么发送节点只要根据这个优先级，上行寻找，就能找到它和记账人间的最短通路，沿着这个通路将消息发送给记账人就可以了。     
 	3.bordcast广播，记账人之间有什么数据。它们已经达成共识的信息后，将共识结果大广播出来。       
       sendraw是只会发给小于本身节点优先级的，而大广播只会发给大于等于本身节点的，并且告诉它们接着向外散播，     
-      它们接到消息后也会帮着向外散播，这样就形成了全网广播。
+      它们接到消息后也会帮着向外散播，这样就形成了全网广播。   
 	 
-
-##模块介绍
+     
+##模块介绍     
 * allpet.common    
    公共模块。主要提供`Config`和`Logger`的公共处理   
  
@@ -41,7 +41,7 @@
 	`Logger`   	
 	Log类型有三种：   
 	```csharp
-		public enum LogType
+	public enum LogType
         {
             Info,
             Warn,
@@ -50,7 +50,7 @@
 	```
 	Log输出方式可以叠加使用，共有5种：  
 	```csharp
-		public enum OUTPosition
+	public enum OUTPosition
         {
             Console = 0x01,
             Trace = 0x02,
