@@ -31,7 +31,7 @@ namespace SimpleDb.Server.Actor
                 begin = DateTime.Now;
             }
             recvcount++;
-            if (recvcount % 5000 == 0)
+            if (recvcount % 20 == 0)
             {
                 var end = DateTime.Now;
                 Console.WriteLine("recv bytes:" + recvlen + " span=" + (end - begin));

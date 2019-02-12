@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AllPet.Pipeline;
+using Newtonsoft.Json;
 using SimplDb.Protocol.Sdk;
 using SimplDb.Protocol.Sdk.Message;
 using System;
@@ -66,12 +67,15 @@ namespace SimpleDb.Client
         }
         private static void TestNetTransfer()
         {
-            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
+            var systemL = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());            
+            systemL.RegistModule("me", new Local());
             systemL.OpenNetwork(new AllPet.peer.tcp.PeerOption());
+            systemL.Start();
+
             var remote = new System.Net.IPEndPoint(System.Net.IPAddress.Parse("127.0.0.1"), 8888);
             var systemref = systemL.ConnectAsync(remote).Result;
-            systemL.Start();
-            var actor = systemL.GetPipeline(null, "127.0.0.1:8888/simpledb");
+
+            var actor = systemL.GetPipeline(null, "this/me");
             {
                 for (var i = 0; i < 10000; i++)
                 {
@@ -252,6 +256,31 @@ namespace SimpleDb.Client
             systemL.CloseListen();
             systemL.CloseNetwork();
             systemL.Dispose();
+        }
+    }
+
+    class Local : Module
+    {
+        public override void OnStart()
+        {
+        }
+        public override void OnTell(IModulePipeline from, byte[] data)
+        {
+            if (from == null)
+            {
+                var actor = this.GetPipeline("127.0.0.1:8888/simpledb");
+                actor.Tell(data);
+            }
+            else
+            {
+                Console.WriteLine("Local got from:" + from.system.Remote + " // " + from.path);
+            }
+            //Console.WriteLine("Local get info=" + global::System.Text.Encoding.UTF8.GetString(data));
+
+        }
+        public override void OnTellLocalObj(IModulePipeline from, object obj)
+        {
+            throw new NotImplementedException();
         }
     }
 }

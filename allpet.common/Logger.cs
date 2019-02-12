@@ -119,7 +119,8 @@ namespace AllPet.Common
                 {
                     try
                     {
-                        System.IO.File.AppendAllText(outfilepath, tag + str, System.Text.Encoding.UTF8);
+                        System.IO.File.AppendAllText(outfilepath, tag + str +"\n", System.Text.Encoding.UTF8);
+
                     }
                     catch
                     {

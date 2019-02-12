@@ -52,7 +52,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.module.node.test", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.module.node.test2", "allpet.module.node.test2\allpet.module.node.test2.csproj", "{19907B2B-1BA3-4468-B1BB-4D774B6E3837}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "allpet.module.rpc", "allpet.module.rpc\allpet.module.rpc.csproj", "{F92E9F8D-B6AB-4253-8310-051D9BCCDF39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "allpet.module.rpc", "allpet.module.rpc\allpet.module.rpc.csproj", "{F92E9F8D-B6AB-4253-8310-051D9BCCDF39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
