@@ -87,11 +87,13 @@ namespace AllPet.Module
         Config_Module config;
         Hash256 guid;
         Hash256 chainHash;
+        bool isBookKeeper;//本节点是否是记账人
 
         byte[] prikey;
         byte[] pubkey;
 
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> linkNodes;
+        System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> bookKeeperNodes;//记账人列表
         System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
         Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
 
@@ -105,6 +107,7 @@ namespace AllPet.Module
             this.chainHash = Helper_NEO.CalcHash256(this.config.ChainInfo.ToInitScript());
             //this.config = new Config_ChainInit(configJson);
             this.linkNodes = new System.Collections.Concurrent.ConcurrentDictionary<ulong, LinkObj>();
+            this.bookKeeperNodes = new System.Collections.Concurrent.ConcurrentDictionary<ulong, LinkObj>();
             this.linkIDs = new System.Collections.Concurrent.ConcurrentDictionary<string, ulong>();
             this.listCanlink = new Struct.ThreadSafeQueueWithKey<CanLinkObj>();
             try
@@ -115,6 +118,13 @@ namespace AllPet.Module
                     var password = configJson["Key_Password"].AsString();
                     this.prikey = Helper_NEO.GetPrivateKeyFromNEP2(nep2, password);
                     this.pubkey = Helper_NEO.GetPublicKey_FromPrivateKey(prikey);
+                    //区分记账人                    
+                    var address = Helper_NEO.GetAddress_FromPublicKey(pubkey);//证明人的地址
+                   //如果证明人的地址和初始记账人的地址相同即为记账人
+                   if(this.config.ChainInfo.InitOwner.Contains(address))
+                    {
+                        this.isBookKeeper = true;
+                    }
                 }
             }
             catch (Exception err)
@@ -154,6 +164,8 @@ namespace AllPet.Module
             linkNodes.TryRemove(id, out LinkObj node);
             var remotestr = node.remoteNode.system.Remote.ToString();
             this.linkIDs.TryRemove(remotestr, out ulong v);
+
+            bookKeeperNodes.TryRemove(id, out LinkObj keepernode);
             logger.Info("_OnPeerClose" + id);
 
         }

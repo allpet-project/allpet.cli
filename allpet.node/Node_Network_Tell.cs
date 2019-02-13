@@ -37,6 +37,7 @@ namespace AllPet.Module
             dict["pubkey"] = this.pubkey;
             dict["addinfo"] = addinfo;
             dict["signdata"] = signdata;
+            dict["isbookkeeper"] = this.isBookKeeper;
             remote.Tell(new MessagePackObject(dict));
         }
         void Tell_Request_PeerList(IModulePipeline remote)

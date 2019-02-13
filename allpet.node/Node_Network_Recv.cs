@@ -87,6 +87,16 @@ namespace AllPet.Module
             {
                 logger.Info("had a error proved peer:" + Helper.Bytes2HexString(pubkey));
             }
+            var isbookkeeper = dict["isbookkeeper"].AsBoolean();
+            if(isbookkeeper)
+            {
+                lock(this)
+                { }
+                if (!ContainsIPEndPoint(link))
+                {
+                    this.bookKeeperNodes[from.system.PeerID] = link;
+                }
+            }
         }
         void OnRecv_Request_PeerList(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -112,6 +122,21 @@ namespace AllPet.Module
                     this.listCanlink.Enqueue(canlink);
                 }
             }
+        }
+        private bool ContainsIPEndPoint(LinkObj link)
+        {
+            var linkIPaddr = link.publicEndPoint.Address.ToString();
+            int linkPort = link.publicEndPoint.Port;
+            foreach (var item in this.bookKeeperNodes)
+            {
+                var itemIPaddr = item.Value.publicEndPoint.Address.ToString();
+                var itemPort = item.Value.publicEndPoint.Port;
+                if (itemIPaddr == linkIPaddr && itemPort == linkPort)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

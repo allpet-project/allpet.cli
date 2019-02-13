@@ -114,6 +114,14 @@ namespace AllPet.Module
                                 }
 
                             }
+                            if (_cmd == "bookkeeper.list")
+                            {
+                                foreach (var n in this.bookKeeperNodes.Values)
+                                {
+                                    var publickey = n.PublicKey == null ? null : Helper.Bytes2HexString(n.PublicKey);
+                                    logger.Info("bookkeeper=" + n.remoteNode.system.Remote.ToString() + " public=" + publickey + " pubep=" + n.publicEndPoint);
+                                }
+                            }
                         }
                         break;
                     default:
