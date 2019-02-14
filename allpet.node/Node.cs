@@ -7,6 +7,7 @@ using System.Linq;
 using AllPet.Common;
 using Newtonsoft.Json.Linq;
 using System.Net;
+using System.Text;
 
 namespace AllPet.Module
 {
@@ -203,6 +204,36 @@ namespace AllPet.Module
 
         }
 
+        private void SaveLinkNodes()
+        {
+            var sb = new StringBuilder();
+            foreach(var item in this.linkNodes )
+            {
+                if(item.Value != null && item.Value.publicEndPoint != null)
+                {
+                    sb.Append(item.Value.publicEndPoint.Address);
+                    sb.Append(":");
+                    sb.Append(item.Value.publicEndPoint.Port);
+                    sb.Append("\n");
+                }
+                
+            }
+            try
+            {
+                System.IO.File.AppendAllText("./", sb.ToString(), System.Text.Encoding.UTF8);
+
+            }
+            catch
+            {
+                
+            }
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            SaveLinkNodes();
+        }
         public async void WatchNetwork()
         {
             int refreshnetwaiter = 0;

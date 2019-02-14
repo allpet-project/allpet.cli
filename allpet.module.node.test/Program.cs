@@ -75,6 +75,8 @@ namespace allpet.module.node.test
                     pipeline.Tell(new MsgPack.MessagePackObject(dict));
                 }
             }
+
+            system.Dispose();
         }
     }
 }

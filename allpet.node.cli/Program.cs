@@ -76,6 +76,7 @@ namespace AllPet.nodecli
             {
                 System.Threading.Thread.Sleep(100);
             }
+            system.Dispose();
 
         }
 

@@ -59,6 +59,10 @@ namespace AllPet.Pipeline
             this.CloseListen();
             this.CloseNetwork();
             this.Disposed = true;
+            foreach(var module in this.localModules)
+            {
+                module.Value?.Dispose();
+            }
         }
         public void RegistModule(string path, IModuleInstance actor)
         {

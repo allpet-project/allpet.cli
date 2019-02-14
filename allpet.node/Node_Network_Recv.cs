@@ -28,8 +28,8 @@ namespace AllPet.Module
             if (hash.Equals(this.chainHash) == false)
             {
                 logger.Warn("Join Err:chaininfo is diff.");
-                //this._System.Disconnect(from.system);//断开这个连接
-                //return;
+                this._System.DisConnect(from.system);//断开这个连接
+                return;
             }
             var link = this.linkNodes[from.system.PeerID];
             link.ID = id;
