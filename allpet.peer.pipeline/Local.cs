@@ -162,15 +162,21 @@ namespace AllPet.Pipeline
         {
             var fromstr = from.IsLocal ? from.path : (from.system.Remote.ToString() + "/" + from.path);
             var pipestr = to.path + "_" + fromstr;
-            if (this.refPipelines.TryGetValue(pipestr, out IModulePipeline pipe))
+            var isExist = this.refPipelines.TryGetValue(pipestr, out IModulePipeline pipe);
+            if (isExist)
             {
+                //现有的pipe可能是一个已经关闭的，但是传进来的from始终是对，所以获取后再重新设置下
+                (pipe as PipelineRefLocal)?.SetFromPipeline(from);
                 return pipe;
             }
-            PipelineRefLocal _pipe = new PipelineRefLocal(_System, to);
-            this.refPipelines[pipestr] = _pipe;
+            else
+            {
+                PipelineRefLocal _pipe = new PipelineRefLocal(_System, to);
+                this.refPipelines[pipestr] = _pipe;
 
-            _pipe.SetFromPipeline(from);
-            return _pipe;
+                _pipe.SetFromPipeline(from);
+                return _pipe;
+            }
         }
     }
 }
