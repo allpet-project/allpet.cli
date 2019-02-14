@@ -90,9 +90,7 @@ namespace AllPet.Module
             var isbookkeeper = dict["isbookkeeper"].AsBoolean();
             if(isbookkeeper)
             {
-                lock(this)
-                { }
-                if (!ContainsIPEndPoint(link))
+                if (!ContainsRemote(link))
                 {
                     this.bookKeeperNodes[from.system.PeerID] = link;
                 }
@@ -123,15 +121,12 @@ namespace AllPet.Module
                 }
             }
         }
-        private bool ContainsIPEndPoint(LinkObj link)
+        private bool ContainsRemote(LinkObj link)
         {
-            var linkIPaddr = link.publicEndPoint.Address.ToString();
-            int linkPort = link.publicEndPoint.Port;
+            var linkRemote = link.publicEndPoint.ToString();
             foreach (var item in this.bookKeeperNodes)
             {
-                var itemIPaddr = item.Value.publicEndPoint.Address.ToString();
-                var itemPort = item.Value.publicEndPoint.Port;
-                if (itemIPaddr == linkIPaddr && itemPort == linkPort)
+                if (item.Value.publicEndPoint.ToString() == linkRemote)
                 {
                     return true;
                 }
