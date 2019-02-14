@@ -87,8 +87,9 @@ namespace AllPet.Module
             {
                 logger.Info("had a error proved peer:" + Helper.Bytes2HexString(pubkey));
             }
-            var isbookkeeper = dict["isbookkeeper"].AsBoolean();
-            if(isbookkeeper)
+
+            var isbookkeeper = dict.ContainsKey("isbookkeeper") ? dict["isbookkeeper"].AsBoolean() : false;
+            if (isbookkeeper)
             {
                 if (!ContainsRemote(link))
                 {
