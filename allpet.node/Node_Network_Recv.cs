@@ -111,10 +111,12 @@ namespace AllPet.Module
                 canlink.ID = subobj["id"].AsBinary();
                 canlink.remote = IPEndPoint.Parse(subobj["pubep"].AsString());
                 canlink.PublicKey = subobj["pubkey"].AsBinary();
-
-                if (this.listCanlink.Contains(canlink)|| ContainsRemote(canlink.remote))//检查我的连接列表
+                
+                if (this.listCanlink.Contains(canlink))//检查我的连接列表
                 {
-
+                    var link = this.listCanlink.Getqueue(canlink.remote.ToString());
+                    link.ID = canlink.ID;
+                    link.PublicKey = canlink.PublicKey;
                 }
                 else
                 {

@@ -62,6 +62,10 @@ namespace allpet.module.node.test
                 var line = Console.ReadLine();
                 if (string.IsNullOrEmpty(line)==false)
                 {
+                    if(line=="exit")
+                    {
+                        break;
+                    }
                     var cmds = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     var dict = new MsgPack.MessagePackObjectDictionary();
                     dict["cmd"] = (UInt16)AllPet.Module.CmdList.Local_Cmd;
@@ -74,6 +78,7 @@ namespace allpet.module.node.test
                     pipeline.Tell(new MsgPack.MessagePackObject(dict));
                 }
             }
+            system.Dispose();
         }
     }
 }

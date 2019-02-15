@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Text;
 using System.Collections.Generic;
+using System.IO;
 
 namespace AllPet.Module
 {
@@ -100,6 +101,7 @@ namespace AllPet.Module
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> bookKeeperNodes;//记账人列表
         System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
         Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
+        static string NodePath = "./node.data";
 
 
         public Node.TXPool txpool;//交易池
@@ -138,6 +140,7 @@ namespace AllPet.Module
             }
 
             this.txpool = new Node.TXPool();
+            ResetCanlinkList();
         }
         //peerid 是连接id，而每个节点，需要一个唯一不重复的节点ID，以方便进行识别
 
@@ -216,34 +219,63 @@ namespace AllPet.Module
 
         }
 
-        private void SaveLinkNodes()
+        private void SaveCanlinkList()
         {
             var sb = new StringBuilder();
-            foreach(var item in this.linkNodes )
+            
+            while (this.listCanlink.Count > 0)
             {
-                if(item.Value != null && item.Value.publicEndPoint != null)
+                var item = this.listCanlink.Dequeue();
+                if (item != null && item.remote != null)
                 {
-                    sb.Append(item.Value.publicEndPoint.Address);
+                    sb.Append(item.remote.Address);
                     sb.Append(":");
-                    sb.Append(item.Value.publicEndPoint.Port);
+                    sb.Append(item.remote.Port);
                     sb.Append("\n");
                 }                
             }
             try
             {
-                System.IO.File.AppendAllText("./node.data", sb.ToString(), System.Text.Encoding.UTF8);
+                if (File.Exists(NodePath))
+                {
+                    File.Delete(NodePath);
+                }
+                System.IO.File.AppendAllText(NodePath, sb.ToString(), System.Text.Encoding.UTF8);
 
             }
-            catch
+            catch(Exception ex)
             {
                 
             }
         }
 
+        private void ResetCanlinkList()
+        {
+            if (!File.Exists(NodePath))
+            {
+                return;
+            }
+            using (StreamReader sr = new StreamReader(NodePath, false))
+            {
+                while (!sr.EndOfStream)
+                {
+                    var str = sr.ReadLine();
+                    IPEndPoint.TryParse(str, out IPEndPoint p);
+                    if (p != null)
+                    {
+                        this.listCanlink.Enqueue(new CanLinkObj()
+                        {
+                            remote = p
+                        });
+                    }
+                }
+            }                
+        }
+
         public override void Dispose()
         {
             base.Dispose();
-            SaveLinkNodes();
+            SaveCanlinkList();
         }
         public async void WatchNetwork()
         {

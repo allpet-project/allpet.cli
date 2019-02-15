@@ -74,6 +74,11 @@ namespace AllPet.nodecli
             var pipeline = system.GetPipeline(null, "this/cli");
             while (pipeline.IsVaild)
             {
+                var line = Console.ReadLine();
+                if (line == "exit")
+                {
+                    break;
+                }
                 System.Threading.Thread.Sleep(100);
             }
             system.Dispose();
