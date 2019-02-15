@@ -91,7 +91,7 @@ namespace AllPet.Module
             var isbookkeeper = dict.ContainsKey("isbookkeeper") ? dict["isbookkeeper"].AsBoolean() : false;
             if (isbookkeeper)
             {
-                if (!ContainsRemote(link))
+                if (!ContainsRemote(link.publicEndPoint))
                 {
                     this.bookKeeperNodes[from.system.PeerID] = link;
                 }
@@ -108,11 +108,11 @@ namespace AllPet.Module
             {
                 var subobj = n.AsDictionary();
                 CanLinkObj canlink = new CanLinkObj();
-
                 canlink.ID = subobj["id"].AsBinary();
                 canlink.remote = IPEndPoint.Parse(subobj["pubep"].AsString());
                 canlink.PublicKey = subobj["pubkey"].AsBinary();
-                if (this.listCanlink.Contains(canlink))//检查我的连接列表
+
+                if (this.listCanlink.Contains(canlink)|| ContainsRemote(canlink.remote))//检查我的连接列表
                 {
 
                 }
@@ -122,9 +122,9 @@ namespace AllPet.Module
                 }
             }
         }
-        private bool ContainsRemote(LinkObj link)
+        private bool ContainsRemote(IPEndPoint ipEndPoint)
         {
-            var linkRemote = link.publicEndPoint.ToString();
+            var linkRemote = ipEndPoint.ToString();
             foreach (var item in this.bookKeeperNodes)
             {
                 if (item.Value.publicEndPoint.ToString() == linkRemote)

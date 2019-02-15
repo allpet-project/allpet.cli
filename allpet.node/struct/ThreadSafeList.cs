@@ -50,6 +50,17 @@ namespace AllPet.Module.Struct
             return bag.ContainsKey(item);
         }
 
+        public T Getqueue(string key)
+        {
+            foreach(var item in queue)
+            {
+                if(item.ToString()== key)
+                {
+                    return item;
+                }
+            }
+            return default(T);
+        }
 
     }
 }

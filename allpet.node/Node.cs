@@ -8,6 +8,7 @@ using AllPet.Common;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Text;
+using System.Collections.Generic;
 
 namespace AllPet.Module
 {
@@ -80,6 +81,8 @@ namespace AllPet.Module
         public IPEndPoint remote;
         public Hash256 ID;
         public byte[] PublicKey;
+        public int weight = 10;//节点重连权重
+        public int linkCount;
     }
 
     public partial class Module_Node : Module_MsgPack
@@ -88,7 +91,7 @@ namespace AllPet.Module
         Config_Module config;
         Hash256 guid;
         Hash256 chainHash;
-        bool isBookKeeper;//本节点是否是记账人
+        bool isBookKeeper;//本节点是否是记账人        
 
         byte[] prikey;
         byte[] pubkey;
@@ -167,6 +170,11 @@ namespace AllPet.Module
             this.linkIDs.TryRemove(remotestr, out ulong v);
 
             bookKeeperNodes.TryRemove(id, out LinkObj keepernode);
+            var canlink = this.listCanlink.Getqueue(remotestr);
+            if(canlink?.weight > 0)
+            {
+                canlink.weight--;
+            }
             logger.Info("_OnPeerClose" + id);
 
         }
@@ -183,6 +191,10 @@ namespace AllPet.Module
                 //this.listCanlink.Enqueue(link);
                 ConnectOne(p);
                 //actorpeer.IsVaild 此时这个pipeline不是立即可用的，需要等待
+                this.listCanlink.Enqueue(new CanLinkObj()
+                {
+                    remote = p
+                });
             }
             WatchNetwork();
 
@@ -215,12 +227,11 @@ namespace AllPet.Module
                     sb.Append(":");
                     sb.Append(item.Value.publicEndPoint.Port);
                     sb.Append("\n");
-                }
-                
+                }                
             }
             try
             {
-                System.IO.File.AppendAllText("./", sb.ToString(), System.Text.Encoding.UTF8);
+                System.IO.File.AppendAllText("./node.data", sb.ToString(), System.Text.Encoding.UTF8);
 
             }
             catch
@@ -267,14 +278,26 @@ namespace AllPet.Module
                     for (var i = 0; i < maxc; i++)
                     {
                         var canlink = listCanlink.Dequeue();
-                        if (canlink.ID.Equals(this.guid))//这是我自己，不要连
+                        if (canlink.ID != null && canlink.ID.Equals(this.guid))//这是我自己，不要连
                             continue;
                         if (this.linkIDs.ContainsKey(canlink.remote.ToString()) == false)
                         {
-                            ConnectOne(canlink.remote);
+                            var times = (10-canlink.weight)/2;
+                            if (canlink.linkCount == times)
+                            {
+                                ConnectOne(canlink.remote);
+                                canlink.linkCount = 0;
+                            }
+                            else
+                            {
+                                canlink.linkCount++;
+                            }
                         }
-                        listCanlink.Enqueue(canlink);
-                    }
+                        if (canlink.weight > 0)//权重等于0的话会被移除
+                        {
+                            listCanlink.Enqueue(canlink);
+                        }
+                    }                    
                 }
 
                 await System.Threading.Tasks.Task.Delay(1000);//1秒刷新一次
