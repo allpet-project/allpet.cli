@@ -1,25 +1,26 @@
 
-# ����˵��
+# 编译说明
 
-��ΪĿǰ���ڿ���״̬���������δ������nuget
+因为目前处于开发状态，所需库仍未发布到nuget
 
-��ʱ���������ʱ��Ŀ�����д������һ���ֿ���𽥷֡�
-������ʱ������Ϊ��Ŀnuget���÷���
+暂时设置这个临时项目，所有代码堆在一个仓库里，逐渐分。
+现在暂时不想因为项目nuget配置分神。
 
 
 
-����������Ҫ���ر��������⣬
+所以首先需要下载编译依赖库，
 allpet.http.server
 allpet.peer.tcp.interface
 allpet.peer.tcp.peerv2
 ...
 ...
 ...
-������Ŀ��������d:\git�£���Ĭ�����Ŀ¼����
-d:\git\allpet.bin Ŀ¼������������ɵ�nuget�ļ�
+如上项目都放置在d:\git下，则默认输出目录会有
+d:\git\allpet.bin 目录，里面会有生成的nuget文件
 
-�� ����-��ѡ��-�������Դ �� ����һ����Դ��ָ���Ŀ¼
+在 程序-》选项-》程序包源 中 添加一个新源，指向该目录
 
-���ɴӸ�Դ��װ�����
+即可从该源安装所需包
 
-* [��������](./network.md)      
+* [组网介绍](./network.md)   
+* [节点连接组网代码介绍](./NodeJoinProcess.md)   

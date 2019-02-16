@@ -149,12 +149,12 @@ namespace AllPet.Module
                 logger.Info("remote msg:" + obj.Value.ToString());
                 switch (cmd)
                 {
-                    case CmdList.Request_JoinPeer:
+                    case CmdList.Request_JoinPeer://告知其他节点我的存在，包括是不是共识节点之类的
                         {
                             OnRecv_RequestJoinPeer(from, dict);
                         }
                         break;
-                    case CmdList.Response_AcceptJoin:
+                    case CmdList.Response_AcceptJoin://同意他加入，并给他一个测试信息
                         {
                             OnRecv_ResponseAcceptJoin(from, dict);
                         }
@@ -164,10 +164,10 @@ namespace AllPet.Module
                             OnRecv_RequestProvePeer(from, dict);
                         }
                         break;
-                    case CmdList.Request_PeerList:
+                    case CmdList.Request_PeerList://询问一个节点所能到达的节点
                         OnRecv_Request_PeerList(from, dict);
                         break;
-                    case CmdList.Response_PeerList:
+                    case CmdList.Response_PeerList://告知一个节点所能到达的节点
                         OnRecv_Response_PeerList(from, dict);
                         break;
                     case CmdList.Post_SendRaw:

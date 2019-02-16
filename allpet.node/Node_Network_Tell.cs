@@ -60,7 +60,7 @@ namespace AllPet.Module
                     item["pubep"] = n.publicEndPoint.ToString();
                     item["pubkey"] = n.PublicKey;
                     item["id"] = n.ID.data;
-                    var ipep = n.publicEndPoint.ToString();
+                    //var ipep = n.publicEndPoint.ToString();
                     list.Add(new MessagePackObject(item));
                 }
             }
