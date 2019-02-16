@@ -27,6 +27,7 @@ namespace AllPet.Module
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Response_AcceptJoin;
             dict["checkinfo"] = link.CheckInfo;
+            dict["priority"] = this.priority;//告诉对方我的优先级
             //选个挑战信息
             remote.Tell(new MessagePackObject(dict));
         }

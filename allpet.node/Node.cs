@@ -93,6 +93,7 @@ namespace AllPet.Module
         Hash256 guid;
         Hash256 chainHash;
         bool isBookKeeper;//本节点是否是记账人        
+        int priority = -1;//节点优先级，记账节点为0
 
         byte[] prikey;
         byte[] pubkey;
@@ -130,6 +131,7 @@ namespace AllPet.Module
                    if(this.config.ChainInfo.InitOwner.Contains(address))
                     {
                         this.isBookKeeper = true;
+                        this.priority = 0;//记账节点
                     }
                 }
             }

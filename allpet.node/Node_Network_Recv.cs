@@ -58,7 +58,12 @@ namespace AllPet.Module
             logger.Info("had join chain");
             var link = this.linkNodes[from.system.PeerID];
             link.hadJoin = true;//已经和某个节点接通
-
+            //如果连接上了，要更新自己的优先级
+            var parentPriority = dict["priority"].AsInt32();
+            if(parentPriority >=0 && this.priority < 0)//加入的节点优先级有效，且本身节点不是记账人
+            {
+                this.priority = parentPriority + 1;
+            }
             if (this.prikey != null)//有私钥证明一下
             {
                 var check = dict["checkinfo"].AsBinary();
