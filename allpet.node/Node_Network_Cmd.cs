@@ -170,6 +170,9 @@ namespace AllPet.Module
                     case CmdList.Response_PeerList:
                         OnRecv_Response_PeerList(from, dict);
                         break;
+                    case CmdList.Post_SendRaw:
+                        OnRecv_Post_SendRaw(from, dict);
+                        break;
                     default:
                         logger.Error("unknow msg:" + dict.ToString());
                         break;

@@ -68,5 +68,15 @@ namespace AllPet.Module
 
             remote.Tell(new MessagePackObject(dict));
         }
+
+        void Tell_Post_TouchProvedPeer(IModulePipeline remote, MessagePackObjectDictionary dict)
+        {
+            dict["cmd"] = (UInt16)CmdList.Post_TouchProvedPeer;
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void Tell_SendRaw(IModulePipeline remote, MessagePackObjectDictionary dict)
+        {
+            
+        }
     }
 }

@@ -129,6 +129,34 @@ namespace AllPet.Module
                 }
             }
         }
+        void OnRecv_Post_SendRaw(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            bool isSended = false; ;
+            foreach (var item in this.provedNodes)
+            {
+                if (item.Value.hadJoin)
+                {
+                    Tell_SendRaw(item.Value.remoteNode, dict);
+                    isSended = true;
+                    break;
+                }
+            }
+            if (!isSended)
+            {
+                LinkObj minLink = null;
+                foreach (var item in this.linkNodes)
+                {
+                    if(minLink == null || item.Value.priority< minLink.priority)
+                    {
+                        minLink = item.Value;
+                    }
+                }
+                if (minLink != null)
+                {
+                    Tell_SendRaw(minLink.remoteNode, dict);
+                }
+            }
+        }
         private bool ContainsRemote(IPEndPoint ipEndPoint)
         {
             var linkRemote = ipEndPoint.ToString();

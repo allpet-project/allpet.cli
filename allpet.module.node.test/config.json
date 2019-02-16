@@ -7,7 +7,7 @@
     "Node": {
       "Open": true,
       "PublicEndPoint": "0.0.0.0:2081",
-      "InitPeer": [ "212.64.86.72:2081" ],
+      "InitPeer": [ "192.168.1.208:2081" ],
       "ChainInfo": {
         "MagicStr": "HelloKitty",
         "InitOwner": [ "AdsNmzKPPG7HfmQpacZ4ixbv9XJHJs2ACz" ]
