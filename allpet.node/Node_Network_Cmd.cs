@@ -92,34 +92,37 @@ namespace AllPet.Module
                     case CmdList.Local_Cmd:
                         {
                             var _params = dict["params"].AsList();
-                            var _cmd = _params[0].AsString();
-                            if (_cmd == "peer.update")
+                            if (_params.Count > 0)
                             {
-                                foreach (var n in this.linkNodes.Values)
+                                var _cmd = _params[0].AsString();
+                                if (_cmd == "peer.update")
                                 {
-                                    if (n.hadJoin)
-                                        this.Tell_Request_PeerList(n.remoteNode);
-                                }
-                            }
-                            if (_cmd == "peer.list")
-                            {
-                                foreach (var n in this.linkNodes.Values)
-                                {
-                                    if (n.hadJoin)
-
+                                    foreach (var n in this.linkNodes.Values)
                                     {
-                                        var publickey = n.PublicKey == null ? null : Helper.Bytes2HexString(n.PublicKey);
-                                        logger.Info("peer=" + n.remoteNode.system.Remote.ToString() + " public=" + publickey + " pubep=" + n.publicEndPoint);
+                                        if (n.hadJoin)
+                                            this.Tell_Request_PeerList(n.remoteNode);
                                     }
                                 }
-
-                            }
-                            if (_cmd == "bookkeeper.list")
-                            {
-                                foreach (var n in this.bookKeeperNodes.Values)
+                                if (_cmd == "peer.list")
                                 {
-                                    var publickey = n.PublicKey == null ? null : Helper.Bytes2HexString(n.PublicKey);
-                                    logger.Info("bookkeeper=" + n.remoteNode.system.Remote.ToString() + " public=" + publickey + " pubep=" + n.publicEndPoint);
+                                    foreach (var n in this.linkNodes.Values)
+                                    {
+                                        if (n.hadJoin)
+
+                                        {
+                                            var publickey = n.PublicKey == null ? null : Helper.Bytes2HexString(n.PublicKey);
+                                            logger.Info("peer=" + n.remoteNode.system.Remote.ToString() + " public=" + publickey + " pubep=" + n.publicEndPoint);
+                                        }
+                                    }
+
+                                }
+                                if (_cmd == "proved.list")
+                                {
+                                    foreach (var n in this.provedNodes.Values)
+                                    {
+                                        var publickey = n.PublicKey == null ? null : Helper.Bytes2HexString(n.PublicKey);
+                                        logger.Info("proved=" + n.remoteNode.system.Remote.ToString() + " public=" + publickey + " pubep=" + n.publicEndPoint);
+                                    }
                                 }
                             }
                         }

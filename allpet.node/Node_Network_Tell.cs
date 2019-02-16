@@ -27,6 +27,7 @@ namespace AllPet.Module
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Response_AcceptJoin;
             dict["checkinfo"] = link.CheckInfo;
+            dict["isproved"] = this.isProved;//告诉对方我是记账节点
             dict["priority"] = this.priority;//告诉对方我的优先级
             //选个挑战信息
             remote.Tell(new MessagePackObject(dict));
@@ -37,8 +38,7 @@ namespace AllPet.Module
             dict["cmd"] = (UInt16)CmdList.Request_ProvePeer;
             dict["pubkey"] = this.pubkey;
             dict["addinfo"] = addinfo;
-            dict["signdata"] = signdata;
-            dict["isbookkeeper"] = this.isBookKeeper;
+            dict["signdata"] = signdata;            
             remote.Tell(new MessagePackObject(dict));
         }
         void Tell_Request_PeerList(IModulePipeline remote)

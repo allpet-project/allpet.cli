@@ -73,6 +73,15 @@ namespace AllPet.Module
                 Tell_Request_ProvePeer(from, addinfo, signdata);
             }
 
+            var isproved = dict.ContainsKey("isproved") ? dict["isproved"].AsBoolean() : false;
+            if (isproved)
+            {
+                if (!ContainsRemote(link.publicEndPoint))
+                {
+                    this.provedNodes[from.system.PeerID] = link;
+                }
+            }
+
             Tell_Request_PeerList(from);
         }
         void OnRecv_RequestProvePeer(IModulePipeline from, MessagePackObjectDictionary dict)
@@ -91,16 +100,7 @@ namespace AllPet.Module
             else
             {
                 logger.Info("had a error proved peer:" + Helper.Bytes2HexString(pubkey));
-            }
-
-            var isbookkeeper = dict.ContainsKey("isbookkeeper") ? dict["isbookkeeper"].AsBoolean() : false;
-            if (isbookkeeper)
-            {
-                if (!ContainsRemote(link.publicEndPoint))
-                {
-                    this.bookKeeperNodes[from.system.PeerID] = link;
-                }
-            }
+            }            
         }
         void OnRecv_Request_PeerList(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -132,7 +132,7 @@ namespace AllPet.Module
         private bool ContainsRemote(IPEndPoint ipEndPoint)
         {
             var linkRemote = ipEndPoint.ToString();
-            foreach (var item in this.bookKeeperNodes)
+            foreach (var item in this.provedNodes)
             {
                 if (item.Value.publicEndPoint.ToString() == linkRemote)
                 {

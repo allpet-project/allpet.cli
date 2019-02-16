@@ -92,14 +92,14 @@ namespace AllPet.Module
         Config_Module config;
         Hash256 guid;
         Hash256 chainHash;
-        bool isBookKeeper;//本节点是否是记账人        
+        bool isProved;//本节点是否是记账人        
         int priority = -1;//节点优先级，记账节点为0。默认值为-1，意味着本身不是记账节点，也没有连上任何其他节点
 
         byte[] prikey;
         byte[] pubkey;
 
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> linkNodes;
-        System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> bookKeeperNodes;//记账人列表
+        System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> provedNodes;//记账人列表
         System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
         Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
         static string NodePath = "./node.data";
@@ -114,7 +114,7 @@ namespace AllPet.Module
             this.chainHash = Helper_NEO.CalcHash256(this.config.ChainInfo.ToInitScript());
             //this.config = new Config_ChainInit(configJson);
             this.linkNodes = new System.Collections.Concurrent.ConcurrentDictionary<ulong, LinkObj>();
-            this.bookKeeperNodes = new System.Collections.Concurrent.ConcurrentDictionary<ulong, LinkObj>();
+            this.provedNodes = new System.Collections.Concurrent.ConcurrentDictionary<ulong, LinkObj>();
             this.linkIDs = new System.Collections.Concurrent.ConcurrentDictionary<string, ulong>();
             this.listCanlink = new Struct.ThreadSafeQueueWithKey<CanLinkObj>();
             try
@@ -130,7 +130,7 @@ namespace AllPet.Module
                    //如果证明人的地址和初始记账人的地址相同即为记账人
                    if(this.config.ChainInfo.InitOwner.Contains(address))
                     {
-                        this.isBookKeeper = true;
+                        this.isProved = true;
                         this.priority = 0;//记账节点
                     }
                 }
@@ -174,7 +174,7 @@ namespace AllPet.Module
             var remotestr = node.remoteNode.system.Remote.ToString();
             this.linkIDs.TryRemove(remotestr, out ulong v);
 
-            bookKeeperNodes.TryRemove(id, out LinkObj keepernode);
+            provedNodes.TryRemove(id, out LinkObj keepernode);
             var canlink = this.listCanlink.Getqueue(remotestr);
             if(canlink?.weight > 0)
             {
