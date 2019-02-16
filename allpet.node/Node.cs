@@ -93,7 +93,7 @@ namespace AllPet.Module
         Hash256 guid;
         Hash256 chainHash;
         bool isBookKeeper;//本节点是否是记账人        
-        int priority = -1;//节点优先级，记账节点为0
+        int priority = -1;//节点优先级，记账节点为0。默认值为-1，意味着本身不是记账节点，也没有连上任何其他节点
 
         byte[] prikey;
         byte[] pubkey;
