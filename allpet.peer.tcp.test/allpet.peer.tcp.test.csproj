@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\allpet.peer.tcp.Interface\allpet.Peer.Tcp.Interface.csproj" />
+    <ProjectReference Include="..\allpet.peer.tcp.PeerV2\allpet.Peer.Tcp.PeerV2.csproj" />
+  </ItemGroup>
+
+</Project>
