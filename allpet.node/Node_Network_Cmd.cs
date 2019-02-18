@@ -26,6 +26,7 @@ namespace AllPet.Module
 
         Post_TouchProvedPeer,//请求寻找一个证明的节点
         Response_Iamhere,
+        Response_ProvedRelay,//告知请求寻找一个证明节点的中继
         Post_SendRaw,//产生新的消息
 
         BoradCast_PeerState,//一个节点证明了他自己,当证明或者优先级发生改变的时候，向所有下级节点广播
@@ -174,7 +175,24 @@ namespace AllPet.Module
                         OnRecv_Post_SendRaw(from, dict);
                         break;
                     case CmdList.BoradCast_PeerState://告知一个节点，节点状态变更（优先级）
-                        OnRecv_BoradCast_PeerState(from, dict);
+                        {
+                            OnRecv_BoradCast_PeerState(from, dict);
+                        }
+                        break;
+                    case CmdList.Post_TouchProvedPeer:
+                        {
+                            OnRecv_Post_TouchProvedPeer(from, dict);
+                        }
+                        break;
+                    case CmdList.Response_Iamhere://告知是否是记账节点或者是否能够到达共识节点
+                        {
+                            OnRecv_Response_Iamhere(from, dict);
+                        }
+                        break;
+                    case CmdList.Response_ProvedRelay://告知是否是记账节点或者是否能够到达共识节点
+                        {
+                            OnRecv_Response_ProvedRelay(from, dict);
+                        }
                         break;
                     default:
                         logger.Error("unknow msg:" + dict.ToString());

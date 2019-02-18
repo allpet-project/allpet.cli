@@ -27,7 +27,6 @@ namespace AllPet.Module
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Response_AcceptJoin;
             dict["checkinfo"] = link.CheckInfo;
-            dict["isproved"] = this.isProved;//告诉对方我是记账节点
             dict["pleve"] = this.pLeve;//告诉对方我的优先级
             //选个挑战信息
             remote.Tell(new MessagePackObject(dict));
@@ -79,6 +78,30 @@ namespace AllPet.Module
         void Tell_SendRaw(IModulePipeline remote, MessagePackObjectDictionary dict)
         {
             
+        }
+        void Tell_Post_TouchProvedPeer(IModulePipeline remote,string pubep)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Post_TouchProvedPeer;
+            dict["pubep"] = pubep;
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void Tell_Response_Iamhere(IModulePipeline remote, string provedpubep)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Response_Iamhere;
+            dict["provedpubep"] = provedpubep;
+            dict["isProved"] = this.isProved;
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void Tell_Response_ProvedRelay(IModulePipeline remote,string pubep,string provedpubep)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Response_ProvedRelay;
+            dict["pubep"] = pubep;
+            dict["provedpubep"] = provedpubep;
+            dict["isProved"] = this.isProved;
+            remote.Tell(new MessagePackObject(dict));
         }
     }
 }
