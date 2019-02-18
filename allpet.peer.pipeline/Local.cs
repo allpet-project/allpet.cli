@@ -178,5 +178,15 @@ namespace AllPet.Pipeline
                 return _pipe;
             }
         }
+
+        public void HaltLink()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ResumeLink()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

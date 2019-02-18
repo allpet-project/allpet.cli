@@ -58,11 +58,23 @@ namespace AllPet.Pipeline
             if (OnPeerClose != null)
                 this.OnPeerClose(id);
         }
+        public void HaltLink()
+        {
+            System.Threading.Monitor.Enter(this);
+        }
+        public void ResumeLink()
+        {
+            System.Threading.Monitor.Exit(this);
+        }
         public void Linked(UInt64 id,bool accept,IPEndPoint remote)
         {
-            this.linked = true;
-            if (OnPeerLink != null)
-                this.OnPeerLink(id,accept,remote);
+            System.Threading.Monitor.Enter(this);
+            {
+                this.linked = true;
+                if (OnPeerLink != null)
+                    this.OnPeerLink(id, accept, remote);
+            }
+            System.Threading.Monitor.Exit(this);
         }
         public IModulePipeline GetPipeline(IModuleInstance user, string path)
         {

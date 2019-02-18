@@ -42,7 +42,8 @@ namespace AllPet.Module
             {
                 if (pubeb.Address.ToString() == IPAddress.Any.ToString())
                 {//remote.address 可能是ipv6 也有ipv4 ，当为ipv6即会出现::ffff:
-                    pubeb.Address = from.system.Remote.Address;
+                    pubeb.Address = from.system.Remote.Address.MapToIPv4();
+                    //pubeb.Address = from.system.Remote.Address;
 
                 }
                 link.publicEndPoint = pubeb;
@@ -113,6 +114,8 @@ namespace AllPet.Module
             {
                 var subobj = n.AsDictionary();
                 CanLinkObj canlink = new CanLinkObj();
+                canlink.fromType = LinkFromEnum.ResponsePeers;
+                canlink.from = from.system.Remote;
                 canlink.ID = subobj["id"].AsBinary();
                 canlink.remote = IPEndPoint.Parse(subobj["pubep"].AsString());
                 canlink.PublicKey = subobj["pubkey"].AsBinary();
