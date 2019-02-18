@@ -35,11 +35,16 @@ namespace allpet.peer.tcp.test
               {
 
               };
+            long recvcount = 0;
             peer.OnRecv += (ulong id, byte[] _data) =>
               {
                   var len = BitConverter.ToUInt32(_data, 0);
                   var _str = System.Text.Encoding.UTF8.GetString(_data, 4, _data.Length - 4);
-                  Console.WriteLine("onrecv:" + len + " " + _str);
+                  System.Threading.Interlocked.Increment(ref recvcount);
+                  if (recvcount % 1000 == 0)
+                  {
+                      Console.WriteLine("onrecv:count="+ recvcount + " len=" + len + " txt=" + _str);
+                  }
               };
             peer.Listen(ep);
 
