@@ -59,7 +59,7 @@ namespace AllPet.Module
             var link = this.linkNodes[from.system.PeerID];
             link.hadJoin = true;//已经和某个节点接通
             //如果连上了,标识连上的节点的优先级
-            link.pleve = dict["pleve"].AsInt32();                     
+            link.pLeve = dict["pleve"].AsInt32();                     
 
             if (this.prikey != null)//有私钥证明一下
             {
@@ -83,18 +83,18 @@ namespace AllPet.Module
             //如果连接上了，要更新自己的优先级
             if (this.pLeve < 0)
             {
-                if (link.pleve >= 0)//加入的节点优先级有效，且本身节点不是记账人
+                if (link.pLeve >= 0)//加入的节点优先级有效，且本身节点不是记账人
                 {
-                    this.pLeve = link.pleve + 1;
+                    this.pLeve = link.pLeve + 1;
                 }
             }
-            else if(this.pLeve > link.pleve)
+            else if(this.pLeve > link.pLeve)
             {
-                this.pLeve = link.pleve + 1;
+                this.pLeve = link.pLeve + 1;
                 //如果是变更，则广播低优先级节点
                 foreach (var item in this.linkNodes)
                 {
-                    if (item.Value.hadJoin && item.Value.pleve < this.pLeve)
+                    if (item.Value.hadJoin && item.Value.pLeve < this.pLeve)
                     {
                         Tell_BoradCast_PeerState(item.Value.remoteNode);
                     }
@@ -164,7 +164,7 @@ namespace AllPet.Module
                 LinkObj minLink = null;
                 foreach (var item in this.linkNodes)
                 {
-                    if(minLink == null || item.Value.pleve < minLink.pleve)
+                    if(minLink == null || item.Value.pLeve < minLink.pLeve)
                     {
                         minLink = item.Value;
                     }

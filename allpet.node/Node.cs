@@ -58,7 +58,7 @@ namespace AllPet.Module
         public bool hadJoin;//是否被允许加入了网络
         public byte[] CheckInfo;
         public byte[] PublicKey;
-        public int pleve;
+        public int pLeve;
     }
     public class CanLinkObj : IEquatable<CanLinkObj>
     {
