@@ -58,12 +58,9 @@ namespace AllPet.Module
             logger.Info("had join chain");
             var link = this.linkNodes[from.system.PeerID];
             link.hadJoin = true;//已经和某个节点接通
-            //如果连接上了，要更新自己的优先级
-            var parentPriority = dict["priority"].AsInt32();
-            if(parentPriority >=0 && this.priority < 0)//加入的节点优先级有效，且本身节点不是记账人
-            {
-                this.priority = parentPriority + 1;
-            }
+            //如果连上了,标识连上的节点的优先级
+            link.pleve = dict["pleve"].AsInt32();                     
+
             if (this.prikey != null)//有私钥证明一下
             {
                 var check = dict["checkinfo"].AsBinary();
@@ -83,6 +80,27 @@ namespace AllPet.Module
             }
 
             Tell_Request_PeerList(from);
+            //如果连接上了，要更新自己的优先级
+            if (this.pLeve < 0)
+            {
+                if (link.pleve >= 0)//加入的节点优先级有效，且本身节点不是记账人
+                {
+                    this.pLeve = link.pleve + 1;
+                }
+            }
+            else if(this.pLeve > link.pleve)
+            {
+                this.pLeve = link.pleve + 1;
+                //如果是变更，则广播低优先级节点
+                foreach (var item in this.linkNodes)
+                {
+                    if (item.Value.hadJoin && item.Value.pleve < this.pLeve)
+                    {
+                        Tell_BoradCast_PeerState(item.Value.remoteNode);
+                    }
+                }
+            }
+
         }
         void OnRecv_RequestProvePeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -146,7 +164,7 @@ namespace AllPet.Module
                 LinkObj minLink = null;
                 foreach (var item in this.linkNodes)
                 {
-                    if(minLink == null || item.Value.priority< minLink.priority)
+                    if(minLink == null || item.Value.pleve < minLink.pleve)
                     {
                         minLink = item.Value;
                     }
@@ -155,6 +173,14 @@ namespace AllPet.Module
                 {
                     Tell_SendRaw(minLink.remoteNode, dict);
                 }
+            }
+        }
+        void OnRecv_BoradCast_PeerState(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var parentPleve = dict["pleve"].AsInt32();
+            if(this.pLeve > parentPleve)
+            {
+                this.pLeve = parentPleve+1;
             }
         }
         private bool ContainsRemote(IPEndPoint ipEndPoint)

@@ -28,7 +28,7 @@ namespace AllPet.Module
             dict["cmd"] = (UInt16)CmdList.Response_AcceptJoin;
             dict["checkinfo"] = link.CheckInfo;
             dict["isproved"] = this.isProved;//告诉对方我是记账节点
-            dict["priority"] = this.priority;//告诉对方我的优先级
+            dict["pleve"] = this.pLeve;//告诉对方我的优先级
             //选个挑战信息
             remote.Tell(new MessagePackObject(dict));
         }
@@ -69,9 +69,11 @@ namespace AllPet.Module
             remote.Tell(new MessagePackObject(dict));
         }
 
-        void Tell_Post_TouchProvedPeer(IModulePipeline remote, MessagePackObjectDictionary dict)
+        void Tell_BoradCast_PeerState(IModulePipeline remote)
         {
-            dict["cmd"] = (UInt16)CmdList.Post_TouchProvedPeer;
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.BoradCast_PeerState;
+            dict["pleve"] = this.pLeve;//告诉对方我的优先级
             remote.Tell(new MessagePackObject(dict));
         }
         void Tell_SendRaw(IModulePipeline remote, MessagePackObjectDictionary dict)

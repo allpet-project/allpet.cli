@@ -28,7 +28,7 @@ namespace AllPet.Module
         Response_Iamhere,
         Post_SendRaw,//产生新的消息
 
-        BoradCast_PeerState,//一个节点证明了他自己
+        BoradCast_PeerState,//一个节点证明了他自己,当证明或者优先级发生改变的时候，向所有下级节点广播
         BoardCast_NewBlock,//新的块产生了
 
         /// <summary>
@@ -172,6 +172,9 @@ namespace AllPet.Module
                         break;
                     case CmdList.Post_SendRaw:
                         OnRecv_Post_SendRaw(from, dict);
+                        break;
+                    case CmdList.BoradCast_PeerState://告知一个节点，节点状态变更（优先级）
+                        OnRecv_BoradCast_PeerState(from, dict);
                         break;
                     default:
                         logger.Error("unknow msg:" + dict.ToString());
