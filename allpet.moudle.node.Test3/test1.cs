@@ -46,17 +46,17 @@ namespace allpet.moudle.node.Test3
 
         static void runBaseNodes()
         {
-            new Node(null, null, "0.0.0.0:1890");
-            new Node("0.0.0.0:5880", "127.0.0.1:1890", "0.0.0.0:5880");
-            new Node("0.0.0.0:5881", "127.0.0.1:1890");
+            //new Node(null, null, "0.0.0.0:1890");
+            new Node("0.0.0.0:5880", "127.0.0.1:2081", "0.0.0.0:5880");
+            new Node("0.0.0.0:5881", "127.0.0.1:2081", "0.0.0.0:5881");
 
-            new Node("0.0.0.0:6880", "127.0.0.1:5880");
+            new Node("0.0.0.0:6880", "127.0.0.1:5880","0.0.0.0:6880");
 
         }
 
         static void runTestNode()
         {
-            var node = new Node("0.0.0.0:8883", "127.0.0.1:1890");
+            var node = new Node("0.0.0.0:8883", "127.0.0.1:2081");
 
             var pipeline = node.sys.GetPipeline(null, "this/node");
             while (pipeline.IsVaild)

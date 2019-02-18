@@ -41,7 +41,7 @@ namespace AllPet.Module
             if (pubeb.Port != 0)
             {
                 if (pubeb.Address.ToString() == IPAddress.Any.ToString())
-                {
+                {//remote.address 可能是ipv6 也有ipv4 ，当为ipv6即会出现::ffff:
                     pubeb.Address = from.system.Remote.Address;
 
                 }
@@ -119,6 +119,7 @@ namespace AllPet.Module
                 
                 if (this.listCanlink.Contains(canlink))//检查我的连接列表
                 {
+                    Console.WriteLine("OnRecv_Response_PeerList------------------------------->");
                     var link = this.listCanlink.Getqueue(canlink.remote.ToString());
                     link.ID = canlink.ID;
                     link.PublicKey = canlink.PublicKey;
