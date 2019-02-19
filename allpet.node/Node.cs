@@ -166,13 +166,13 @@ namespace AllPet.Module
             syspipe.HaltLink();
             if (syspipe.linked)
             {
-                logger.Info("==reg net event direct");
+                //logger.Info("==reg net event direct");
 
                 _OnPeerLink(syspipe.PeerID, syspipe.IsHost, syspipe.Remote);
             }
             else
             {
-                logger.Info("==reg net event delay");
+                //logger.Info("==reg net event delay");
 
                 syspipe.OnPeerLink += _OnPeerLink;
             }
