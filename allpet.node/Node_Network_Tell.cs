@@ -80,11 +80,12 @@ namespace AllPet.Module
         {
             
         }
-        void Tell_Post_TouchProvedPeer(IModulePipeline remote,string pubep)
+        void Tell_Post_TouchProvedPeer(IModulePipeline remote,string pubep,string nodeid)
         {
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Post_TouchProvedPeer;
             dict["pubep"] = pubep;
+            dict["nodeid"] = nodeid;
             remote.Tell(new MessagePackObject(dict));
         }
         void Tell_Response_Iamhere(IModulePipeline remote, string provedpubep)

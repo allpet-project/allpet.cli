@@ -180,22 +180,28 @@ namespace AllPet.Module
         void OnRecv_Post_TouchProvedPeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {
             var pubep = dict["pubep"].AsString();
+            var nodeid = dict["nodeid"].AsString();
             if (this.isProved)
             {
-                //最终找到了记账节点
-                if (!pubep.Contains("$"))
+                if (nodeid != this.guid.ToString())
                 {
-                    //本身就是记账人节点，直接返回
-                    Tell_Response_Iamhere(from, this.config.PublicEndPoint.ToString());
-                }
-                else
-                {
-                    var subPubep = pubep.Substring(pubep.IndexOf("$")+1);
-                    Tell_Response_ProvedRelay(from, subPubep,this.config.PublicEndPoint.ToString());
+                    //最终找到了记账节点
+                    if (string.IsNullOrEmpty(pubep))
+                    {
+                        //本身就是记账人节点，直接返回
+                        Tell_Response_Iamhere(from, this.config.PublicEndPoint.ToString());
+                    }
+                    else
+                    {
+                        var subPubep = pubep.Substring(pubep.IndexOf("$") + 1);
+                        Tell_Response_ProvedRelay(from, subPubep, this.config.PublicEndPoint.ToString());
+                    }
                 }
                 return;
             }
-            pubep = this.config.PublicEndPoint.ToString()+ "$"+ pubep;
+            this.linkNodes.TryGetValue(from.system.PeerID,out LinkObj link);
+
+            pubep = string.IsNullOrEmpty(pubep)? link.publicEndPoint?.ToString()??string.Empty : (link.publicEndPoint?.ToString()??string.Empty + "$"+ pubep);
 
             bool isSend = false;
             var initAddr = pubep.Substring(pubep.LastIndexOf("$")+1, pubep.Length -1- pubep.LastIndexOf("$"));
@@ -205,7 +211,7 @@ namespace AllPet.Module
                     && !initAddr.Equals(item.Value.remoteNode.system.Remote.ToString())
                     && item.Value.hadJoin)
                 {
-                    Tell_Post_TouchProvedPeer(item.Value.remoteNode, pubep);
+                    Tell_Post_TouchProvedPeer(item.Value.remoteNode, pubep, nodeid);
                     isSend = true;
                     //System.Console.WriteLine("OnRecv_Post_TouchProvedPeer:" + item.Value.remoteNode.system.Remote.ToString());
                 }                
@@ -220,7 +226,7 @@ namespace AllPet.Module
         void OnRecv_Response_Iamhere(IModulePipeline from, MessagePackObjectDictionary dict)
         {
             var link = this.linkNodes[from.system.PeerID];
-            link.provedPubep = dict["provedpubep"].AsString();
+            link.provedPubep = dict["provedpubep"].AsString();            
             link.isProved = dict["isProved"].AsBoolean();
             if (!ContainsRemote(link.publicEndPoint))
             {
@@ -233,13 +239,10 @@ namespace AllPet.Module
             var provedpubep = dict["provedpubep"].AsString();
             var isProved = dict["isProved"].AsBoolean();
 
-
             if (pubep.Contains("$"))
             {
                 var url = pubep.Substring(0, pubep.IndexOf("$"));
-                this.linkIDs.TryGetValue(pubep, out ulong peerId);
-                this.linkNodes.TryGetValue(peerId, out LinkObj link);
-
+                var link = this.linkNodes.GetLinkNode(url);
                 if (link != null)
                 {
                     var subPubep = pubep.Substring(pubep.IndexOf("$"));
@@ -248,8 +251,7 @@ namespace AllPet.Module
             }
             else if(!string.IsNullOrEmpty(provedpubep) || isProved)
             {
-                this.linkIDs.TryGetValue(pubep, out ulong peerId);
-                this.linkNodes.TryGetValue(peerId, out LinkObj link);
+                var link = this.linkNodes.GetLinkNode(pubep);
                 if (link != null)
                 {
                     Tell_Response_Iamhere(link.remoteNode, provedpubep);
@@ -261,7 +263,8 @@ namespace AllPet.Module
             var linkRemote = ipEndPoint.ToString();
             foreach (var item in this.provedNodes)
             {
-                if (item.Value.publicEndPoint.ToString() == linkRemote)
+                if ((item.Value.publicEndPoint.ToString() == linkRemote)
+                    ||(item.Value.provedPubep == linkRemote))
                 {
                     return true;
                 }
@@ -269,4 +272,20 @@ namespace AllPet.Module
             return false;
         }
     }
+
+    public static class LinkNodeFunc
+    {
+        public static LinkObj GetLinkNode(this System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> dic,string pubep)
+        {
+            foreach(var item in dic)
+            {
+                if(item.Value?.publicEndPoint?.ToString() == pubep)
+                {
+                    return item.Value;
+                }
+            }
+            return null;
+        }
+    }
+
 }

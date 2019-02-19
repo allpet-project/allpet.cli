@@ -190,7 +190,7 @@ namespace AllPet.Module
             if (this.isProved)
             {
                 //告诉我你是否是共识节点或者能否到达共识节点
-                Tell_Post_TouchProvedPeer(pipe.remoteNode, this.config.PublicEndPoint.ToString());
+                Tell_Post_TouchProvedPeer(pipe.remoteNode, string.Empty,this.guid.ToString());
             }
             logger.Info("_OnPeerLink" + id);
         }

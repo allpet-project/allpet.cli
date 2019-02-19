@@ -122,7 +122,7 @@ namespace AllPet.Module
                                     foreach (var n in this.provedNodes.Values)
                                     {
                                         var publickey = n.PublicKey == null ? null : Helper.Bytes2HexString(n.PublicKey);
-                                        logger.Info("proved=" + n.remoteNode.system.Remote.ToString() + " public=" + publickey + " pubep=" + n.publicEndPoint);
+                                        logger.Info("proved=" + n.remoteNode.system.Remote.ToString() + "  public=" + publickey + "  pubep=" + n.publicEndPoint + "  isProved=" + n.isProved+ "  provedPubep=" + n.provedPubep);
                                     }
                                 }
                             }
