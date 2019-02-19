@@ -112,7 +112,7 @@ namespace AllPet.Module
 
                                         {
                                             var publickey = n.PublicKey == null ? null : Helper.Bytes2HexString(n.PublicKey);
-                                            logger.Info("peer=" + n.remoteNode.system.Remote.ToString() + " public=" + publickey + " pubep=" + n.publicEndPoint);
+                                            logger.Info("peer=" + n.remoteNode.system.PeerID + " publickey=" + publickey + " pubep=" + n.publicEndPoint+" beAccepted:"+n.beAccepted);
                                         }
                                     }
 
@@ -143,7 +143,8 @@ namespace AllPet.Module
                     {
                         ID = null,
                         remoteNode = from,
-                        publicEndPoint = null
+                        publicEndPoint = null,
+                        beAccepted=true
                     };
                     RegNetEvent(from.system);
                 }
