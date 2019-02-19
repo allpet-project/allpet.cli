@@ -225,7 +225,7 @@ namespace light.asynctcp
             if (data.Count > _SendBufferSize)
                 throw new Exception("1buf for once send");
 
-            lock (link)
+            //lock (link)
             {
                 //check if queue
                 if (link.queueSend == null)

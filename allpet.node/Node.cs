@@ -95,7 +95,7 @@ namespace AllPet.Module
         public Hash256 ID;
         public byte[] PublicKey;
         public int weight = 10;//节点重连权重
-        public int linkCount;
+        public int linkCount;//调连接的次数
     }
 
     public partial class Module_Node : Module_MsgPack
@@ -235,7 +235,7 @@ namespace AllPet.Module
                 remoteNode = remotenode,
                 publicEndPoint = null
             };
-            Console.WriteLine("@@@@@@@@@@@@@ systemid"+remotenode.system.PeerID);
+            //Console.WriteLine("@@@@@@@@@@@@@ systemid"+remotenode.system.PeerID);
             linkIDs[remotenode.system.Remote.ToString()] = remotenode.system.PeerID;
             RegNetEvent(remotenode.system);
             //var fromstr = whoTell != null ? whoTell.ToString() : "";
