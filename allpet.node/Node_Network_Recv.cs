@@ -190,19 +190,20 @@ namespace AllPet.Module
                 }
                 else
                 {
-                    var subPubep = pubep.Substring(pubep.IndexOf("$"));
+                    var subPubep = pubep.Substring(pubep.IndexOf("$")+1);
                     Tell_Response_ProvedRelay(from, subPubep,this.config.PublicEndPoint.ToString());
                 }
                 return;
             }
-            pubep += "$" + this.config.PublicEndPoint.ToString();
-            
+            pubep = this.config.PublicEndPoint.ToString()+ "$"+ pubep;
+
             bool isSend = false;
-            var initAddr = pubep.Substring(pubep.LastIndexOf("$")+1, pubep.Length - pubep.LastIndexOf("$"));
+            var initAddr = pubep.Substring(pubep.LastIndexOf("$")+1, pubep.Length -1- pubep.LastIndexOf("$"));
             foreach (var item in this.linkNodes)
             {
                 if (!from.system.Remote.Equals(item.Value.remoteNode.system.Remote) 
-                    && !initAddr.Equals(item.Value.remoteNode.system.Remote.ToString()))
+                    && !initAddr.Equals(item.Value.remoteNode.system.Remote.ToString())
+                    && item.Value.hadJoin)
                 {
                     Tell_Post_TouchProvedPeer(item.Value.remoteNode, pubep);
                     isSend = true;
@@ -212,7 +213,7 @@ namespace AllPet.Module
             if(!isSend)
             {
                 //最终没有找到记账节点
-                var subPubep = pubep.Substring(pubep.IndexOf("$"));
+                var subPubep = pubep.Substring(pubep.IndexOf("$")+1);
                 Tell_Response_ProvedRelay(from, subPubep, string.Empty);
             }
         }
@@ -232,17 +233,27 @@ namespace AllPet.Module
             var provedpubep = dict["provedpubep"].AsString();
             var isProved = dict["isProved"].AsBoolean();
 
-            var url = pubep.Substring(0, pubep.IndexOf("$"));
-            var remote = this.GetPipeline(url);
-            
-            if(pubep.Contains("$"))
+
+            if (pubep.Contains("$"))
             {
-                var subPubep = pubep.Substring(pubep.IndexOf("$"));
-                Tell_Response_ProvedRelay(remote, subPubep, provedpubep);
+                var url = pubep.Substring(0, pubep.IndexOf("$"));
+                this.linkIDs.TryGetValue(pubep, out ulong peerId);
+                this.linkNodes.TryGetValue(peerId, out LinkObj link);
+
+                if (link != null)
+                {
+                    var subPubep = pubep.Substring(pubep.IndexOf("$"));
+                    Tell_Response_ProvedRelay(link.remoteNode, subPubep, provedpubep);
+                }
             }
             else if(!string.IsNullOrEmpty(provedpubep) || isProved)
             {
-                Tell_Response_Iamhere(remote, provedpubep);
+                this.linkIDs.TryGetValue(pubep, out ulong peerId);
+                this.linkNodes.TryGetValue(peerId, out LinkObj link);
+                if (link != null)
+                {
+                    Tell_Response_Iamhere(link.remoteNode, provedpubep);
+                }
             }
         }
         private bool ContainsRemote(IPEndPoint ipEndPoint)
