@@ -169,8 +169,11 @@ namespace AllPet.Module
             //主叫被叫都尝试加入对方网络
 
             Tell_ReqJoinPeer(pipe.remoteNode);
-            //告诉我你是否是共识节点或者能否到达共识节点
-            Tell_Post_TouchProvedPeer(pipe.remoteNode, this.config.PublicEndPoint.ToString());
+            if (this.isProved)
+            {
+                //告诉我你是否是共识节点或者能否到达共识节点
+                Tell_Post_TouchProvedPeer(pipe.remoteNode, this.config.PublicEndPoint.ToString());
+            }
             logger.Info("_OnPeerLink" + id);
         }
         void _OnPeerClose(UInt64 id)

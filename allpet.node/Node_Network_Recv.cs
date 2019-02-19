@@ -193,9 +193,11 @@ namespace AllPet.Module
             }
             pubep += "$" + this.config.PublicEndPoint.ToString();
 
+            System.Console.WriteLine("OnRecv_Post_TouchProvedPeer  from:" + from.system.Remote.ToString());
             foreach (var item in this.linkNodes)
             {
-                Tell_Post_TouchProvedPeer(item.Value.remoteNode, pubep);
+                //Tell_Post_TouchProvedPeer(item.Value.remoteNode, pubep);
+                System.Console.WriteLine("OnRecv_Post_TouchProvedPeer:" + item.Value.remoteNode.system.Remote.ToString());
             }
         }
         void OnRecv_Response_Iamhere(IModulePipeline from, MessagePackObjectDictionary dict)
