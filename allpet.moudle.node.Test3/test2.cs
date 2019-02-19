@@ -31,11 +31,11 @@ namespace allpet.moudle.node.Test3
             }
         }
 
-        static string initpeer = "127.0.0.1:2081";//2081
+        static string initpeer = "127.0.0.1:1890";//2081
 
         static void runBaseNodes()
         {
-            //new Node(null, null, "0.0.0.0:1890");
+            new Node(null, null, "0.0.0.0:1890");
             new Node("0.0.0.0:5880", initpeer, "0.0.0.0:5880");
             new Node("0.0.0.0:5881", initpeer, "0.0.0.0:5881");
 
