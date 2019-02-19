@@ -347,7 +347,7 @@ namespace AllPet.Pipeline
 
                     var remotestr = _remote.ToString();
                     this.linkedIP[linkid] = remotestr;
-                    Console.WriteLine("################## linkid=" + linkid);
+                    //Console.WriteLine("################## linkid=" + linkid);
                     //主动连接成功，创建一个systemRef
                     RefSystemRemote remote = new RefSystemRemote(this, peer, _remote, linkid, false);
                     remote.linked = false;

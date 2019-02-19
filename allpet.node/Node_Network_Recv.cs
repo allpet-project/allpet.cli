@@ -122,7 +122,6 @@ namespace AllPet.Module
                 
                 if (this.listCanlink.Contains(canlink))//检查我的连接列表
                 {
-                    Console.WriteLine("OnRecv_Response_PeerList------------------------------->");
                     var link = this.listCanlink.Getqueue(canlink.remote.ToString());
                     link.ID = canlink.ID;
                     link.PublicKey = canlink.PublicKey;
