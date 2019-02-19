@@ -10,6 +10,8 @@ using System.Net;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace AllPet.Module
 {
@@ -53,6 +55,7 @@ namespace AllPet.Module
     public class LinkObj
     {
         public IPEndPoint from;//哪个节点告诉你建立这个连接的
+        public bool beAccepted;
         public Hash256 ID;//节点ID，不能重复，每个节点自己生成，重复则不接受第二个节点
         public IModulePipeline remoteNode;
         public System.Net.IPEndPoint publicEndPoint;//公开的地址好让人进行P2P连接
@@ -184,7 +187,7 @@ namespace AllPet.Module
             var pipe = linkNodes[id];
 
             //主叫被叫都尝试加入对方网络
-            logger.Info("--------------------------》_OnPeerLink：id/" + id+ "         IPEndPoint/"+remote);
+            logger.Info("--------------------------》_OnPeerLink：id/" + id+ "         IPEndPoint/"+remote+"              BeAccepted:"+accept);
 
             Tell_ReqJoinPeer(pipe.remoteNode);
             if (this.isProved)
@@ -228,7 +231,8 @@ namespace AllPet.Module
                     fromType=LinkFromEnum.InitPeer
                 });
             }
-            WatchNetwork();
+            startWathNetWork();
+            //WatchNetwork();
 
         }
 
@@ -238,10 +242,11 @@ namespace AllPet.Module
             var remotenode = this.GetPipeline(p.ToString() + "/node");//模块的名称是固定的
             linkNodes[remotenode.system.PeerID] = new LinkObj()
             {
-                from=whoTell,
+                from = whoTell,
                 ID = null,
                 remoteNode = remotenode,
-                publicEndPoint = null
+                publicEndPoint = null,
+                beAccepted = false
             };
             //Console.WriteLine("@@@@@@@@@@@@@ systemid"+remotenode.system.PeerID);
             linkIDs[remotenode.system.Remote.ToString()] = remotenode.system.PeerID;
@@ -309,13 +314,34 @@ namespace AllPet.Module
         {
             base.Dispose();
             SaveCanlinkList();
+            stopWatchNetWork();
         }
-        public async void WatchNetwork()
+        private CancellationTokenSource cts;
+        public void stopWatchNetWork()
+        {
+            cts.Cancel();
+        }
+        public void startWathNetWork()
+        {
+            var _cts = new CancellationTokenSource();
+            var ct = _cts.Token;
+            var wathTask = new Task(async()=> {
+                await this.WatchNetwork(ct);
+            },ct);
+            wathTask.Start();
+            this.cts = _cts;
+        }
+        public async Task WatchNetwork(CancellationToken token)
         {
             int refreshnetwaiter = 0;
             int connectwaiter = 0;
             while (true)
             {
+                if(token.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 refreshnetwaiter++;
                 if (refreshnetwaiter > 60)
                 {

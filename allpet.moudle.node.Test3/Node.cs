@@ -13,6 +13,7 @@ namespace allpet.moudle.node.Test3
         public Config config;
 
         public ISystem sys;
+        public AllPet.Module.Module_Node actor;
         public Node(string EndPoint = null,string initpeer=null,string ListenEndPoint=null)
         {
             logger = new AllPet.Common.Logger();
@@ -46,7 +47,8 @@ namespace allpet.moudle.node.Test3
 
             if (Config.IsOpen(config_node))
             {
-                system.RegistModule("node", new AllPet.Module.Module_Node(logger, config_node));
+                this.actor = new AllPet.Module.Module_Node(logger, config_node);
+                system.RegistModule("node", this.actor);
             }
             else
             {
