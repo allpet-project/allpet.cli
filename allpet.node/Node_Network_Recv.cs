@@ -59,12 +59,9 @@ namespace AllPet.Module
             logger.Info("had join chain");
             var link = this.linkNodes[from.system.PeerID];
             link.hadJoin = true;//已经和某个节点接通
-            //如果连接上了，要更新自己的优先级
-            var parentPriority = dict["priority"].AsInt32();
-            if(parentPriority >=0 && this.priority < 0)//加入的节点优先级有效，且本身节点不是记账人
-            {
-                this.priority = parentPriority + 1;
-            }
+            //如果连上了,标识连上的节点的优先级
+            link.pLeve = dict["pleve"].AsInt32();                     
+
             if (this.prikey != null)//有私钥证明一下
             {
                 var check = dict["checkinfo"].AsBinary();
@@ -72,18 +69,30 @@ namespace AllPet.Module
                 var message = addinfo.Concat(check).ToArray();
                 var signdata = Helper_NEO.Sign(message, this.prikey);
                 Tell_Request_ProvePeer(from, addinfo, signdata);
-            }
+            }           
 
-            var isproved = dict.ContainsKey("isproved") ? dict["isproved"].AsBoolean() : false;
-            if (isproved)
+            Tell_Request_PeerList(from);
+            //如果连接上了，要更新自己的优先级
+            if (this.pLeve < 0)
             {
-                if (!ContainsRemote(link.publicEndPoint))
+                if (link.pLeve >= 0)//加入的节点优先级有效，且本身节点不是记账人
                 {
-                    this.provedNodes[from.system.PeerID] = link;
+                    this.pLeve = link.pLeve + 1;
+                }
+            }
+            else if(this.pLeve > link.pLeve)
+            {
+                this.pLeve = link.pLeve + 1;
+                //如果是变更，则广播低优先级节点
+                foreach (var item in this.linkNodes)
+                {
+                    if (item.Value.hadJoin && item.Value.pLeve < this.pLeve)
+                    {
+                        Tell_BoradCast_PeerState(item.Value.remoteNode);
+                    }
                 }
             }
 
-            Tell_Request_PeerList(from);
         }
         void OnRecv_RequestProvePeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -149,15 +158,75 @@ namespace AllPet.Module
                 LinkObj minLink = null;
                 foreach (var item in this.linkNodes)
                 {
-                    if(minLink == null || item.Value.priority< minLink.priority)
+                    if(minLink == null || item.Value.pLeve < minLink.pLeve)
                     {
                         minLink = item.Value;
-                    }
+                    }                    
                 }
                 if (minLink != null)
                 {
                     Tell_SendRaw(minLink.remoteNode, dict);
+                }                
+            }
+        }
+        void OnRecv_BoradCast_PeerState(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var parentPleve = dict["pleve"].AsInt32();
+            if(this.pLeve > parentPleve)
+            {
+                this.pLeve = parentPleve+1;
+            }
+        }
+        void OnRecv_Post_TouchProvedPeer(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var pubep = dict["pubep"].AsString();
+            if (this.isProved)
+            {
+                if (!pubep.Contains("$"))
+                {
+                    //本身就是记账人节点，直接返回
+                    Tell_Response_Iamhere(from, this.config.PublicEndPoint.ToString());
+                    return;
                 }
+                else
+                {
+                    var subPubep = pubep.Substring(pubep.IndexOf("$"));
+                    Tell_Response_ProvedRelay(from, subPubep,this.config.PublicEndPoint.ToString());
+                }
+            }
+            pubep += "$" + this.config.PublicEndPoint.ToString();
+
+            System.Console.WriteLine("OnRecv_Post_TouchProvedPeer  from:" + from.system.Remote.ToString());
+            foreach (var item in this.linkNodes)
+            {
+                //Tell_Post_TouchProvedPeer(item.Value.remoteNode, pubep);
+                System.Console.WriteLine("OnRecv_Post_TouchProvedPeer:" + item.Value.remoteNode.system.Remote.ToString());
+            }
+        }
+        void OnRecv_Response_Iamhere(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var link = this.linkNodes[from.system.PeerID];
+            link.provedPubep = dict["provedpubep"].AsString();
+            link.isProved = dict["isProved"].AsBoolean();
+            this.provedNodes[from.system.PeerID] = link;
+        }
+        void OnRecv_Response_ProvedRelay(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var pubep = dict["pubep"].AsString();
+            var provedpubep = dict["provedpubep"].AsString();
+            var isProved = dict["isProved"].AsBoolean();
+
+            var url = pubep.Substring(0, pubep.IndexOf("$"));
+            var remote = this.GetPipeline(url);
+
+            if(isProved)
+            {
+                Tell_Response_Iamhere(remote, provedpubep);
+            }
+            else
+            {
+                var subPubep = pubep.Substring(pubep.IndexOf("$"));
+                Tell_Response_ProvedRelay(remote, subPubep, provedpubep);
             }
         }
         private bool ContainsRemote(IPEndPoint ipEndPoint)

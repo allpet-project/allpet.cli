@@ -59,7 +59,9 @@ namespace AllPet.Module
         public bool hadJoin;//是否被允许加入了网络
         public byte[] CheckInfo;
         public byte[] PublicKey;
-        public int priority;
+        public int pLeve;
+        public string provedPubep;
+        public bool isProved;//是否是记账人节点
     }
 
     public enum LinkFromEnum
@@ -105,7 +107,7 @@ namespace AllPet.Module
         Hash256 guid;
         Hash256 chainHash;
         bool isProved;//本节点是否是记账人        
-        int priority = -1;//节点优先级，记账节点为0。默认值为-1，意味着本身不是记账节点，也没有连上任何其他节点
+        int pLeve = -1;//节点优先级，记账节点为0。默认值为-1，意味着本身不是记账节点，也没有连上任何其他节点
 
         byte[] prikey;
         byte[] pubkey;
@@ -143,7 +145,7 @@ namespace AllPet.Module
                    if(this.config.ChainInfo.InitOwner.Contains(address))
                     {
                         this.isProved = true;
-                        this.priority = 0;//记账节点
+                        this.pLeve = 0;//记账节点
                     }
                 }
             }
@@ -185,6 +187,12 @@ namespace AllPet.Module
             logger.Info("--------------------------》_OnPeerLink：id/" + id+ "         IPEndPoint/"+remote);
 
             Tell_ReqJoinPeer(pipe.remoteNode);
+            if (this.isProved)
+            {
+                //告诉我你是否是共识节点或者能否到达共识节点
+                Tell_Post_TouchProvedPeer(pipe.remoteNode, this.config.PublicEndPoint.ToString());
+            }
+            logger.Info("_OnPeerLink" + id);
         }
         void _OnPeerClose(UInt64 id)
         {
