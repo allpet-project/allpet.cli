@@ -17,6 +17,7 @@ namespace AllPet.Module
             dict["cmd"] = (UInt16)CmdList.Request_JoinPeer;
             dict["id"] = this.guid.data;
             dict["pubep"] = this.config.PublicEndPoint.ToString();
+            //Console.WriteLine("Tell_ReqJoinPeer----->:"+ dict["pubep"]);
             dict["chaininfo"] = chainHash.data;
             remote.Tell(new MessagePackObject(dict));
         }

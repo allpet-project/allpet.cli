@@ -52,6 +52,7 @@ namespace AllPet.Module
 
     public class LinkObj
     {
+        public IPEndPoint from;//哪个节点告诉你建立这个连接的
         public Hash256 ID;//节点ID，不能重复，每个节点自己生成，重复则不接受第二个节点
         public IModulePipeline remoteNode;
         public System.Net.IPEndPoint publicEndPoint;//公开的地址好让人进行P2P连接
@@ -62,6 +63,14 @@ namespace AllPet.Module
         public string provedPubep;
         public bool isProved;//是否是记账人节点
     }
+
+    public enum LinkFromEnum
+    {
+        InitPeer,
+        ResetLink,
+        ResponsePeers
+    }
+
     public class CanLinkObj : IEquatable<CanLinkObj>
     {
         public override string ToString()
@@ -81,12 +90,14 @@ namespace AllPet.Module
             return ToString().Equals(other.ToString());
         }
 
+        public IPEndPoint from;
+        public LinkFromEnum fromType;
 
         public IPEndPoint remote;
         public Hash256 ID;
         public byte[] PublicKey;
         public int weight = 10;//节点重连权重
-        public int linkCount;
+        public int linkCount;//调连接的次数
     }
 
     public partial class Module_Node : Module_MsgPack
@@ -152,21 +163,28 @@ namespace AllPet.Module
 
         void RegNetEvent(ISystemPipeline syspipe)
         {
+            syspipe.HaltLink();
             if (syspipe.linked)
             {
+                logger.Info("==reg net event direct");
+
                 _OnPeerLink(syspipe.PeerID, syspipe.IsHost, syspipe.Remote);
             }
             else
             {
+                logger.Info("==reg net event delay");
+
                 syspipe.OnPeerLink += _OnPeerLink;
             }
             syspipe.OnPeerClose += _OnPeerClose;
+            syspipe.ResumeLink();
         }
         void _OnPeerLink(UInt64 id, bool accept, IPEndPoint remote)//现在能区分主叫 connect 和 被叫 accept了
         {
             var pipe = linkNodes[id];
 
             //主叫被叫都尝试加入对方网络
+            logger.Info("--------------------------》_OnPeerLink：id/" + id+ "         IPEndPoint/"+remote);
 
             Tell_ReqJoinPeer(pipe.remoteNode);
             if (this.isProved)
@@ -206,26 +224,30 @@ namespace AllPet.Module
                 //actorpeer.IsVaild 此时这个pipeline不是立即可用的，需要等待
                 this.listCanlink.Enqueue(new CanLinkObj()
                 {
-                    remote = p
+                    remote = p,
+                    fromType=LinkFromEnum.InitPeer
                 });
             }
             WatchNetwork();
 
         }
 
-        private void ConnectOne(IPEndPoint p)
+        private void ConnectOne(IPEndPoint p,IPEndPoint whoTell=null)
         {                
             //让GetPipeline来自动连接,此时remotenode 不可立即通讯，等回调，见RegNetEvent
             var remotenode = this.GetPipeline(p.ToString() + "/node");//模块的名称是固定的
             linkNodes[remotenode.system.PeerID] = new LinkObj()
             {
+                from=whoTell,
                 ID = null,
                 remoteNode = remotenode,
                 publicEndPoint = null
             };
+            //Console.WriteLine("@@@@@@@@@@@@@ systemid"+remotenode.system.PeerID);
             linkIDs[remotenode.system.Remote.ToString()] = remotenode.system.PeerID;
             RegNetEvent(remotenode.system);
-            logger.Info("try to link to=>" + remotenode.system.Remote.ToString());
+            //var fromstr = whoTell != null ? whoTell.ToString() : "";
+            logger.Info("try to link to=>" + p.ToString());
 
         }
 
@@ -275,7 +297,8 @@ namespace AllPet.Module
                     {
                         this.listCanlink.Enqueue(new CanLinkObj()
                         {
-                            remote = p
+                            remote = p,
+                            fromType=LinkFromEnum.ResetLink
                         });
                     }
                 }
@@ -327,7 +350,11 @@ namespace AllPet.Module
                             var times = (10-canlink.weight)/2;
                             if (canlink.linkCount == times)
                             {
-                                ConnectOne(canlink.remote);
+                                var fromstr = canlink.from != null ? canlink.from.ToString() : "";
+                                logger.Info("------------------------------------ConnectOne=>" + canlink.remote.ToString() + "       from:" + fromstr + "  fromtype:" + canlink.fromType);
+
+                                ConnectOne(canlink.remote,canlink.from);
+
                                 canlink.linkCount = 0;
                             }
                             else
