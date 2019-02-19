@@ -92,7 +92,7 @@ namespace AllPet.Module
                     }
                 }
             }
-
+            System.Console.WriteLine($"node:{this.config.PublicEndPoint}    pLeve:{this.pLeve}    isProved:{this.isProved}");
         }
         void OnRecv_RequestProvePeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -182,25 +182,38 @@ namespace AllPet.Module
             var pubep = dict["pubep"].AsString();
             if (this.isProved)
             {
+                //最终找到了记账节点
                 if (!pubep.Contains("$"))
                 {
                     //本身就是记账人节点，直接返回
                     Tell_Response_Iamhere(from, this.config.PublicEndPoint.ToString());
-                    return;
                 }
                 else
                 {
                     var subPubep = pubep.Substring(pubep.IndexOf("$"));
                     Tell_Response_ProvedRelay(from, subPubep,this.config.PublicEndPoint.ToString());
                 }
+                return;
             }
             pubep += "$" + this.config.PublicEndPoint.ToString();
-
-            System.Console.WriteLine("OnRecv_Post_TouchProvedPeer  from:" + from.system.Remote.ToString());
+            
+            bool isSend = false;
+            var initAddr = pubep.Substring(pubep.LastIndexOf("$")+1, pubep.Length - pubep.LastIndexOf("$"));
             foreach (var item in this.linkNodes)
             {
-                //Tell_Post_TouchProvedPeer(item.Value.remoteNode, pubep);
-                System.Console.WriteLine("OnRecv_Post_TouchProvedPeer:" + item.Value.remoteNode.system.Remote.ToString());
+                if (!from.system.Remote.Equals(item.Value.remoteNode.system.Remote) 
+                    && !initAddr.Equals(item.Value.remoteNode.system.Remote.ToString()))
+                {
+                    Tell_Post_TouchProvedPeer(item.Value.remoteNode, pubep);
+                    isSend = true;
+                    //System.Console.WriteLine("OnRecv_Post_TouchProvedPeer:" + item.Value.remoteNode.system.Remote.ToString());
+                }                
+            }
+            if(!isSend)
+            {
+                //最终没有找到记账节点
+                var subPubep = pubep.Substring(pubep.IndexOf("$"));
+                Tell_Response_ProvedRelay(from, subPubep, string.Empty);
             }
         }
         void OnRecv_Response_Iamhere(IModulePipeline from, MessagePackObjectDictionary dict)
@@ -208,7 +221,10 @@ namespace AllPet.Module
             var link = this.linkNodes[from.system.PeerID];
             link.provedPubep = dict["provedpubep"].AsString();
             link.isProved = dict["isProved"].AsBoolean();
-            this.provedNodes[from.system.PeerID] = link;
+            if (!ContainsRemote(link.publicEndPoint))
+            {
+                this.provedNodes[from.system.PeerID] = link;
+            }
         }
         void OnRecv_Response_ProvedRelay(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -218,15 +234,15 @@ namespace AllPet.Module
 
             var url = pubep.Substring(0, pubep.IndexOf("$"));
             var remote = this.GetPipeline(url);
-
-            if(isProved)
-            {
-                Tell_Response_Iamhere(remote, provedpubep);
-            }
-            else
+            
+            if(pubep.Contains("$"))
             {
                 var subPubep = pubep.Substring(pubep.IndexOf("$"));
                 Tell_Response_ProvedRelay(remote, subPubep, provedpubep);
+            }
+            else if(!string.IsNullOrEmpty(provedpubep) || isProved)
+            {
+                Tell_Response_Iamhere(remote, provedpubep);
             }
         }
         private bool ContainsRemote(IPEndPoint ipEndPoint)
