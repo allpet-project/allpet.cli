@@ -54,6 +54,7 @@ namespace light.asynctcp
         }
         public void Close()
         {
+            this.DisconnectAllLinks();
             this.OnAccepted = null;
             this.OnConnected = null;
             this.OnLinkError = null;
@@ -291,6 +292,14 @@ namespace light.asynctcp
             {
                 //link.Socket.Close();
                 //link.Socket = null;
+            }
+        }
+
+        private void DisconnectAllLinks()
+        {
+            foreach(var link in this.links)
+            {
+                this.Disconnect(link.Key);
             }
         }
     }

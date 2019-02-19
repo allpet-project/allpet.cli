@@ -311,8 +311,10 @@ namespace light.asynctcp
         {
             this.links.TryRemove(link.Handle, out LinkInfo v);
 
-
-            this.OnClosed(link.Handle);
+            if(this.OnClosed!=null)
+            {
+                this.OnClosed(link.Handle);
+            }
             this.PushBackLinks(link);
 
         }

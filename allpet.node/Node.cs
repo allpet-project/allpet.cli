@@ -10,6 +10,8 @@ using System.Net;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace AllPet.Module
 {
@@ -229,7 +231,8 @@ namespace AllPet.Module
                     fromType=LinkFromEnum.InitPeer
                 });
             }
-            WatchNetwork();
+            startWathNetWork();
+            //WatchNetwork();
 
         }
 
@@ -311,13 +314,34 @@ namespace AllPet.Module
         {
             base.Dispose();
             SaveCanlinkList();
+            stopWatchNetWork();
         }
-        public async void WatchNetwork()
+        private CancellationTokenSource cts;
+        public void stopWatchNetWork()
+        {
+            cts.Cancel();
+        }
+        public void startWathNetWork()
+        {
+            var _cts = new CancellationTokenSource();
+            var ct = _cts.Token;
+            var wathTask = new Task(async()=> {
+                await this.WatchNetwork(ct);
+            },ct);
+            wathTask.Start();
+            this.cts = _cts;
+        }
+        public async Task WatchNetwork(CancellationToken token)
         {
             int refreshnetwaiter = 0;
             int connectwaiter = 0;
             while (true)
             {
+                if(token.IsCancellationRequested)
+                {
+                    break;
+                }
+
                 refreshnetwaiter++;
                 if (refreshnetwaiter > 60)
                 {
