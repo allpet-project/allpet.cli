@@ -25,14 +25,14 @@ namespace AllPet.Module
     }
     public partial class Module_Node : Module_MsgPack
     {
-        private ulong lastIndex = -1;
+        private long lastIndex = -1;
         private ulong GetLastIndex()
         {
             lock(this)
             {
                 lastIndex++;
             }
-            return lastIndex;
+            return (ulong)lastIndex;
         }
         public RPC_Result RPC_ListPeer(IList<MessagePackObject> _params)
         {
