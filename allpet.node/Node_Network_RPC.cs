@@ -7,6 +7,8 @@ using System.Text;
 using System.Net;
 using AllPet.Common;
 using System.Linq;
+using AllPet.Module.block;
+
 namespace AllPet.Module
 {
     public class RPC_Result
@@ -23,6 +25,15 @@ namespace AllPet.Module
     }
     public partial class Module_Node : Module_MsgPack
     {
+        private ulong lastIndex = -1;
+        private ulong GetLastIndex()
+        {
+            lock(this)
+            {
+                lastIndex++;
+            }
+            return lastIndex;
+        }
         public RPC_Result RPC_ListPeer(IList<MessagePackObject> _params)
         {
             List<MessagePackObject> listPeer = new List<MessagePackObject>();
@@ -76,19 +87,22 @@ namespace AllPet.Module
         }
         public RPC_Result RPC_SendRawTransaction(IList<MessagePackObject> _params)
         {
-            List<MessagePackObject> listPeer = new List<MessagePackObject>();
-            foreach (var n in this.linkNodes.Values)
+            foreach(var item in _params)
             {
-                if (n.hadJoin)
+                var hash256 = Helper.CalcSha256(item.AsBinary());
+                var index = this.GetLastIndex();
+                TransAction tx = new TransAction();
+                tx.txIndex = index;
+                tx.txHash = hash256;
+                tx.body = new TXBody()
                 {
-                    MessagePackObjectDictionary peerItem = new MessagePackObjectDictionary();
-                    peerItem["endpoint"] = n.publicEndPoint.ToString();
-                    peerItem["publickkey"] = n.PublicKey;
-
-                    listPeer.Add(new MessagePackObject(peerItem));
-                }
+                     script = item.AsBinary()                     
+                };
+                BlockChain blockChain = new BlockChain();
+                
+                blockChain.SetTx(index, tx);
             }
-            var result = new MessagePackObject(listPeer);
+            var result = new MessagePackObject();
             return new RPC_Result(result);
         }
     }
