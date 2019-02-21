@@ -44,11 +44,13 @@ namespace AllPet.Module
         public System.Net.IPEndPoint PublicEndPoint;
         public System.Net.IPEndPoint[] InitPeer;
         public ChainInfo ChainInfo;
+        public string SimpleDbPath;
         public Config_Module(Newtonsoft.Json.Linq.JObject json)
         {
             PublicEndPoint = json["PublicEndPoint"].AsIPEndPoint();
             InitPeer = json["InitPeer"].AsIPEndPointArray();
             ChainInfo = new ChainInfo(json["ChainInfo"] as JObject);
+            SimpleDbPath = json["SimpleDbPath"].AsString();
         }
     }
 

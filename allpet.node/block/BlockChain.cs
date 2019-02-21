@@ -1,6 +1,9 @@
 ﻿using AllPet.Module;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
 namespace AllPet.Module.block
@@ -21,6 +24,8 @@ namespace AllPet.Module.block
         readonly static byte[] TableID_Blocks = new byte[] { 0x01, 0x02 };
         readonly static byte[] TableID_TXs = new byte[] { 0x01, 0x03 };
         readonly static byte[] TableID_Owners = new byte[] { 0x01, 0x04 };
+        readonly static byte[] TableID_Indexs = new byte[] { 0x01, 0x05 };
+        readonly static byte[] LastIndex = new byte[] { 0xff, 0xff, 0xff, 0xff };
 
         public ulong GetBlockCount()
         {
@@ -55,7 +60,18 @@ namespace AllPet.Module.block
 
         public void SetTx(UInt64 id, TransAction tx)
         {
+            IFormatter formatter = new BinaryFormatter();
+            MemoryStream stream = new MemoryStream();
+            formatter.Serialize(stream, tx);
 
+            byte[] bytes = new byte[(int)stream.Length];
+            stream.Position = 0;
+            int count = stream.Read(bytes, 0, (int)stream.Length);
+            stream.Close();
+
+            db.PutDirect(TableID_TXs, tx.txHash, bytes);
+            db.PutDirect(TableID_Indexs,BitConverter.GetBytes(id), tx.txHash);
+            db.PutDirect(TableID_Indexs, LastIndex, BitConverter.GetBytes(id));
         }
         System.Collections.Concurrent.ConcurrentQueue<TransAction> queueTransAction;
         public void MakeBlock(UInt16 from, UInt64 to, params UInt64[] skip)

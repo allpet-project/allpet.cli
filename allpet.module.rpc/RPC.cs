@@ -105,6 +105,11 @@ namespace AllPet.Module
             dict["method"] = "sendrawtransaction";
             
             var list = request["params"];
+
+            //var pubkey = dict["pubkey"].AsBinary();
+            //var signdata = dict["signdata"].AsBinary();            
+            //bool sign = Helper_NEO.VerifySignature(message, signdata, pubkey);
+
             var msgList = new List<MessagePackObject>();
             foreach(var item in list)
             {
@@ -115,20 +120,10 @@ namespace AllPet.Module
             var _id = GetFreeID();
             dict["id"] = _id;
             node.Tell(new MessagePackObject(dict));
-            //等待死循环,限制等待一秒
-            DateTime time = DateTime.Now;
-            while ((DateTime.Now - time).TotalSeconds < 60.0f)
-            {
-                if (this.recvRPC.TryRemove(_id, out MessagePackObject? got))
-                {
-                    var strresult = got.Value.AsDictionary()["result"].ToString();
-                    JObject jobj = new JObject();
-                    jobj["peers"] = JArray.Parse(strresult);
-                    return jobj;
-                }
-                await System.Threading.Tasks.Task.Delay(1);
-            }
-            return null;
+
+            JObject result = new JObject();
+            result.Add("sendid", _id);
+            return result;
         }
         async Task<http.server.JSONRPCController.ErrorObject> ActionRPCFail(JObject request, string errorMessage)
         {

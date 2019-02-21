@@ -11,7 +11,8 @@
       "ChainInfo": {
         "MagicStr": "HelloKitty",
         "InitOwner": [ "AdsNmzKPPG7HfmQpacZ4ixbv9XJHJs2ACz" ]
-      }
+      },
+      "SimpleDbPath": "db001"
     }
   },
   "ListenEndPoint": "0.0.0.0:0"
