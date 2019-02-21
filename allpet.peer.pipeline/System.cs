@@ -133,7 +133,7 @@ namespace AllPet.Pipeline
             //    return refPipelines[refName];
             //}
         }
-        public IModulePipeline GetPipeline(IModuleInstance user, string urlActor)
+        public IModulePipeline GetPipeline(IModuleInstance user, string urlActor,Action<ISystemPipeline> PreInit=null)
         {
             if (bStarted == false)
                 throw new Exception("must getpipeline after System.Start()");
@@ -182,11 +182,11 @@ namespace AllPet.Pipeline
                 ISystemPipeline refsys = null;
                 if (refSystems.TryGetValue(addr, out refsys))
                 {
-
+                    PreInit(refsys);
                 }
                 else
                 {//没连接
-                    refsys = this.Connect(addr.AsIPEndPoint());
+                    refsys = this.Connect(addr.AsIPEndPoint(),PreInit);
                 }
                 return refsys.GetPipeline(user, path);
                 //refPipelines[refName] = new PipelineRefRemote(refSystemThis, userstr, refsys as RefSystemRemote, path);
@@ -332,7 +332,7 @@ namespace AllPet.Pipeline
 
             peer.StopListen();
         }
-        public ISystemPipeline Connect(IPEndPoint _remote)
+        public ISystemPipeline Connect(IPEndPoint _remote,Action<ISystemPipeline> PreInit =null)
         {
             if (peer == null)
                 throw new Exception("not init peer.");
@@ -349,6 +349,10 @@ namespace AllPet.Pipeline
                     remote = new RefSystemRemote(this, peer, _remote, _linkid, false);
                     remote.linked = false;
                     this.refSystems[remotestr] = remote;
+                    if(PreInit!=null)
+                    {
+                        PreInit(remote);
+                    }
                 }
             );
             return remote;

@@ -40,7 +40,7 @@ namespace AllPet.Pipeline
             get;
             private set;
         }
-        public IModulePipeline GetPipeline(string urlActor)
+        public IModulePipeline GetPipeline(string urlActor, Action<ISystemPipeline> PreInit = null)
         {
             return _System.GetPipeline(this, urlActor);
         }

@@ -23,14 +23,14 @@ namespace AllPet.Pipeline
         /// 连接到另一个ActorSystem，也不是必须的，GetActorRemote会自己去做这件事
         /// </summary>
         /// <param name="remote"></param>
-        ISystemPipeline Connect(IPEndPoint remote);
+        ISystemPipeline Connect(IPEndPoint remote, Action<ISystemPipeline> PreInit = null);
         Task<ISystemPipeline> ConnectAsync(IPEndPoint remote);//一个system 可以连接到另外一个系统,
 
         void DisConnect(ISystemPipeline pipe);
         ICollection<string> GetAllSystemsPath();
         ICollection<ISystemPipeline> GetAllSystems();
 
-        IModulePipeline GetPipeline(IModuleInstance user, string urlFrom);
+        IModulePipeline GetPipeline(IModuleInstance user, string urlFrom, Action<ISystemPipeline> PreInit = null);
 
         void RegistModule(string path, IModuleInstance actor);
         IModuleInstance GetModule(string path);
@@ -114,7 +114,7 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        IModulePipeline GetPipeline(string urlActor);
+        IModulePipeline GetPipeline(string urlActor, Action<ISystemPipeline> PreInit = null);
         void OnRegistered(ISystem system,string path);
         void OnStart();
         void OnStarted();

@@ -166,21 +166,19 @@ namespace AllPet.Module
 
         void RegNetEvent(ISystemPipeline syspipe)
         {
-            syspipe.HaltLink();
+            //syspipe.HaltLink();
             if (syspipe.linked)
             {
                 //logger.Info("==reg net event direct");
-
                 _OnPeerLink(syspipe.PeerID, syspipe.IsHost, syspipe.Remote);
             }
             else
             {
                 //logger.Info("==reg net event delay");
-
                 syspipe.OnPeerLink += _OnPeerLink;
             }
             syspipe.OnPeerClose += _OnPeerClose;
-            syspipe.ResumeLink();
+            //syspipe.ResumeLink();
         }
         void _OnPeerLink(UInt64 id, bool accept, IPEndPoint remote)//现在能区分主叫 connect 和 被叫 accept了
         {
@@ -239,20 +237,28 @@ namespace AllPet.Module
         private void ConnectOne(IPEndPoint p,IPEndPoint whoTell=null)
         {                
             //让GetPipeline来自动连接,此时remotenode 不可立即通讯，等回调，见RegNetEvent
-            var remotenode = this.GetPipeline(p.ToString() + "/node");//模块的名称是固定的
-            linkNodes[remotenode.system.PeerID] = new LinkObj()
+            var remotenode = this.GetPipeline(p.ToString() + "/node",(system) =>
             {
-                from = whoTell,
-                ID = null,
-                remoteNode = remotenode,
-                publicEndPoint = null,
-                beAccepted = false
-            };
+                linkNodes[remotenode.system.PeerID] = new LinkObj()
+                {
+                    from = whoTell,
+                    ID = null,
+                    remoteNode = remotenode,
+                    publicEndPoint = null,
+                    beAccepted = false
+                };
+
+                linkIDs[system.Remote.ToString()] = system.PeerID;
+                RegNetEvent(system);
+                //var fromstr = whoTell != null ? whoTell.ToString() : "";
+                logger.Info("try to link to=>" + p.ToString());
+
+            });//模块的名称是固定的
+
+            //var system = remotenode.system;
             //Console.WriteLine("@@@@@@@@@@@@@ systemid"+remotenode.system.PeerID);
-            linkIDs[remotenode.system.Remote.ToString()] = remotenode.system.PeerID;
-            RegNetEvent(remotenode.system);
-            //var fromstr = whoTell != null ? whoTell.ToString() : "";
-            logger.Info("try to link to=>" + p.ToString());
+
+
 
         }
 
