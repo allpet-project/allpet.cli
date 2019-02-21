@@ -145,7 +145,7 @@ namespace AllPet.http.server
 
                 if (mapAction.TryGetValue(jsonParam["method"].Value<string>(), out ActionRPC method))
                 {
-                    var json = await method(jsonParam);
+                    var json = method(jsonParam).Result;
                     JObject result = new JObject();
                     result["result"] = json;
                     result["id"] = jsonParam["id"].Value<int>();

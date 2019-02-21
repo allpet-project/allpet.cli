@@ -4,6 +4,7 @@ using AllPet.Pipeline.MsgPack;
 using MsgPack;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AllPet.Module
@@ -57,6 +58,7 @@ namespace AllPet.Module
             this.server.SetJsonRPCFail("/", ActionRPCFail);
             this.server.AddJsonRPC("/", "help", ActionRPC_Help);
             this.server.AddJsonRPC("/", "listpeer", ActionRPC_ListPeer);
+            this.server.AddJsonRPC("/", "sendrawtransaction", ActionRPC_SendRawTransaction);
             this.server.Start(this.config.HttpListenEndPoint.Port, this.config.HttpsListenEndPoint.Port, this.config.HttpsPFXFilePath, this.config.HttpsPFXFilePassword);
             logger.Warn("RPC start at port=" + this.config.HttpListenEndPoint.Port);
         }
@@ -83,6 +85,39 @@ namespace AllPet.Module
             //等待死循环,限制等待一秒
             DateTime time = DateTime.Now;
             while ((DateTime.Now - time).TotalSeconds < 1.0f)
+            {
+                if (this.recvRPC.TryRemove(_id, out MessagePackObject? got))
+                {
+                    var strresult = got.Value.AsDictionary()["result"].ToString();
+                    JObject jobj = new JObject();
+                    jobj["peers"] = JArray.Parse(strresult);
+                    return jobj;
+                }
+                await System.Threading.Tasks.Task.Delay(1);
+            }
+            return null;
+        }
+        async Task<JObject> ActionRPC_SendRawTransaction(JObject request)
+        {
+            var node = this.GetPipeline("this/node");
+            MessagePackObjectDictionary dict = new MessagePackObjectDictionary();
+            dict["cmd"] = CMDID_RPC;
+            dict["method"] = "sendrawtransaction";
+            
+            var list = request["params"];
+            var msgList = new List<MessagePackObject>();
+            foreach(var item in list)
+            {
+                var raw = Helper.HexString2Bytes(item.Value<string>());
+                msgList.Add(new MessagePackObject(raw));
+            }
+            dict["params"] = new MessagePackObject(msgList);
+            var _id = GetFreeID();
+            dict["id"] = _id;
+            node.Tell(new MessagePackObject(dict));
+            //等待死循环,限制等待一秒
+            DateTime time = DateTime.Now;
+            while ((DateTime.Now - time).TotalSeconds < 60.0f)
             {
                 if (this.recvRPC.TryRemove(_id, out MessagePackObject? got))
                 {

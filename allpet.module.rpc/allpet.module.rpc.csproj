@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\allpet.common\allpet.common.csproj" />
+    <ProjectReference Include="..\allpet.cryptology\allpet.cryptology.csproj" />
     <ProjectReference Include="..\allpet.httpserver\allpet.httpserver.csproj" />
     <ProjectReference Include="..\allpet.peer.pipeline\allpet.peer.pipeline.csproj" />
   </ItemGroup>
