@@ -179,14 +179,14 @@ namespace AllPet.Pipeline
             }
         }
 
-        public void HaltLink()
-        {
-            throw new NotImplementedException();
-        }
+        //public void HaltLink()
+        //{
+        //    throw new NotImplementedException();
+        //}
 
-        public void ResumeLink()
-        {
-            throw new NotImplementedException();
-        }
+        //public void ResumeLink()
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

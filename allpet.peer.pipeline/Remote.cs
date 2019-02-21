@@ -58,14 +58,14 @@ namespace AllPet.Pipeline
             if (OnPeerClose != null)
                 this.OnPeerClose(id);
         }
-        public void HaltLink()
-        {
-            System.Threading.Monitor.Enter(this);
-        }
-        public void ResumeLink()
-        {
-            System.Threading.Monitor.Exit(this);
-        }
+        //public void HaltLink()
+        //{
+        //    System.Threading.Monitor.Enter(this);
+        //}
+        //public void ResumeLink()
+        //{
+        //    System.Threading.Monitor.Exit(this);
+        //}
         public void Linked(UInt64 id,bool accept,IPEndPoint remote)
         {
             System.Threading.Monitor.Enter(this);

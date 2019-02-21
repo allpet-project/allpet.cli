@@ -50,8 +50,8 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        void HaltLink();
-        void ResumeLink();
+        //void HaltLink();
+        //void ResumeLink();
         bool IsHost
         {
             get;
