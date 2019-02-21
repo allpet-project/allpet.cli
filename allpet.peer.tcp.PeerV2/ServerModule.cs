@@ -202,7 +202,7 @@ namespace light.asynctcp
         //    }
         //}
 
-        public UInt64 Connect(IPEndPoint linktoEndPoint)
+        public UInt64 Connect(IPEndPoint linktoEndPoint, Action<UInt64> PreLink = null)
         {
             if (this.OnConnected == null)
             {
@@ -234,6 +234,9 @@ namespace light.asynctcp
             //this.links[link.Handle] = link;
 
             eventArgs.RemoteEndPoint = linktoEndPoint;
+
+            if (PreLink != null)
+                PreLink(link.Handle);
             if (!link.Socket.ConnectAsync(eventArgs))
             {
                 ProcessConnect(eventArgs, link);
@@ -297,7 +300,7 @@ namespace light.asynctcp
 
         private void DisconnectAllLinks()
         {
-            foreach(var link in this.links)
+            foreach (var link in this.links)
             {
                 this.Disconnect(link.Key);
             }
