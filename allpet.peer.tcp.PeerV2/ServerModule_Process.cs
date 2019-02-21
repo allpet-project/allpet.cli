@@ -118,6 +118,10 @@ namespace light.asynctcp
             else
             {
                 OnLinkError(link.Handle, new Exception(e.SocketError.ToString()));
+                if (OnClosed != null)
+                {
+                    OnClosed(link.Handle);
+                }
                 this.PushBackLinks(link);
             }
             //復用一個connect args
