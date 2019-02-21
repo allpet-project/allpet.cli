@@ -231,7 +231,7 @@ namespace light.asynctcp
             link.lastPackege = null;
             link.ConnectDateTime = DateTime.Now;
             link.Remote = linktoEndPoint;
-            this.links[link.Handle] = link;
+            //this.links[link.Handle] = link;
 
             eventArgs.RemoteEndPoint = linktoEndPoint;
             if (!link.Socket.ConnectAsync(eventArgs))
