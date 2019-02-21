@@ -28,6 +28,7 @@ namespace AllPet.Pipeline
             this.PeerID = id;
             this.Remote = remote;
             refPipelines = new System.Collections.Concurrent.ConcurrentDictionary<string, IModulePipeline>();
+            this.linked = false;
         }
         public bool IsLocal => false;
         public bool IsHost
@@ -50,31 +51,30 @@ namespace AllPet.Pipeline
         }
 
         public event Action<UInt64,bool,IPEndPoint> OnPeerLink;
-        public event Action<UInt64> OnPeerClose;
-        public void Close(UInt64 id)
+        public event Action<UInt64,IPEndPoint> OnPeerClose;
+        public void Close(UInt64 id,IPEndPoint endpoint)
         {
-            this.linked = false;
-
             if (OnPeerClose != null)
-                this.OnPeerClose(id);
+                this.OnPeerClose(id,endpoint);
+            this.linked = false;
         }
-        public void HaltLink()
-        {
-            System.Threading.Monitor.Enter(this);
-        }
-        public void ResumeLink()
-        {
-            System.Threading.Monitor.Exit(this);
-        }
+        //public void HaltLink()
+        //{
+        //    System.Threading.Monitor.Enter(this);
+        //}
+        //public void ResumeLink()
+        //{
+        //    System.Threading.Monitor.Exit(this);
+        //}
         public void Linked(UInt64 id,bool accept,IPEndPoint remote)
         {
-            System.Threading.Monitor.Enter(this);
+            //System.Threading.Monitor.Enter(this);
             {
-                this.linked = true;
                 if (OnPeerLink != null)
                     this.OnPeerLink(id, accept, remote);
+                this.linked = true;
             }
-            System.Threading.Monitor.Exit(this);
+            //System.Threading.Monitor.Exit(this);
         }
         public IModulePipeline GetPipeline(IModuleInstance user, string path)
         {

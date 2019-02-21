@@ -127,7 +127,7 @@ namespace AllPet.Pipeline
         PipelineSystemV1 _System;
 
         public event Action<UInt64, bool, IPEndPoint> OnPeerLink;
-        public event Action<UInt64> OnPeerClose;
+        public event Action<UInt64, IPEndPoint> OnPeerClose;
 
         public bool IsLocal => true;
 

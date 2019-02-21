@@ -27,7 +27,7 @@ namespace light.asynctcp
         public event Action<ulong, IPEndPoint> OnConnected;
         public event Action<ulong, Exception> OnLinkError;
         public event Action<ulong, byte[]> OnRecv;
-        public event Action<ulong> OnClosed;
+        public event Action<ulong, IPEndPoint> OnClosed;
 
         public AllPet.Common.ILogger logger;
 

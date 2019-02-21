@@ -139,14 +139,16 @@ namespace AllPet.Module
 
                 if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link) == false)
                 {
-                    linkNodes[from.system.PeerID] = new LinkObj()
-                    {
-                        ID = null,
-                        remoteNode = from,
-                        publicEndPoint = null,
-                        beAccepted=true
-                    };
-                    RegNetEvent(from.system);
+                    //linkNodes[from.system.PeerID] = new LinkObj()
+                    //{
+                    //    ID = null,
+                    //    remoteNode = from,
+                    //    publicEndPoint = null,
+                    //    beAccepted=true
+                    //};
+                    //RegNetEvent(from.system);
+                    onConnectSuccess(from,true,null);
+                    from.system.OnPeerClose += _OnPeerClose;
                 }
                 logger.Info("remote msg:" + obj.Value.ToString());
                 switch (cmd)

@@ -120,7 +120,7 @@ namespace light.asynctcp
                 OnLinkError(link.Handle, new Exception(e.SocketError.ToString()));
                 if (OnClosed != null)
                 {
-                    OnClosed(link.Handle);
+                    OnClosed(link.Handle,link.Remote);
                 }
                 this.PushBackLinks(link);
             }
@@ -304,7 +304,7 @@ namespace light.asynctcp
             {
                 this.links.TryRemove(link.Handle, out LinkInfo v);
 
-                this.OnClosed(link.Handle);
+                this.OnClosed(link.Handle,link.Remote);
                 this.PushBackLinks(link);
 
             }
@@ -324,7 +324,7 @@ namespace light.asynctcp
 
             if(this.OnClosed!=null)
             {
-                this.OnClosed(link.Handle);
+                this.OnClosed(link.Handle, link.Remote);
             }
             this.PushBackLinks(link);
 

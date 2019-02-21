@@ -48,7 +48,7 @@ namespace AllPet.peer.tcp
         //连接发生错误时触发
         event Action<UInt64, Exception> OnLinkError;
         event Action<UInt64, byte[]> OnRecv;
-        event Action<UInt64> OnClosed;//When Closed->OnCloseed(linkid);
+        event Action<UInt64, IPEndPoint> OnClosed;//When Closed->OnCloseed(linkid);
 
         void Send(UInt64 link, byte[] data);
         void Disconnect(UInt64 linkid);

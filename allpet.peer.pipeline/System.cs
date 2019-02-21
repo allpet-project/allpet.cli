@@ -209,13 +209,13 @@ namespace AllPet.Pipeline
                 throw new Exception("already have init peer.");
             peer = AllPet.peer.tcp.PeerV2.CreatePeer(logger);
             peer.Start(option);
-            peer.OnClosed += (id) =>
+            peer.OnClosed += (id,endpoint) =>
               {
                   if (this.linkedIP.TryRemove(id, out string _remotestr))
                   {
                       if (this.refSystems.TryRemove(_remotestr, out ISystemPipeline remote))
                       {
-                          (remote as RefSystemRemote).Close(id);
+                          (remote as RefSystemRemote).Close(id,endpoint);
                       }
                       Console.WriteLine("close line=" + id);
                   }
@@ -270,36 +270,41 @@ namespace AllPet.Pipeline
 
             peer.OnConnected += (ulong id, IPEndPoint endpoint) =>
             {
-                lock (endpoint)//这个锁比较粗糙，临时增加，因为有可能Connect之后执行了一半，进入这里
-                               //后面考虑从更底层做操作
-                {
-                    if (this.linkedIP.ContainsKey(id) == false)
-                    {
+                onConnect(endpoint,id);
+                var remotestr = endpoint.ToString();
+                var remote = this.refSystems[remotestr] as RefSystemRemote;
+                remote.Linked(id, false, endpoint);
 
-                        var __remotestr = endpoint.ToString();
-                        this.linkedIP[id] = __remotestr;
-                        RefSystemRemote __remote = new RefSystemRemote(this, peer, endpoint, id, false);
-                        __remote.linked = true;
-                        this.refSystems[__remotestr] = __remote;
-                        __remote.Linked(id, false, endpoint);
-                        logger.Info("==link now== systemid" + id);
+                //lock (endpoint)//这个锁比较粗糙，临时增加，因为有可能Connect之后执行了一半，进入这里
+                //               //后面考虑从更底层做操作
+                //{
+                //    if (this.linkedIP.ContainsKey(id) == false)
+                //    {
 
-                    }
-                    else
-                    {
+                //        var __remotestr = endpoint.ToString();
+                //        this.linkedIP[id] = __remotestr;
+                //        RefSystemRemote __remote = new RefSystemRemote(this, peer, endpoint, id, false);
+                //        __remote.linked = true;
+                //        this.refSystems[__remotestr] = __remote;
+                //        __remote.Linked(id, false, endpoint);
+                //        logger.Info("==link now== systemid" + id);
 
-                        var remotestr = this.linkedIP[id];
-                        if (this.refSystems.ContainsKey(remotestr) == false)
-                        {
-                            logger.Warn("意外的值");
-                        }
-                        var remote = this.refSystems[remotestr] as RefSystemRemote;
-                        remote.linked = true;
-                        (remote as RefSystemRemote).Linked(id, false, endpoint);
-                        logger.Info("==link delay== systemid" + id);
+                //    }
+                //    else
+                //    {
 
-                    }
-                }
+                //        var remotestr = this.linkedIP[id];
+                //        if (this.refSystems.ContainsKey(remotestr) == false)
+                //        {
+                //            logger.Warn("意外的值");
+                //        }
+                //        var remote = this.refSystems[remotestr] as RefSystemRemote;
+                //        remote.linked = true;
+                //        (remote as RefSystemRemote).Linked(id, false, endpoint);
+                //        logger.Info("==link delay== systemid" + id);
+
+                //    }
+                //}
                 //this.linkedIP[id] = endpoint.ToString();
 
                 ////主动连接成功，创建一个systemRef
@@ -340,28 +345,24 @@ namespace AllPet.Pipeline
             //lock (this)
             //{
             var linkid = peer.Connect(_remote);
+            onConnect(_remote,linkid);
+            var remotestr = this.linkedIP[linkid];
+            return this.refSystems[remotestr];
+            //}
+        }
+        private void onConnect(IPEndPoint _remote,ulong linkid)
+        {
             lock (_remote)//这个锁比较粗糙
             {
-                if (this.linkedIP.ContainsKey(linkid) == false)
-                {
+                var remotestr = _remote.ToString();
+                this.linkedIP[linkid] = remotestr;
 
-                    var remotestr = _remote.ToString();
-                    this.linkedIP[linkid] = remotestr;
-                    //Console.WriteLine("################## linkid=" + linkid);
-                    //主动连接成功，创建一个systemRef
+                if (this.refSystems.ContainsKey(remotestr) == false)
+                {
                     RefSystemRemote remote = new RefSystemRemote(this, peer, _remote, linkid, false);
-                    remote.linked = false;
                     this.refSystems[remotestr] = remote;
-                    return remote;
-
-                }
-                else
-                {
-                    var remotestr = this.linkedIP[linkid];
-                    return this.refSystems[remotestr];
                 }
             }
-            //}
         }
         public void DisConnect(ISystemPipeline pipe)
         {

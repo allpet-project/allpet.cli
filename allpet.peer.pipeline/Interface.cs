@@ -50,8 +50,8 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        void HaltLink();
-        void ResumeLink();
+        //void HaltLink();
+        //void ResumeLink();
         bool IsHost
         {
             get;
@@ -64,7 +64,7 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        event Action<UInt64> OnPeerClose;
+        event Action<UInt64,IPEndPoint> OnPeerClose;
         event Action<UInt64, bool, IPEndPoint> OnPeerLink;
         IModulePipeline GetPipeline(IModuleInstance user, string urlFrom);
         IModulePipeline GetPipeLineByFrom(IModulePipeline from, IModuleInstance to);

@@ -29,7 +29,7 @@ namespace allpet.peer.tcp.test
             {
                 hasLinked[id] = true;
             };
-            peer.OnClosed += (id) =>
+            peer.OnClosed += (id,endpoint) =>
             {
 
             };
