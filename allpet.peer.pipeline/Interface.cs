@@ -30,7 +30,7 @@ namespace AllPet.Pipeline
         ICollection<string> GetAllSystemsPath();
         ICollection<ISystemPipeline> GetAllSystems();
 
-        IModulePipeline GetPipeline(IModuleInstance user, string urlFrom, Action<ISystemPipeline> PreInit = null);
+        IModulePipeline GetPipeline(IModuleInstance user, string urlFrom, Action<IModulePipeline> PreInit = null);
 
         void RegistModule(string path, IModuleInstance actor);
         IModuleInstance GetModule(string path);
@@ -114,7 +114,7 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        IModulePipeline GetPipeline(string urlActor, Action<ISystemPipeline> PreInit = null);
+        IModulePipeline GetPipeline(string urlActor, Action<IModulePipeline> PreInit = null);
         void OnRegistered(ISystem system,string path);
         void OnStart();
         void OnStarted();

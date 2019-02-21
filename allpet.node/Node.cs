@@ -237,13 +237,14 @@ namespace AllPet.Module
         private void ConnectOne(IPEndPoint p,IPEndPoint whoTell=null)
         {                
             //让GetPipeline来自动连接,此时remotenode 不可立即通讯，等回调，见RegNetEvent
-            var remotenode = this.GetPipeline(p.ToString() + "/node",(system) =>
+            var remotenode = this.GetPipeline(p.ToString() + "/node",(node) =>
             {
-                linkNodes[remotenode.system.PeerID] = new LinkObj()
+                var system = node.system;
+                linkNodes[node.system.PeerID] = new LinkObj()
                 {
                     from = whoTell,
                     ID = null,
-                    remoteNode = remotenode,
+                    remoteNode = node,
                     publicEndPoint = null,
                     beAccepted = false
                 };

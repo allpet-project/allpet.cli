@@ -133,7 +133,7 @@ namespace AllPet.Pipeline
             //    return refPipelines[refName];
             //}
         }
-        public IModulePipeline GetPipeline(IModuleInstance user, string urlActor,Action<ISystemPipeline> PreInit=null)
+        public IModulePipeline GetPipeline(IModuleInstance user, string urlActor,Action<IModulePipeline> PreInit=null)
         {
             if (bStarted == false)
                 throw new Exception("must getpipeline after System.Start()");
@@ -182,13 +182,26 @@ namespace AllPet.Pipeline
                 ISystemPipeline refsys = null;
                 if (refSystems.TryGetValue(addr, out refsys))
                 {
-                    PreInit(refsys);
+                    IModulePipeline node = refsys.GetPipeline(user, path);
+                    if(PreInit!=null)
+                    {
+                        PreInit(node);
+                    }
+                    return node;
                 }
                 else
                 {//没连接
-                    refsys = this.Connect(addr.AsIPEndPoint(),PreInit);
+                    IModulePipeline node = null;
+                    refsys = this.Connect(addr.AsIPEndPoint(),(system)=> {
+                        node = system.GetPipeline(user, path);
+                        if (PreInit != null)
+                        {
+                            PreInit(node);
+                        }
+                    });
+                    return node;
                 }
-                return refsys.GetPipeline(user, path);
+                
                 //refPipelines[refName] = new PipelineRefRemote(refSystemThis, userstr, refsys as RefSystemRemote, path);
                 //return refPipelines[refName];
             }
