@@ -60,7 +60,7 @@ namespace AllPet.Module
             var link = this.linkNodes[from.system.PeerID];
             link.hadJoin = true;//已经和某个节点接通
             //如果连上了,标识连上的节点的优先级
-            link.pLeve = dict["pleve"].AsInt32();                     
+            link.pLevel = dict["pleve"].AsInt32();                     
 
             if (this.prikey != null)//有私钥证明一下
             {
@@ -73,26 +73,26 @@ namespace AllPet.Module
 
             Tell_Request_PeerList(from);
             //如果连接上了，要更新自己的优先级
-            if (this.pLeve < 0)
+            if (this.pLevel < 0)
             {
-                if (link.pLeve >= 0)//加入的节点优先级有效，且本身节点不是记账人
+                if (link.pLevel >= 0)//加入的节点优先级有效，且本身节点不是记账人
                 {
-                    this.pLeve = link.pLeve + 1;
+                    this.pLevel = link.pLevel + 1;
                 }
             }
-            else if(this.pLeve > link.pLeve)
+            else if(this.pLevel > link.pLevel)
             {
-                this.pLeve = link.pLeve + 1;
+                this.pLevel = link.pLevel + 1;
                 //如果是变更，则广播低优先级节点
                 foreach (var item in this.linkNodes)
                 {
-                    if (item.Value.hadJoin && item.Value.pLeve < this.pLeve)
+                    if (item.Value.hadJoin && item.Value.pLevel < this.pLevel)
                     {
                         Tell_BoradCast_PeerState(item.Value.remoteNode);
                     }
                 }
             }
-            System.Console.WriteLine($"node:{this.config.PublicEndPoint}    pLeve:{this.pLeve}    isProved:{this.isProved}");
+            System.Console.WriteLine($"node:{this.config.PublicEndPoint}    pLeve:{this.pLevel}    isProved:{this.isProved}");
         }
         void OnRecv_RequestProvePeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -158,7 +158,7 @@ namespace AllPet.Module
                 LinkObj minLink = null;
                 foreach (var item in this.linkNodes)
                 {
-                    if(minLink == null || item.Value.pLeve < minLink.pLeve)
+                    if(minLink == null || item.Value.pLevel < minLink.pLevel)
                     {
                         minLink = item.Value;
                     }                    
@@ -172,9 +172,9 @@ namespace AllPet.Module
         void OnRecv_BoradCast_PeerState(IModulePipeline from, MessagePackObjectDictionary dict)
         {
             var parentPleve = dict["pleve"].AsInt32();
-            if(this.pLeve > parentPleve)
+            if(this.pLevel > parentPleve)
             {
-                this.pLeve = parentPleve+1;
+                this.pLevel = parentPleve+1;
             }
         }
         void OnRecv_Post_TouchProvedPeer(IModulePipeline from, MessagePackObjectDictionary dict)

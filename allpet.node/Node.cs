@@ -64,7 +64,7 @@ namespace AllPet.Module
         public bool hadJoin;//是否被允许加入了网络
         public byte[] CheckInfo;
         public byte[] PublicKey;
-        public int pLeve;
+        public int pLevel;
         public string provedPubep;
         public bool isProved;//是否是记账人节点
     }
@@ -112,7 +112,7 @@ namespace AllPet.Module
         Hash256 guid;
         Hash256 chainHash;
         bool isProved;//本节点是否是记账人        
-        int pLeve = -1;//节点优先级，记账节点为0。默认值为-1，意味着本身不是记账节点，也没有连上任何其他节点
+        int pLevel = -1;//节点优先级，记账节点为0。默认值为-1，意味着本身不是记账节点，也没有连上任何其他节点
 
         byte[] prikey;
         byte[] pubkey;
@@ -150,7 +150,7 @@ namespace AllPet.Module
                    if(this.config.ChainInfo.InitOwner.Contains(address))
                     {
                         this.isProved = true;
-                        this.pLeve = 0;//记账节点
+                        this.pLevel = 0;//记账节点
                     }
                 }
             }
