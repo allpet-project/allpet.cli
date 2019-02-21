@@ -123,8 +123,10 @@ namespace AllPet.Module
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> provedNodes;//记账人列表
         System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
         Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
-        static string NodePath = "./node.data";
         System.Timers.Timer blockTimer;
+        static string NodePath = "./node.data";
+        static ulong blockTime = 5;//出块间隔时间
+        private static  object blockTimerLock = new object();
 
 
         public Node.TXPool txpool;//交易池
@@ -162,13 +164,14 @@ namespace AllPet.Module
                 blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
                 this.lastIndex = blockChain.GetLastIndex();
                 this.blockIndex = blockChain.GetBlockIndex();
+                this.txIndex = blockChain.GetBlockTxIndex();
                 blockChain.Dispose();
 
                 //记账节点才需要出块
                 if (this.isProved)
                 {
                     this.blockTimer = new System.Timers.Timer();
-                    this.blockTimer.Interval = 1000;//毫秒
+                    this.blockTimer.Interval = blockTime * 1000;//毫秒
                     this.blockTimer.Enabled = true;
                     this.blockTimer.AutoReset = true;//一直执行true 
                     this.blockTimer.Elapsed += new System.Timers.ElapsedEventHandler(MakeBlock);
@@ -342,40 +345,50 @@ namespace AllPet.Module
 
         private void MakeBlock(object source, ElapsedEventArgs e)
         {
-            ulong[] block = null; ;
-            if(this.blockIndex>=(this.lastIndex-1))
+            lock (blockTimerLock)
             {
-                if(blockCount >= 15)
+                ulong[] block = null;
+
+                if (this.txIndex > (this.lastIndex - 1) || this.lastIndex <=0)
                 {
-                    //出空块
-                    blockCount = 0;
-                    block = new ulong[] { };
+                    if (blockCount >= (15/ blockTime))
+                    {
+                        //出空块
+                        blockCount = 0;
+                        block = new ulong[] { };
+                    }
+                    else
+                    {
+                        blockCount++;
+                    }
                 }
                 else
                 {
-                    blockCount++;
-                }
-            }
-            else
-            {
-                blockCount = 0;
-                ulong length = this.lastIndex - this.blockIndex;
-                block = new ulong[length];
-                for(int i=0;i<block.Length;i++)
-                {
-                    block[i] = this.blockIndex + 1;
-                    if (block[i] >= this.lastIndex)
+                    blockCount = 0;
+                    ulong length = this.txIndex==0?(this.lastIndex - this.txIndex):(this.lastIndex - this.txIndex-1);
+                    if (length > 0)
                     {
-                        throw new Exception("haha 越界了");
+                        block = new ulong[length];
+                        ulong start = (this.txIndex == 0 ? 0 : (this.txIndex + 1));
+                        for (int i = 0; i < block.Length; i++)
+                        {
+                            block[i] = start;
+                            this.txIndex = start;
+                            start++;
+                        }
                     }
                 }
-            }
-            if (block != null)
-            {
-                BlockChain blockChain = new BlockChain();
-                blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
-                blockChain.MakeBlock((this.blockIndex+1),block);
-                blockChain.Dispose();
+                if (block != null)
+                {
+                    BlockChain blockChain = new BlockChain();
+                    blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);                    
+                    var data = string.Join(",", block);
+                    var bindex = this.blockIndex;
+                    this.blockIndex++;
+                    blockChain.MakeBlock(bindex, System.Text.Encoding.Default.GetBytes(data),this.txIndex, this.blockIndex);
+                    
+                    blockChain.Dispose();                    
+                }
             }
         }
         public override void Dispose()

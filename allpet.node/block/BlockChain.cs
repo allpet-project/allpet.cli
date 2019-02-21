@@ -26,7 +26,8 @@ namespace AllPet.Module.block
         readonly static byte[] TableID_Owners = new byte[] { 0x01, 0x04 };
         readonly static byte[] TableID_Indexs = new byte[] { 0x01, 0x05 };
         readonly static byte[] LastIndex = new byte[] { 0xff, 0xff, 0xff, 0xff };
-        readonly static byte[] BlockIndex = new byte[] { 0xef, 0xef, 0xef, 0xef };
+        readonly static byte[] BlockTxIndex = new byte[] { 0xef, 0xef, 0xef, 0xef };
+        readonly static byte[] BlockIndex = new byte[] { 0xdf, 0xdf, 0xdf, 0xdf };
 
         public ulong GetBlockCount()
         {
@@ -72,20 +73,27 @@ namespace AllPet.Module.block
         {
 
         }
-        public void MakeBlock(ulong index, byte[] block)
+        public void MakeBlock(ulong index, byte[] block,ulong txIndex,ulong blockIndex)
         {
             db.PutDirect(TableID_Blocks, BitConverter.GetBytes(index), block);
+            db.PutDirect(TableID_Indexs, BlockTxIndex, BitConverter.GetBytes(txIndex));
+            db.PutDirect(TableID_Indexs, BlockIndex, BitConverter.GetBytes(blockIndex));
         }
         public ulong GetLastIndex()
         {
             return db.GetUInt64Direct(TableID_Indexs, LastIndex);
         }
 
+        public ulong GetBlockTxIndex()
+        {
+            return db.GetUInt64Direct(TableID_Indexs, BlockTxIndex);
+        }
+
         public ulong GetBlockIndex()
         {
             return db.GetUInt64Direct(TableID_Indexs, BlockIndex);
         }
-        
+
     }
 
 }
