@@ -342,7 +342,14 @@ namespace AllPet.Module
                 }
             }                
         }
-
+        /// <summary>
+        /// txIndex:现在出到哪个交易啦
+        /// lastIndex:现在交易的最大号
+        /// 如果当前还有哪个交易没有出到块里，那就把出到块里
+        /// 如果当前所有交易都出块了，那就每隔15秒出个空块
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="e"></param>
         private void MakeBlock(object source, ElapsedEventArgs e)
         {
             lock (blockTimerLock)
