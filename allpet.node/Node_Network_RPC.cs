@@ -95,14 +95,8 @@ namespace AllPet.Module
             {
                 var index = this.GetLastIndex();
                 var hash256 = Helper.CalcSha256(item.AsBinary());                
-                TransAction tx = new TransAction();
-                tx.txIndex = index;
-                tx.txHash = hash256;
-                tx.body = new TXBody()
-                {
-                     script = item.AsBinary()                     
-                };                
-                blockChain.SetTx(this.lastIndex, tx);
+                             
+                blockChain.SetTx(this.lastIndex, index, hash256, item.AsBinary());
             }
             blockChain.Dispose();
             //this.Tell_SendRaw(this._System.GetPipeline(this,"this/node"),null);

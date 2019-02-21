@@ -158,6 +158,7 @@ namespace AllPet.Module
                 BlockChain blockChain = new BlockChain();
                 blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
                 this.lastIndex = blockChain.GetLastIndex();
+                blockChain.Dispose();
             }
             catch (Exception err)
             {
