@@ -26,6 +26,8 @@ namespace AllPet.Module
     public partial class Module_Node : Module_MsgPack
     {
         private ulong lastIndex ;
+        private ulong blockIndex;
+        private ulong blockCount;
         private ulong GetLastIndex()
         {
             var index = this.lastIndex;

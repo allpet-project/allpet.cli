@@ -13,6 +13,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
 using AllPet.Module.block;
+using System.Timers;
 
 namespace AllPet.Module
 {
@@ -123,6 +124,7 @@ namespace AllPet.Module
         System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
         Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
         static string NodePath = "./node.data";
+        System.Timers.Timer blockTimer;
 
 
         public Node.TXPool txpool;//交易池
@@ -137,6 +139,7 @@ namespace AllPet.Module
             this.provedNodes = new System.Collections.Concurrent.ConcurrentDictionary<ulong, LinkObj>();
             this.linkIDs = new System.Collections.Concurrent.ConcurrentDictionary<string, ulong>();
             this.listCanlink = new Struct.ThreadSafeQueueWithKey<CanLinkObj>();
+            
             try
             {
                 if (configJson.ContainsKey("Key_Nep2") && configJson.ContainsKey("Key_Password"))
@@ -158,7 +161,20 @@ namespace AllPet.Module
                 BlockChain blockChain = new BlockChain();
                 blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
                 this.lastIndex = blockChain.GetLastIndex();
+                this.blockIndex = blockChain.GetBlockIndex();
                 blockChain.Dispose();
+
+                //记账节点才需要出块
+                if (this.isProved)
+                {
+                    this.blockTimer = new System.Timers.Timer();
+                    this.blockTimer.Interval = 1000;//毫秒
+                    this.blockTimer.Enabled = true;
+                    this.blockTimer.AutoReset = true;//一直执行true 
+                    this.blockTimer.Elapsed += new System.Timers.ElapsedEventHandler(MakeBlock);
+                    this.blockTimer.Start();
+                }
+                
             }
             catch (Exception err)
             {
@@ -169,6 +185,12 @@ namespace AllPet.Module
             this.txpool = new Node.TXPool();
             ResetCanlinkList();
         }
+
+        private void BlockTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         //peerid 是连接id，而每个节点，需要一个唯一不重复的节点ID，以方便进行识别
 
 
@@ -318,6 +340,44 @@ namespace AllPet.Module
             }                
         }
 
+        private void MakeBlock(object source, ElapsedEventArgs e)
+        {
+            ulong[] block = null; ;
+            if(this.blockIndex>=(this.lastIndex-1))
+            {
+                if(blockCount >= 15)
+                {
+                    //出空块
+                    blockCount = 0;
+                    block = new ulong[] { };
+                }
+                else
+                {
+                    blockCount++;
+                }
+            }
+            else
+            {
+                blockCount = 0;
+                ulong length = this.lastIndex - this.blockIndex;
+                block = new ulong[length];
+                for(int i=0;i<block.Length;i++)
+                {
+                    block[i] = this.blockIndex + 1;
+                    if (block[i] >= this.lastIndex)
+                    {
+                        throw new Exception("haha 越界了");
+                    }
+                }
+            }
+            if (block != null)
+            {
+                BlockChain blockChain = new BlockChain();
+                blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
+                blockChain.MakeBlock((this.blockIndex+1),block);
+                blockChain.Dispose();
+            }
+        }
         public override void Dispose()
         {
             base.Dispose();
