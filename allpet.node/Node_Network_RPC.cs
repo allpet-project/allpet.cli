@@ -25,14 +25,15 @@ namespace AllPet.Module
     }
     public partial class Module_Node : Module_MsgPack
     {
-        private long lastIndex = -1;
+        private ulong lastIndex ;
         private ulong GetLastIndex()
         {
-            lock(this)
+            var index = this.lastIndex;
+            lock (this)
             {
                 lastIndex++;
             }
-            return (ulong)lastIndex;
+            return index;
         }
         public RPC_Result RPC_ListPeer(IList<MessagePackObject> _params)
         {
@@ -101,8 +102,9 @@ namespace AllPet.Module
                 {
                      script = item.AsBinary()                     
                 };                
-                blockChain.SetTx(index, tx);
+                blockChain.SetTx(this.lastIndex, tx);
             }
+            blockChain.Dispose();
             //this.Tell_SendRaw(this._System.GetPipeline(this,"this/node"),null);
             var result = new MessagePackObject(0);
             return new RPC_Result(result);

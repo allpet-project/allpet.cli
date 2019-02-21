@@ -57,20 +57,22 @@ namespace AllPet.Module.block
                 db.PutDirect(TableID_Blocks, BitConverter.GetBytes(blockcount), block.ToBytes());
             }
         }
-
         public void SetTx(UInt64 id, TransAction tx)
         {
-            IFormatter formatter = new BinaryFormatter();
-            MemoryStream stream = new MemoryStream();
-            formatter.Serialize(stream, tx);
+        }
+        public void SetTx(UInt64 lastindex,UInt64 id, byte[] data)
+        {
+            //IFormatter formatter = new BinaryFormatter();
+            //MemoryStream stream = new MemoryStream();
+            //formatter.Serialize(stream, tx);
 
-            byte[] bytes = new byte[(int)stream.Length];
-            stream.Position = 0;
-            int count = stream.Read(bytes, 0, (int)stream.Length);
-            stream.Close();
+            //byte[] bytes = new byte[(int)stream.Length];
+            //stream.Position = 0;
+            //int count = stream.Read(bytes, 0, (int)stream.Length);
+            //stream.Close();
 
-            db.PutDirect(TableID_TXs, tx.txHash, bytes);
-            db.PutDirect(TableID_Indexs,BitConverter.GetBytes(id), tx.txHash);
+            db.PutDirect(TableID_TXs, tx.txHash, tx.body.script);//txid到byte[]的映射
+            db.PutDirect(TableID_Indexs,BitConverter.GetBytes(tx.txIndex), tx.txHash);//index到txid的映射
             db.PutDirect(TableID_Indexs, LastIndex, BitConverter.GetBytes(id));
         }
         System.Collections.Concurrent.ConcurrentQueue<TransAction> queueTransAction;
@@ -78,6 +80,11 @@ namespace AllPet.Module.block
         {
 
         }
+        public ulong GetLastIndex()
+        {
+            return db.GetUInt64Direct(TableID_Indexs, LastIndex);
+        }
+        
     }
 
 }

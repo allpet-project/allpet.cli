@@ -103,7 +103,8 @@ namespace AllPet.Module
             MessagePackObjectDictionary dict = new MessagePackObjectDictionary();
             dict["cmd"] = CMDID_RPC;
             dict["method"] = "sendrawtransaction";
-            
+            dict["httpcallback"] = request.ContainsKey("httpcallback")?request["httpcallback"].ToString():string.Empty;
+
             var list = request["params"];
 
             //var pubkey = dict["pubkey"].AsBinary();

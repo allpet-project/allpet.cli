@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
+using AllPet.Module.block;
 
 namespace AllPet.Module
 {
@@ -153,6 +154,10 @@ namespace AllPet.Module
                         this.pLevel = 0;//记账节点
                     }
                 }
+
+                BlockChain blockChain = new BlockChain();
+                blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
+                this.lastIndex = blockChain.GetLastIndex();
             }
             catch (Exception err)
             {
