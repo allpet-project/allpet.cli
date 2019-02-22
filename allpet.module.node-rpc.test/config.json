@@ -1,0 +1,29 @@
+﻿{
+  "ModulesConfig": {
+    "Cli": {
+      "Open": false
+
+    },
+    "Node": {
+      "Open": true,
+      "PublicEndPoint": "0.0.0.0:2081",
+      "InitPeer": [
+        "127.0.0.1:2080"
+      ],
+      "ChainInfo": {
+        "MagicStr": "HelloKitty",
+        "InitOwner": [ "AdsNmzKPPG7HfmQpacZ4ixbv9XJHJs2ACz" ]
+      },
+      "SimpleDbPath": "db001"
+    },
+    "RPC": {
+      "Open": true,
+      "HttpListenEndPoint": "0.0.0.0:30082",
+      //https 端口设置为零表示不开https，开https就必须提供pfx证书和密码 一起
+      "HttpsListenEndPoint": "0.0.0.0:0",
+      "HttpsPFXFilePath": "",
+      "HttpsPFXFilePassword": ""
+    }
+  },
+  "ListenEndPoint": "0.0.0.0:2081"
+}

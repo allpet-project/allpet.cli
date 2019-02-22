@@ -76,9 +76,14 @@ namespace AllPet.Module
             dict["pleve"] = this.pLevel;//告诉对方我的优先级
             remote.Tell(new MessagePackObject(dict));
         }
-        void Tell_SendRaw(IModulePipeline remote, MessagePackObjectDictionary dict)
+        void Tell_SendRaw(IModulePipeline remote, IList<MessagePackObject> _params, string nodeid)
         {
-            
+            logger.Info($"------Tell_SendRaw  To:{remote.ToString()}  this nodeid:{nodeid}-------");
+            var dic = new MessagePackObjectDictionary();
+            dic["cmd"] = (UInt16)CmdList.Post_SendRaw;
+            dic["nodeid"] = nodeid;
+            dic["rawdata"] = new MessagePackObject(_params);
+            remote.Tell(new MessagePackObject(dic));
         }
         void Tell_Post_TouchProvedPeer(IModulePipeline remote,string pubep,string nodeid)
         {

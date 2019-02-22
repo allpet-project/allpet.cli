@@ -143,30 +143,43 @@ namespace AllPet.Module
         }
         void OnRecv_Post_SendRaw(IModulePipeline from, MessagePackObjectDictionary dict)
         {
-            bool isSended = false; ;
-            foreach (var item in this.provedNodes)
-            {
-                if (item.Value.hadJoin)
+            var nodeid = dict.ContainsKey("nodeid") ?dict["nodeid"].AsString():string.Empty;
+            logger.Info($"------OnRecv_Post_SendRaw  From:{from?.system?.Remote?.ToString()??"Local"}  nodeid:{nodeid}-------");
+
+            //收到消息后要么转发,要么保存
+            if (this.isProved)
+            {                
+                //如果不是自己发过来的，就保存
+                if (this.guid.ToString() != nodeid)
                 {
-                    Tell_SendRaw(item.Value.remoteNode, dict);
-                    isSended = true;
-                    break;
+                    SaveBlockChain(dict["rawdata"].AsList());
                 }
             }
-            if (!isSended)
+            else
             {
-                LinkObj minLink = null;
-                foreach (var item in this.linkNodes)
+                bool isSended = false;
+                var list = this.provedNodes.OrderBy(x=>x.Value.pLevel);
+                foreach (var item in list)
                 {
-                    if(minLink == null || item.Value.pLevel < minLink.pLevel)
+                    if (item.Value.hadJoin)
                     {
-                        minLink = item.Value;
-                    }                    
+                        Tell_SendRaw(item.Value.remoteNode, dict["rawdata"].AsList(), dict["nodeid"].AsString());
+                        isSended = true;
+                        break;
+                    }
                 }
-                if (minLink != null)
+                if (!isSended)
                 {
-                    Tell_SendRaw(minLink.remoteNode, dict);
-                }                
+                    var linkList = this.linkNodes.OrderBy(x => x.Value.pLevel);
+                    foreach (var item in this.linkNodes)
+                    {
+                        if (item.Value.hadJoin)
+                        {
+                            Tell_SendRaw(item.Value.remoteNode, dict["rawdata"].AsList(), dict["nodeid"].AsString());
+                            break;
+                        }
+                    }
+                }
             }
         }
         void OnRecv_BoradCast_PeerState(IModulePipeline from, MessagePackObjectDictionary dict)
