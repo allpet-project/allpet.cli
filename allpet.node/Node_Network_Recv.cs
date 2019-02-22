@@ -180,6 +180,7 @@ namespace AllPet.Module
         /// 7.数据存储
         /// 对共识节点，仅当组装成块的时候，一次性写入 block header、block涉及的交易、当前高度，用db 的 writebatch 方式
         /// 刚收到的交易不写数据库，仅有随块一起写入的，并且已写入的交易，内存池里就不必保持了。
+        /// 但是所有的txid->block index 的映射，内存池里要保持
         /// </summary>
         /// <param name="from"></param>
         /// <param name="dict"></param>
