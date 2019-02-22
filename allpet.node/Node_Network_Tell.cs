@@ -105,5 +105,85 @@ namespace AllPet.Module
             dict["isProved"] = this.isProved;
             remote.Tell(new MessagePackObject(dict));
         }
+
+
+
+
+        /// <summary>
+        /// remote是发这个消息的启示方
+        /// </summary>
+        /// <param name="remote"></param>
+        /// <param name="dict"></param>
+        void Tell_OneMsgToProvedNode(IModulePipeline remote, MessagePackObjectDictionary dict)
+        {
+
+        }
+
+        /// <summary>
+        /// 帮忙传递消息到共识节点
+        /// </summary>
+        /// <param name="remote"></param>
+        /// <param name="dict"></param>
+        void Tell_PassOneMsgToProvedNode(IModulePipeline remote, MessagePackObjectDictionary dict)
+        {
+
+        }
+
+
+
+        void Tell_Request_FindProvedNode(IModulePipeline remote,IList<MessagePackObject> returnpeer)
+        {
+            var dicts = new MessagePackObjectDictionary();
+            dicts["cmd"] = (UInt16)CmdList.Request_FindProvedNode;
+            if(returnpeer==null)
+            {
+                dicts["returnpeer"] = new MessagePackObject(new MessagePackObject[0]);
+            }else
+            {
+                dicts["returnpeer"] = returnpeer.ToArray();
+            }
+            remote.Tell(new MessagePackObject(dicts));
+        }
+
+        /// <summary>
+        /// 只告诉你我能找到哪个共识节点
+        /// </summary>
+        /// <param name="remote"></param>
+        /// <param name="returnPeer"></param>
+        void Tell_Response_FindProvedNode(IModulePipeline remote,IList<MessagePackObject> returnPeer)
+        {
+
+            var reDic = new MessagePackObjectDictionary();
+            reDic["returnPeer"] = returnPeer.ToArray();
+
+            if (this.isProved)
+            {
+                var nodearr = new List<MessagePackObject>();
+                nodearr.Add(new MessagePackObject(this.guid));
+            }
+            else
+            {
+                var nodearr = new List<MessagePackObject>();
+                foreach (var item in this.linkProvedList)
+                {
+                    nodearr.Add(new MessagePackObject(item.Key));
+                    //MessagePackObjectDictionary linknode = new MessagePackObjectDictionary();
+                    //linknode["id"] = new MessagePackObject(item.Key);
+
+                    //var listpath = new List<MessagePackObject>();
+                    //foreach (var link in item.Value)
+                    //{
+                    //    var linkpath = new MessagePackObjectDictionary();
+                    //    linkpath["path"] = link;
+                    //    listpath.Add(new MessagePackObject(linkpath));
+                    //}
+                    //linknode["paths"] = listpath.ToArray();
+                    //nodearr.Add(new MessagePackObject(linknode));
+                }
+                reDic["nodes"] = nodearr.ToArray();
+            }
+            remote.Tell(new MessagePackObject(reDic));
+
+        }
     }
 }

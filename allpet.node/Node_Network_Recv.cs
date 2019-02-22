@@ -271,7 +271,97 @@ namespace AllPet.Module
             }
             return false;
         }
+
+
+        private System.Collections.Concurrent.ConcurrentDictionary<Hash256, System.Collections.Concurrent.ConcurrentBag<ulong>> linkProvedList = new System.Collections.Concurrent.ConcurrentDictionary<Hash256, System.Collections.Concurrent.ConcurrentBag<ulong>>();
+        void OnRecv_SendOneMsgToProvedNode(MessagePackObject dict)
+        {
+            if(this.linkProvedList.IsEmpty)
+            {//找共识节点，将路径保存下来
+
+                foreach (var node in this.linkNodes)
+                {
+                    if (node.Value.pLevel>this.pLevel)
+                    {
+                        Tell_Request_FindProvedNode(node.Value.remoteNode,null);
+                    }
+                }
+            }else
+            {
+                
+            }
+        }
+
+        void OnRecv_Request_FindProvedNode(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var returnpeer = dict["returnpeer"].AsList();
+            if (this.isProved)
+            {
+                this.Tell_Response_FindProvedNode(from, returnpeer);
+            }else
+            {
+                if (this.linkProvedList.IsEmpty)
+                {
+                    returnpeer.Add(from.system.PeerID);
+                    foreach (var node in this.linkNodes)
+                    {
+                        if (node.Value.pLevel > this.pLevel)
+                        {
+                            Tell_Request_FindProvedNode(node.Value.remoteNode,returnpeer);
+                        }
+                    }
+                }
+                else
+                {
+                    this.Tell_Response_FindProvedNode(from, returnpeer);
+                }
+            }
+        }
+
+        void OnRecv_Response_FindProvedNode(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var nodes = dict["nodes"].AsList();
+            foreach (var node in nodes)
+            {
+                var nodedic=node.AsDictionary();
+                Hash256 id=nodedic["id"].AsBinary();
+                if(!this.linkProvedList.ContainsKey(id))
+                {
+                    this.linkProvedList[id] = new System.Collections.Concurrent.ConcurrentBag<ulong>();
+                }
+                //var pathList = nodedic["paths"].AsList();
+                //foreach(var path in pathList)
+                //{
+                //    var pathstr=path.AsString();
+                //    this.linkProvedList[id].Add(from.system.PeerID+"/"+pathstr);
+                //}
+                if(!this.linkProvedList[id].Contains(from.system.PeerID))
+                {
+                    this.linkProvedList[id].Add(from.system.PeerID);
+                }
+            }
+
+            if (dict.ContainsKey("returnpeer"))
+            {
+                var returnpeer = dict["returnpeer"].AsList();
+                var peer = returnpeer[returnpeer.Count-1].AsUInt64();
+                returnpeer.Remove(peer);
+
+                if(this.linkNodes.TryGetValue(peer, out LinkObj linkobj))
+                {
+                    this.Tell_Response_FindProvedNode(linkobj.remoteNode, returnpeer);
+                }
+            }
+        }
     }
+    /// <summary>
+    /// 能够连接到的共识节点
+    /// </summary>
+    //public class LinkedProvedNode
+    //{
+    //    public Hash256 id;
+    //    public string path;
+    //}
 
     public static class LinkNodeFunc
     {

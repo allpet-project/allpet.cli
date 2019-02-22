@@ -8,6 +8,7 @@ using System.Net;
 using AllPet.Common;
 using System.Linq;
 using AllPet.Module.block;
+using System.Threading;
 
 namespace AllPet.Module
 {
@@ -102,6 +103,41 @@ namespace AllPet.Module
             //this.Tell_SendRaw(this._System.GetPipeline(this,"this/node"),null);
             var result = new MessagePackObject(0);
             return new RPC_Result(result);
+        }
+
+
+        public RPC_Result Rpc_SendOneMsgToProvedNode(IModulePipeline frome,MessagePackObject _params)
+        {
+            ulong handle = 0;
+            lock(MsgHandle.inc)
+            {
+                handle = MsgHandle.inc.Next();
+            }
+            MessagePackObjectDictionary dict = new MessagePackObjectDictionary();
+            dict["msgID"] = handle;
+            dict["msg"] = _params;
+            this.OnRecv_SendOneMsgToProvedNode(new MessagePackObject(dict));
+            var result = new MessagePackObject(handle);
+            return new RPC_Result(result);
+        }
+    }
+
+
+    public class MsgHandle
+    {
+        private static MsgHandle _inc;
+        public static MsgHandle inc { get {
+                if (_inc == null)
+                {
+                    _inc = new MsgHandle();
+                }
+                return _inc;
+            } }
+
+        UInt64 id = 0;
+        public UInt64 Next()
+        {
+            return id++;
         }
     }
 }

@@ -244,7 +244,6 @@ namespace AllPet.Module
                 canlink.weight--;
             }
             logger.Info("_OnPeerClose" + id);
-
         }
         public override void OnStart()
         {

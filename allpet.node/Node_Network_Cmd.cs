@@ -32,6 +32,10 @@ namespace AllPet.Module
         BoradCast_PeerState,//一个节点证明了他自己,当证明或者优先级发生改变的时候，向所有下级节点广播
         BoardCast_NewBlock,//新的块产生了
 
+
+
+        Request_FindProvedNode,
+
         /// <summary>
         /// RPC开头的都是对称响应式的消息，收到的命令中必须有一个id，必须返回发送，返回的id就是收到的id
         /// </summary>
