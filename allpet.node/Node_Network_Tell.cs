@@ -29,6 +29,19 @@ namespace AllPet.Module
             dict["cmd"] = (UInt16)CmdList.Response_AcceptJoin;
             dict["checkinfo"] = link.CheckInfo;
             dict["pleve"] = this.pLevel;//告诉对方我的优先级
+            //-------------告知对方我能到达的共识节点或者是否是共识节点
+            if(this.isProved)
+            {
+                dict["isproved"] = true;
+            }else
+            {
+                var list = new List<MessagePackObject>();
+                foreach (var node in this.linkProvedDic)
+                {
+                    list.Add(new MessagePackObject(node.Key));
+                }
+                dict["provednodes"] = list.ToArray();
+            }
             //选个挑战信息
             remote.Tell(new MessagePackObject(dict));
         }
@@ -74,6 +87,14 @@ namespace AllPet.Module
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.BoradCast_PeerState;
             dict["pleve"] = this.pLevel;//告诉对方我的优先级
+
+            var list = new List<MessagePackObject>();
+            foreach (var node in this.linkProvedDic)
+            {
+                list.Add(new MessagePackObject(node.Key));
+            }
+            dict["provednodes"] = list.ToArray();
+
             remote.Tell(new MessagePackObject(dict));
         }
         void Tell_SendRaw(IModulePipeline remote, MessagePackObjectDictionary dict)
@@ -106,12 +127,14 @@ namespace AllPet.Module
             remote.Tell(new MessagePackObject(dict));
         }
 
+
+
         /// <summary>
         /// 发送消息到共识节点
         /// </summary>
         /// <param name="remote"></param>
         /// <param name="dict"></param>
-        void Tell_Reques_SendOneMsg(IModulePipeline remote, MessagePackObject dict)
+        void Tell_Request_SendOneMsg(IModulePipeline remote, MessagePackObject dict)
         {
             var msg = dict.AsDictionary();
             msg["cmd"] = (UInt16)CmdList.Request_SendOneMsg;
@@ -151,7 +174,7 @@ namespace AllPet.Module
             else
             {
                 var nodearr = new List<MessagePackObject>();
-                foreach (var item in this.linkProvedList)
+                foreach (var item in this.linkProvedDic)
                 {
                     nodearr.Add(new MessagePackObject(item.Key));
                     //MessagePackObjectDictionary linknode = new MessagePackObjectDictionary();

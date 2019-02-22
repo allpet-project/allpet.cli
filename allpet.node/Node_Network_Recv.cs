@@ -74,6 +74,31 @@ namespace AllPet.Module
             }           
 
             Tell_Request_PeerList(from);
+
+
+            //----------------
+            bool down_BoradCast = false;
+            if (dict.ContainsKey("isproved"))
+            {
+                var endpoint = link.publicEndPoint.ToString();
+                if(this.addLinkedProvedNode(endpoint, from.system.PeerID))
+                {
+                    down_BoradCast = true;
+                }
+            }
+            else
+            {
+                if (this.pLevel >= link.pLevel)
+                {//当优先级>=自己的时候才将对方能连接到的共识节点同步过来,当自己的优先级变更的（接入/断开）,也要维护linkprovedlist
+                    var linkedProvedNodes = dict["provednodes"].AsList();
+                    var peer = from.system.PeerID;
+                    if (this.addLinkedProvedNode(linkedProvedNodes, peer))
+                    {
+                        down_BoradCast = true;
+                    }
+                }
+            }
+
             //如果连接上了，要更新自己的优先级
             if (this.pLevel < 0)
             {
@@ -82,13 +107,13 @@ namespace AllPet.Module
                     this.pLevel = link.pLevel + 1;
                 }
             }
-            else if(this.pLevel > link.pLevel)
+            else if(this.pLevel >= link.pLevel)
             {
-                this.pLevel = link.pLevel + 1;
+                this.pLevel =Math.Min(link.pLevel + 1,this.pLevel);
                 //如果是变更，则广播低优先级节点
                 foreach (var item in this.linkNodes)
                 {
-                    if (item.Value.hadJoin && item.Value.pLevel < this.pLevel)
+                    if (item.Value.hadJoin && (item.Value.pLevel < this.pLevel||(item.Value.pLevel == this.pLevel&& down_BoradCast)))
                     {
                         Tell_BoradCast_PeerState(item.Value.remoteNode);
                     }
@@ -178,6 +203,8 @@ namespace AllPet.Module
             {
                 this.pLevel = parentPleve+1;
             }
+            var linkedprovedNode = dict["provednodes"].AsList();
+            this.addLinkedProvedNode(linkedprovedNode,from.system.PeerID);
         }
         void OnRecv_Post_TouchProvedPeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -277,9 +304,38 @@ namespace AllPet.Module
         /// <summary>
         /// key：共识节点的publicendpoint  value：peer list
         /// </summary>
-        private System.Collections.Concurrent.ConcurrentDictionary<string, System.Collections.Concurrent.ConcurrentQueue<ulong>> linkProvedList = new System.Collections.Concurrent.ConcurrentDictionary<string, System.Collections.Concurrent.ConcurrentQueue<ulong>>();
-        private System.Collections.Concurrent.ConcurrentQueue<MessagePackObject> waitSendMsgs = new System.Collections.Concurrent.ConcurrentQueue<MessagePackObject>();
-        private Action<IModulePipeline,string> OnkownPathToprovedNode;
+        private System.Collections.Concurrent.ConcurrentDictionary<string, System.Collections.Concurrent.ConcurrentQueue<ulong>> linkProvedDic = new System.Collections.Concurrent.ConcurrentDictionary<string, System.Collections.Concurrent.ConcurrentQueue<ulong>>();
+        //private System.Collections.Concurrent.ConcurrentQueue<MessagePackObject> waitSendMsgs = new System.Collections.Concurrent.ConcurrentQueue<MessagePackObject>();
+        //private Action<IModulePipeline,string> OnkownPathToprovedNode;
+
+        bool addLinkedProvedNode(string endpoint, ulong peer)
+        {
+            if (!this.linkProvedDic.ContainsKey(endpoint))
+            {
+                this.linkProvedDic[endpoint] = new System.Collections.Concurrent.ConcurrentQueue<ulong>();
+            }
+            if (!this.linkProvedDic[endpoint].Contains(peer))
+            {
+                this.linkProvedDic[endpoint].Enqueue(peer);
+                return true;
+            }
+            return false;
+        }
+
+        bool addLinkedProvedNode(IList<MessagePackObject> linkedProvedNodes, ulong peer)
+        {
+            var beAdd = false;
+            foreach (var endpoint in linkedProvedNodes)
+            {
+                if (this.addLinkedProvedNode(endpoint.AsString(), peer))
+                {
+                    beAdd = true;
+                }
+            }
+            return beAdd;
+        }
+
+
 
         void OnRecv_Request_SendOneMsg(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -295,34 +351,35 @@ namespace AllPet.Module
                 {
                     var returnpeer = dict["returnpeer"].AsList();
                     returnpeer.Add(from.system.PeerID);
+                    dict["returnpeer"] = returnpeer.ToArray();
                 }
 
                 var msg = new MessagePackObject(dict);
-                if (this.linkProvedList.IsEmpty)
-                {//找共识节点，将路径保存下来
+                //if (this.linkProvedDic.IsEmpty)
+                //{//找共识节点，将路径保存下来
 
-                    foreach (var node in this.linkNodes)
-                    {
-                        if (node.Value.pLevel > this.pLevel)
-                        {
-                            Tell_Request_FindProvedNode(node.Value.remoteNode, null);
-                        }
-                    }
-                    waitSendMsgs.Enqueue(msg);
-                    this.OnkownPathToprovedNode += (remote,provedNode) =>
-                    {
-                        while (waitSendMsgs.Count > 0)
-                        {
-                            if (waitSendMsgs.TryDequeue(out MessagePackObject onemsg))
-                            {
-                                var dictmsg = onemsg.AsDictionary();
-                                dictmsg["proved"] = new MessagePackObject(provedNode);
-                                this.Tell_Reques_SendOneMsg(remote, new MessagePackObject(dictmsg));
-                            }
-                        }
-                    };
-                }
-                else
+                //    foreach (var node in this.linkNodes)
+                //    {
+                //        if (node.Value.pLevel > this.pLevel)
+                //        {
+                //            Tell_Request_FindProvedNode(node.Value.remoteNode, null);
+                //        }
+                //    }
+                //    waitSendMsgs.Enqueue(msg);
+                //    this.OnkownPathToprovedNode += (remote,provedNode) =>
+                //    {
+                //        while (waitSendMsgs.Count > 0)
+                //        {
+                //            if (waitSendMsgs.TryDequeue(out MessagePackObject onemsg))
+                //            {
+                //                var dictmsg = onemsg.AsDictionary();
+                //                dictmsg["proved"] = new MessagePackObject(provedNode);
+                //                this.Tell_Request_SendOneMsg(remote, new MessagePackObject(dictmsg));
+                //            }
+                //        }
+                //    };
+                //}
+                //else
                 {
                     if (this.SendMsg(msg))
                     {
@@ -334,7 +391,7 @@ namespace AllPet.Module
 
         private bool SendMsg(MessagePackObject msg)
         {
-            foreach(var Linknode in this.linkProvedList)
+            foreach(var Linknode in this.linkProvedDic)
             {
                 var nodeArr = Linknode.Value;
                 foreach(var peer in nodeArr)
@@ -343,7 +400,7 @@ namespace AllPet.Module
                     {
                         var dict = msg.AsDictionary();
                         dict["proved"] =new MessagePackObject(Linknode.Key);
-                        this.Tell_Reques_SendOneMsg(obj.remoteNode,new MessagePackObject(dict));
+                        this.Tell_Request_SendOneMsg(obj.remoteNode,new MessagePackObject(dict));
                         return true;
                     }
                 }
@@ -359,7 +416,7 @@ namespace AllPet.Module
                 this.Tell_Response_FindProvedNode(from, returnpeer);
             }else
             {
-                if (this.linkProvedList.IsEmpty)
+                if (this.linkProvedDic.IsEmpty)
                 {
                     returnpeer.Add(from.system.PeerID);
                     foreach (var node in this.linkNodes)
@@ -384,9 +441,9 @@ namespace AllPet.Module
             {
                 var nodedic=node.AsDictionary();
                 string id=nodedic["id"].AsString();
-                if(!this.linkProvedList.ContainsKey(id))
+                if(!this.linkProvedDic.ContainsKey(id))
                 {
-                    this.linkProvedList[id] = new System.Collections.Concurrent.ConcurrentQueue<ulong>();
+                    this.linkProvedDic[id] = new System.Collections.Concurrent.ConcurrentQueue<ulong>();
                 }
                 //var pathList = nodedic["paths"].AsList();
                 //foreach(var path in pathList)
@@ -394,9 +451,9 @@ namespace AllPet.Module
                 //    var pathstr=path.AsString();
                 //    this.linkProvedList[id].Add(from.system.PeerID+"/"+pathstr);
                 //}
-                if(!this.linkProvedList[id].Contains(from.system.PeerID))
+                if(!this.linkProvedDic[id].Contains(from.system.PeerID))
                 {
-                    this.linkProvedList[id].Enqueue(from.system.PeerID);
+                    this.linkProvedDic[id].Enqueue(from.system.PeerID);
                     if(this.OnkownPathToprovedNode!=null)
                     {
                         this.OnkownPathToprovedNode(from, id);

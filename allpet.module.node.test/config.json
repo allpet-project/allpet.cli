@@ -12,6 +12,8 @@
         "MagicStr": "HelloKitty",
         "InitOwner": [ "AdsNmzKPPG7HfmQpacZ4ixbv9XJHJs2ACz" ]
       },
+      "Key_Nep2": "6PYT8kA51wDoG1zHMVPVEnWKM2ptRoUTSxa2EWumAEahBtkuimfMuwWsBj",
+      "Key_Password": "12345678",
       "SimpleDbPath": "db001"
     }
   },
