@@ -30,7 +30,7 @@ namespace AllPet.Pipeline
         ICollection<string> GetAllSystemsPath();
         ICollection<ISystemPipeline> GetAllSystems();
 
-        IModulePipeline GetPipeline(IModuleInstance user, string urlFrom, Action<IModulePipeline> PreInit = null);
+        IModulePipeline GetPipeline(IModuleInstance user, string urlFrom);
 
         void RegistModule(string path, IModuleInstance actor);
         IModuleInstance GetModule(string path);
@@ -64,10 +64,13 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        event Action<UInt64> OnPeerClose;
-        event Action<UInt64, bool, IPEndPoint> OnPeerLink;
+        //event Action<UInt64> OnPeerClose;
+        //event Action<UInt64, bool, IPEndPoint> OnPeerLink;
         IModulePipeline GetPipeline(IModuleInstance user, string urlFrom);
         IModulePipeline GetPipeLineByFrom(IModulePipeline from, IModuleInstance to);
+
+        void SetLinkEvent(Action<ISystemPipeline> methodOnLink);
+        void SetLinkCloseEvent(Action<ISystemPipeline> methodOnClose);
     }
     //连接到的actor
     public interface IModulePipeline
@@ -90,6 +93,7 @@ namespace AllPet.Pipeline
         {
             get;
         }
+
     }
 
     public interface IModuleInstance : IDisposable
@@ -114,7 +118,9 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        IModulePipeline GetPipeline(string urlActor, Action<IModulePipeline> PreInit = null);
+        //这个接口这样设计的确有些奇怪
+        IModulePipeline GetPipeline(string urlActor);
+        //IModulePipeline GetPipeline(string urlActor, Action<IModulePipeline> PreInit = null);
         void OnRegistered(ISystem system,string path);
         void OnStart();
         void OnStarted();

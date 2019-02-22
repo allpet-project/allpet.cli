@@ -46,17 +46,21 @@ namespace AllPet.Pipeline
         public bool linked
         {
             get;
-            set;
+            private set;
         }
 
-        public event Action<UInt64,bool,IPEndPoint> OnPeerLink;
-        public event Action<UInt64> OnPeerClose;
-        public void Close(UInt64 id)
+        public event Action<RefSystemRemote> OnPeerLink;
+        public event Action<RefSystemRemote> OnPeerClose;
+        bool closed = false;
+        public void Close()
         {
-            this.linked = false;
-
-            if (OnPeerClose != null)
-                this.OnPeerClose(id);
+            lock (this)
+            {
+                this.linked = false;
+                this.closed = true;
+                if (OnPeerClose != null)
+                    this.OnPeerClose(this);
+            }
         }
         //public void HaltLink()
         //{
@@ -66,15 +70,44 @@ namespace AllPet.Pipeline
         //{
         //    System.Threading.Monitor.Exit(this);
         //}
-        public void Linked(UInt64 id,bool accept,IPEndPoint remote)
+
+        public void SetLinkEvent(Action<ISystemPipeline> methodOnLink)
         {
-            System.Threading.Monitor.Enter(this);
+            lock (this)
+            {
+                if (this.linked)
+                {
+                    methodOnLink(this);
+                }
+                else
+                {
+                    this.OnPeerLink += methodOnLink;
+                }
+            }
+        }
+        public void SetLinkCloseEvent(Action<ISystemPipeline> methodOnClose)
+        {
+            lock (this)
+            {
+                if (this.closed)
+                {
+                    methodOnClose(this);
+                }
+                else
+                {
+                    this.OnPeerClose += methodOnClose;
+                }
+            }
+        }
+
+        public void Linked(UInt64 id, bool accept, IPEndPoint remote)
+        {
+            lock (this)
             {
                 this.linked = true;
                 if (OnPeerLink != null)
-                    this.OnPeerLink(id, accept, remote);
+                    this.OnPeerLink(this);
             }
-            System.Threading.Monitor.Exit(this);
         }
         public IModulePipeline GetPipeline(IModuleInstance user, string path)
         {
@@ -170,5 +203,6 @@ namespace AllPet.Pipeline
         {
             throw new Exception("not support to telllocal obj on remote pipeline.");
         }
+
     }
 }

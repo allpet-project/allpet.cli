@@ -133,7 +133,7 @@ namespace AllPet.Pipeline
             //    return refPipelines[refName];
             //}
         }
-        public IModulePipeline GetPipeline(IModuleInstance user, string urlActor,Action<IModulePipeline> PreInit=null)
+        public IModulePipeline GetPipeline(IModuleInstance user, string urlActor)
         {
             if (bStarted == false)
                 throw new Exception("must getpipeline after System.Start()");
@@ -183,10 +183,10 @@ namespace AllPet.Pipeline
                 if (refSystems.TryGetValue(addr, out refsys))
                 {
                     IModulePipeline node = refsys.GetPipeline(user, path);
-                    if(PreInit!=null)
-                    {
-                        PreInit(node);
-                    }
+                    //if(PreInit!=null)
+                    //{
+                    //    PreInit(node);
+                    //}
                     return node;
                 }
                 else
@@ -194,10 +194,10 @@ namespace AllPet.Pipeline
                     IModulePipeline node = null;
                     refsys = this.Connect(addr.AsIPEndPoint(),(system)=> {
                         node = system.GetPipeline(user, path);
-                        if (PreInit != null)
-                        {
-                            PreInit(node);
-                        }
+                        //if (PreInit != null)
+                        //{
+                        //    PreInit(node);
+                        //}
                     });
                     return node;
                 }
@@ -228,7 +228,7 @@ namespace AllPet.Pipeline
                   {
                       if (this.refSystems.TryRemove(_remotestr, out ISystemPipeline remote))
                       {
-                          (remote as RefSystemRemote).Close(id);
+                          (remote as RefSystemRemote).Close();
                       }
                       Console.WriteLine("close line=" + id);
                   }
@@ -274,7 +274,7 @@ namespace AllPet.Pipeline
                 var remotestr = endpoint.ToString();
                 linkedIP[id] = remotestr;
                 RefSystemRemote remote = new RefSystemRemote(this, peer, endpoint, id, true);
-                remote.linked = true;
+                //remote.linked = true;
                 (remote as RefSystemRemote).Linked(id, true, endpoint);
                 this.refSystems[remotestr] = remote;
 
@@ -307,7 +307,7 @@ namespace AllPet.Pipeline
                         logger.Warn("意外的值");
                     }
                     var remote = this.refSystems[remotestr] as RefSystemRemote;
-                    remote.linked = true;
+                    //remote.linked = true;
                     (remote as RefSystemRemote).Linked(id, false, endpoint);
                     logger.Info("==link delay== systemid" + id);
 
@@ -360,7 +360,7 @@ namespace AllPet.Pipeline
                     var remotestr = _remote.ToString();
                     this.linkedIP[_linkid] = remotestr;
                     remote = new RefSystemRemote(this, peer, _remote, _linkid, false);
-                    remote.linked = false;
+                    //remote.linked = false;
                     this.refSystems[remotestr] = remote;
                     if(PreInit!=null)
                     {
