@@ -118,7 +118,7 @@ namespace AllPet.Module
             dict["msg"] = _params;
             dict["from"] = this.config.PublicEndPoint.ToString();//将自己的PublicEndPoint塞进去
             dict["returnpeer"] = new MessagePackObject(new MessagePackObject[0]);
-            this.OnRecv_Request_SendOneMsg(null,new MessagePackObject(dict));
+            this.OnRecv_Request_SendOneMsg(null, dict);
             var result = new MessagePackObject(handle);
             return new RPC_Result(result);
         }

@@ -281,10 +281,9 @@ namespace AllPet.Module
         private System.Collections.Concurrent.ConcurrentQueue<MessagePackObject> waitSendMsgs = new System.Collections.Concurrent.ConcurrentQueue<MessagePackObject>();
         private Action<IModulePipeline,string> OnkownPathToprovedNode;
 
-        void OnRecv_Request_SendOneMsg(IModulePipeline from,MessagePackObject dict)
+        void OnRecv_Request_SendOneMsg(IModulePipeline from, MessagePackObjectDictionary dict)
         {
-            var dictobj = dict.AsDictionary();
-            var fromendpoint = dictobj["from"].AsString();
+            var fromendpoint = dict["from"].AsString();
             if (this.isProved)
             {
                 logger.Info("收到一条消息！！！from:"+ fromendpoint+" proved");
@@ -294,11 +293,11 @@ namespace AllPet.Module
             {
                 if (from != null)
                 {
-                    var returnpeer = dictobj["returnpeer"].AsList();
+                    var returnpeer = dict["returnpeer"].AsList();
                     returnpeer.Add(from.system.PeerID);
                 }
 
-                var msg = new MessagePackObject(dictobj);
+                var msg = new MessagePackObject(dict);
                 if (this.linkProvedList.IsEmpty)
                 {//找共识节点，将路径保存下来
 

@@ -106,9 +106,6 @@ namespace AllPet.Module
             remote.Tell(new MessagePackObject(dict));
         }
 
-
-
-
         /// <summary>
         /// 发送消息到共识节点
         /// </summary>

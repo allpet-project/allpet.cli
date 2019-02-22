@@ -161,7 +161,7 @@ namespace AllPet.Module
                         this.pLevel = 0;//记账节点
                     }
                 }
-
+                return;
                 blockChain = new BlockChain();
                 blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
                 this.lastIndex = blockChain.GetLastIndex();
