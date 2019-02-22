@@ -92,17 +92,13 @@ namespace AllPet.Module
         }
         public RPC_Result RPC_SendRawTransaction(IList<MessagePackObject> _params)
         {
-            BlockChain blockChain = new BlockChain();
-            blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
-            
             foreach (var item in _params)
             {
                 var index = this.GetLastIndex();
                 var hash256 = Helper.CalcSha256(item.AsBinary());                
                              
-                blockChain.SetTx(this.lastIndex, index, hash256, item.AsBinary());
+                this.blockChain.SetTx(this.lastIndex, index, hash256, item.AsBinary());
             }
-            blockChain.Dispose();
             //this.Tell_SendRaw(this._System.GetPipeline(this,"this/node"),null);
             var result = new MessagePackObject(0);
             return new RPC_Result(result);

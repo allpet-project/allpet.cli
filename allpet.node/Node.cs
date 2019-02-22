@@ -124,9 +124,11 @@ namespace AllPet.Module
         System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
         Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
         System.Timers.Timer blockTimer;
+        BlockChain blockChain;
+
         static string NodePath = "./node.data";
         static ulong blockTime = 5;//出块间隔时间
-        private static  object blockTimerLock = new object();
+        static  object blockTimerLock = new object();
 
 
         public Node.TXPool txpool;//交易池
@@ -160,12 +162,11 @@ namespace AllPet.Module
                     }
                 }
 
-                BlockChain blockChain = new BlockChain();
+                blockChain = new BlockChain();
                 blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
                 this.lastIndex = blockChain.GetLastIndex();
                 this.blockIndex = blockChain.GetBlockIndex();
-                this.txIndex = blockChain.GetBlockTxIndex();
-                blockChain.Dispose();
+                this.txIndex = blockChain.GetBlockTxIndex();                
 
                 //记账节点才需要出块
                 if (this.isProved)
@@ -354,15 +355,17 @@ namespace AllPet.Module
         {
             lock (blockTimerLock)
             {
-                ulong[] block = null;
+                List<MessagePackObject> block = null;
 
-                if (this.txIndex > (this.lastIndex - 1) || this.lastIndex <=0)
+                //没有交易时要出空块
+                //有交易且所有交易都已出块，也要出空块
+                if ((this.txIndex != 0 && this.txIndex >= (this.lastIndex - 1)) || this.lastIndex <=0)
                 {
                     if (blockCount >= (15/ blockTime))
                     {
                         //出空块
                         blockCount = 0;
-                        block = new ulong[] { };
+                        block = new List<MessagePackObject>();
                     }
                     else
                     {
@@ -375,11 +378,11 @@ namespace AllPet.Module
                     ulong length = this.txIndex==0?(this.lastIndex - this.txIndex):(this.lastIndex - this.txIndex-1);
                     if (length > 0)
                     {
-                        block = new ulong[length];
+                        block = new List<MessagePackObject>();
                         ulong start = (this.txIndex == 0 ? 0 : (this.txIndex + 1));
-                        for (int i = 0; i < block.Length; i++)
+                        for (ulong i = 0; i < length; i++)
                         {
-                            block[i] = start;
+                            block.Add(new MessagePackObject(start));
                             this.txIndex = start;
                             start++;
                         }
@@ -387,22 +390,19 @@ namespace AllPet.Module
                 }
                 if (block != null)
                 {
-                    BlockChain blockChain = new BlockChain();
-                    blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);                    
-                    var data = string.Join(",", block);
+                    var data = MsgPack_Helper.Pack(new MessagePackObject(block));
                     var bindex = this.blockIndex;
                     this.blockIndex++;
-                    blockChain.MakeBlock(bindex, System.Text.Encoding.Default.GetBytes(data),this.txIndex, this.blockIndex);
-                    
-                    blockChain.Dispose();                    
+                    this.blockChain.MakeBlock(bindex, data.ToArray(), this.txIndex, this.blockIndex);
                 }
             }
         }
         public override void Dispose()
         {
             base.Dispose();
+            this.blockChain.Dispose();
             SaveCanlinkList();
-            stopWatchNetWork();
+            stopWatchNetWork();            
         }
         private CancellationTokenSource cts;
         public void stopWatchNetWork()
