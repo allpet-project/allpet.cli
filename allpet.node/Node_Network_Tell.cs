@@ -110,26 +110,16 @@ namespace AllPet.Module
 
 
         /// <summary>
-        /// remote是发这个消息的启示方
+        /// 发送消息到共识节点
         /// </summary>
         /// <param name="remote"></param>
         /// <param name="dict"></param>
-        void Tell_OneMsgToProvedNode(IModulePipeline remote, MessagePackObjectDictionary dict)
+        void Tell_Reques_SendOneMsg(IModulePipeline remote, MessagePackObject dict)
         {
-
+            var msg = dict.AsDictionary();
+            msg["cmd"] = (UInt16)CmdList.Request_SendOneMsg;
+            remote.Tell(new MessagePackObject(msg));
         }
-
-        /// <summary>
-        /// 帮忙传递消息到共识节点
-        /// </summary>
-        /// <param name="remote"></param>
-        /// <param name="dict"></param>
-        void Tell_PassOneMsgToProvedNode(IModulePipeline remote, MessagePackObjectDictionary dict)
-        {
-
-        }
-
-
 
         void Tell_Request_FindProvedNode(IModulePipeline remote,IList<MessagePackObject> returnpeer)
         {
@@ -152,14 +142,14 @@ namespace AllPet.Module
         /// <param name="returnPeer"></param>
         void Tell_Response_FindProvedNode(IModulePipeline remote,IList<MessagePackObject> returnPeer)
         {
-
             var reDic = new MessagePackObjectDictionary();
             reDic["returnPeer"] = returnPeer.ToArray();
 
             if (this.isProved)
             {
                 var nodearr = new List<MessagePackObject>();
-                nodearr.Add(new MessagePackObject(this.guid));
+                nodearr.Add(this.config.PublicEndPoint.ToString());
+                reDic["nodes"] = nodearr.ToArray();
             }
             else
             {

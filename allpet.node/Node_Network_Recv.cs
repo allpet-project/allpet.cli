@@ -7,6 +7,8 @@ using System.Text;
 using System.Net;
 using AllPet.Common;
 using System.Linq;
+using System.Threading.Tasks;
+
 namespace AllPet.Module
 {
     partial class Module_Node : Module_MsgPack
@@ -272,24 +274,82 @@ namespace AllPet.Module
             return false;
         }
 
+        /// <summary>
+        /// key：共识节点的publicendpoint  value：peer list
+        /// </summary>
+        private System.Collections.Concurrent.ConcurrentDictionary<string, System.Collections.Concurrent.ConcurrentQueue<ulong>> linkProvedList = new System.Collections.Concurrent.ConcurrentDictionary<string, System.Collections.Concurrent.ConcurrentQueue<ulong>>();
+        private System.Collections.Concurrent.ConcurrentQueue<MessagePackObject> waitSendMsgs = new System.Collections.Concurrent.ConcurrentQueue<MessagePackObject>();
+        private Action<IModulePipeline,string> OnkownPathToprovedNode;
 
-        private System.Collections.Concurrent.ConcurrentDictionary<Hash256, System.Collections.Concurrent.ConcurrentBag<ulong>> linkProvedList = new System.Collections.Concurrent.ConcurrentDictionary<Hash256, System.Collections.Concurrent.ConcurrentBag<ulong>>();
-        void OnRecv_SendOneMsgToProvedNode(MessagePackObject dict)
+        void OnRecv_Request_SendOneMsg(IModulePipeline from,MessagePackObject dict)
         {
-            if(this.linkProvedList.IsEmpty)
-            {//找共识节点，将路径保存下来
+            var dictobj = dict.AsDictionary();
+            var fromendpoint = dictobj["from"].AsString();
+            if (this.isProved)
+            {
+                logger.Info("收到一条消息！！！from:"+ fromendpoint+" proved");
 
-                foreach (var node in this.linkNodes)
-                {
-                    if (node.Value.pLevel>this.pLevel)
-                    {
-                        Tell_Request_FindProvedNode(node.Value.remoteNode,null);
-                    }
-                }
+                //-------------------------发回执？？
             }else
             {
-                
+                if (from != null)
+                {
+                    var returnpeer = dictobj["returnpeer"].AsList();
+                    returnpeer.Add(from.system.PeerID);
+                }
+
+                var msg = new MessagePackObject(dictobj);
+                if (this.linkProvedList.IsEmpty)
+                {//找共识节点，将路径保存下来
+
+                    foreach (var node in this.linkNodes)
+                    {
+                        if (node.Value.pLevel > this.pLevel)
+                        {
+                            Tell_Request_FindProvedNode(node.Value.remoteNode, null);
+                        }
+                    }
+                    waitSendMsgs.Enqueue(msg);
+                    this.OnkownPathToprovedNode += (remote,provedNode) =>
+                    {
+                        while (waitSendMsgs.Count > 0)
+                        {
+                            if (waitSendMsgs.TryDequeue(out MessagePackObject onemsg))
+                            {
+                                var dictmsg = onemsg.AsDictionary();
+                                dictmsg["proved"] = new MessagePackObject(provedNode);
+                                this.Tell_Reques_SendOneMsg(remote, new MessagePackObject(dictmsg));
+                            }
+                        }
+                    };
+                }
+                else
+                {
+                    if (this.SendMsg(msg))
+                    {
+                        logger.Info("发送msg 失败！！未告诉下个节点msg.发送时机： OnRecv_SendOneMsgToProvedNode");
+                    }
+                }
             }
+        }
+
+        private bool SendMsg(MessagePackObject msg)
+        {
+            foreach(var Linknode in this.linkProvedList)
+            {
+                var nodeArr = Linknode.Value;
+                foreach(var peer in nodeArr)
+                {
+                    if(this.linkNodes.TryGetValue(peer,out LinkObj obj))
+                    {
+                        var dict = msg.AsDictionary();
+                        dict["proved"] =new MessagePackObject(Linknode.Key);
+                        this.Tell_Reques_SendOneMsg(obj.remoteNode,new MessagePackObject(dict));
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         void OnRecv_Request_FindProvedNode(IModulePipeline from, MessagePackObjectDictionary dict)
@@ -324,10 +384,10 @@ namespace AllPet.Module
             foreach (var node in nodes)
             {
                 var nodedic=node.AsDictionary();
-                Hash256 id=nodedic["id"].AsBinary();
+                string id=nodedic["id"].AsString();
                 if(!this.linkProvedList.ContainsKey(id))
                 {
-                    this.linkProvedList[id] = new System.Collections.Concurrent.ConcurrentBag<ulong>();
+                    this.linkProvedList[id] = new System.Collections.Concurrent.ConcurrentQueue<ulong>();
                 }
                 //var pathList = nodedic["paths"].AsList();
                 //foreach(var path in pathList)
@@ -337,7 +397,11 @@ namespace AllPet.Module
                 //}
                 if(!this.linkProvedList[id].Contains(from.system.PeerID))
                 {
-                    this.linkProvedList[id].Add(from.system.PeerID);
+                    this.linkProvedList[id].Enqueue(from.system.PeerID);
+                    if(this.OnkownPathToprovedNode!=null)
+                    {
+                        this.OnkownPathToprovedNode(from, id);
+                    }
                 }
             }
 

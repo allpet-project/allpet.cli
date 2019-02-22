@@ -35,7 +35,7 @@ namespace AllPet.Module
 
 
         Request_FindProvedNode,
-
+        Request_SendOneMsg,
         /// <summary>
         /// RPC开头的都是对称响应式的消息，收到的命令中必须有一个id，必须返回发送，返回的id就是收到的id
         /// </summary>
