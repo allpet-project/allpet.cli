@@ -128,6 +128,5 @@ namespace AllPet.Module
             dict["plevel"] = this.pLevel;
             remote.Tell(new MessagePackObject(dict));
         }
-
     }
 }

@@ -38,7 +38,9 @@ namespace AllPet.Module
         RPC = 0x0300,
 
         Request_Plevel,
-        Response_Plevel
+        Response_Plevel,
+        Request_SendMsg,
+        Request_ConnectTo
     }
     public partial class Module_Node : Module_MsgPack
     {
@@ -134,6 +136,10 @@ namespace AllPet.Module
                                         this.Tell_Request_plevel(item.remoteNode);
                                     }
                                 }
+                                if(_cmd== "fakeRemote")
+                                {
+                                    this.onRecv_FakeRemote(dict);
+                                }
                             }
                         }
                         break;
@@ -149,7 +155,6 @@ namespace AllPet.Module
             }
             else //远程发来的消息
             {
-
                 if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link) == false)
                 {
                     linkNodes[from.system.PeerID] = new LinkObj()
@@ -157,67 +162,83 @@ namespace AllPet.Module
                         ID = null,
                         remoteNode = from,
                         publicEndPoint = null,
-                        beAccepted=true
+                        beAccepted = true
                     };
                     RegNetEvent(from.system);
                 }
-                logger.Info("remote msg:" + obj.Value.ToString());
-                switch (cmd)
-                {
-                    case CmdList.Request_JoinPeer://告知其他节点我的存在，包括是不是共识节点之类的
-                        {
-                            OnRecv_RequestJoinPeer(from, dict);
-                        }
-                        break;
-                    case CmdList.Response_AcceptJoin://同意他加入，并给他一个测试信息
-                        {
-                            OnRecv_ResponseAcceptJoin(from, dict);
-                        }
-                        break;
-                    case CmdList.Request_ProvePeer:
-                        {
-                            OnRecv_RequestProvePeer(from, dict);
-                        }
-                        break;
-                    case CmdList.Request_PeerList://询问一个节点所能到达的节点
-                        OnRecv_Request_PeerList(from, dict);
-                        break;
-                    case CmdList.Response_PeerList://告知一个节点所能到达的节点
-                        OnRecv_Response_PeerList(from, dict);
-                        break;
-                    case CmdList.Post_SendRaw:
-                        OnRecv_Post_SendRaw(from, dict);
-                        break;
-                    case CmdList.BoradCast_PeerState://告知一个节点，节点状态变更（优先级）
-                        {
-                            OnRecv_BoradCast_PeerState(from, dict);
-                        }
-                        break;
-                    case CmdList.Post_TouchProvedPeer:
-                        {
-                            OnRecv_Post_TouchProvedPeer(from, dict);
-                        }
-                        break;
-                    case CmdList.Response_Iamhere://告知是否是记账节点或者是否能够到达共识节点
-                        {
-                            OnRecv_Response_Iamhere(from, dict);
-                        }
-                        break;
-                    case CmdList.Response_ProvedRelay://告知是否是记账节点或者是否能够到达共识节点
-                        {
-                            OnRecv_Response_ProvedRelay(from, dict);
-                        }
-                        break;
-                    case CmdList.Request_Plevel:
-                        OnRecv_Request_plevel(from);
-                        break;
-                    case CmdList.Response_Plevel:
-                        OnRecv_Response_plevel(from,dict);
-                        break;
-                    default:
-                        logger.Error("unknow msg:" + dict.ToString());
-                        break;
-                }
+                this.OnReceiveMsgFromRemote(from,cmd,dict);
+            }
+        }
+        /// <summary>
+        /// 搬到这里来，让本地消息有机会插进来，自己给自己发
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="cmd"></param>
+        /// <param name="dict"></param>
+        private void OnReceiveMsgFromRemote(IModulePipeline from, CmdList cmd,MessagePackObjectDictionary dict)
+        {
+            //logger.Info("remote msg:" + obj.Value.ToString());
+            switch (cmd)
+            {
+                case CmdList.Request_JoinPeer://告知其他节点我的存在，包括是不是共识节点之类的
+                    {
+                        OnRecv_RequestJoinPeer(from, dict);
+                    }
+                    break;
+                case CmdList.Response_AcceptJoin://同意他加入，并给他一个测试信息
+                    {
+                        OnRecv_ResponseAcceptJoin(from, dict);
+                    }
+                    break;
+                case CmdList.Request_ProvePeer:
+                    {
+                        OnRecv_RequestProvePeer(from, dict);
+                    }
+                    break;
+                case CmdList.Request_PeerList://询问一个节点所能到达的节点
+                    OnRecv_Request_PeerList(from, dict);
+                    break;
+                case CmdList.Response_PeerList://告知一个节点所能到达的节点
+                    OnRecv_Response_PeerList(from, dict);
+                    break;
+                case CmdList.Post_SendRaw:
+                    OnRecv_Post_SendRaw(from, dict);
+                    break;
+                case CmdList.BoradCast_PeerState://告知一个节点，节点状态变更（优先级）
+                    {
+                        OnRecv_BoradCast_PeerState(from, dict);
+                    }
+                    break;
+                case CmdList.Post_TouchProvedPeer:
+                    {
+                        OnRecv_Post_TouchProvedPeer(from, dict);
+                    }
+                    break;
+                case CmdList.Response_Iamhere://告知是否是记账节点或者是否能够到达共识节点
+                    {
+                        OnRecv_Response_Iamhere(from, dict);
+                    }
+                    break;
+                case CmdList.Response_ProvedRelay://告知是否是记账节点或者是否能够到达共识节点
+                    {
+                        OnRecv_Response_ProvedRelay(from, dict);
+                    }
+                    break;
+                case CmdList.Request_Plevel:
+                    OnRecv_Request_plevel(from);
+                    break;
+                case CmdList.Response_Plevel:
+                    OnRecv_Response_plevel(from, dict);
+                    break;
+                case CmdList.Request_SendMsg:
+                    OnRecv_SendMsg(from, dict);
+                    break;
+                case CmdList.Request_ConnectTo:
+                    OnRecv_Request_ConnectTo(from, dict);
+                    break;
+                default:
+                    logger.Error("unknow msg:" + dict.ToString());
+                    break;
             }
         }
     }

@@ -401,6 +401,60 @@ namespace AllPet.Module
         {
             this.Tell_Response_plevel(from);
         }
+
+        public MessagePackObject makeCmd_ConentTo(string endpoint)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_ConnectTo;
+            dict["endpoint"] = endpoint;
+            return new MessagePackObject(dict);
+        }
+        public MessagePackObject makeCmd_SendMsg(string targetEndpoint, MessagePackObject msg)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_SendMsg;
+            dict["msg"] = msg;
+            dict["target"] = targetEndpoint;
+            return new MessagePackObject(dict);
+        }
+
+        public MessagePackObject makeCmd_FakeRemote(MessagePackObject msg)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Local_Cmd;
+            var paramss= new List<MessagePackObject>();
+            paramss.Add("fakeRemote");
+            dict["params"] = paramss.ToArray();
+            dict["msg"] = msg;
+            return new MessagePackObject(dict);
+        }
+
+        void onRecv_FakeRemote(MessagePackObjectDictionary dict)
+        {
+            if(dict.TryGetValue("msg",out MessagePackObject msg))
+            {
+                var msgdict = msg.AsDictionary();
+                var cmd = (CmdList)msgdict["cmd"].AsUInt16();
+                this.OnReceiveMsgFromRemote(null,cmd, msgdict);//null应该修改为自己到自己的pipeline,不然在处理消息过程用到from的时候，可能报错。
+            }
+        }
+        void OnRecv_SendMsg(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var msg = dict["msg"];
+            var endpointStr = dict["target"].AsString();
+            if (this.linkIDs.TryGetValue(endpointStr, out ulong peer))
+            {
+                this.linkNodes[peer].remoteNode.Tell(msg);
+            }
+        }
+        void OnRecv_Request_ConnectTo(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var endpointstr = dict["endpoint"].AsString();
+            if(IPEndPoint.TryParse(endpointstr, out IPEndPoint endpoint))
+            {
+                this.ConnectOne(endpoint);
+            }
+        }
     }
 
     public static class LinkNodeFunc
