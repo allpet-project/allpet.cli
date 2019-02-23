@@ -97,14 +97,13 @@ namespace AllPet.Module
         }
         public RPC_Result RPC_SendRawTransaction(IList<MessagePackObject> _params)
         {
-            var list = _params as List<MessagePackObject>;
-            var message = list[0];
-            var pubkey = list[1];
-            var sign = list[2];
+            var message = _params.First();
+            var pubkey = this.pubkey;
+            var sign = Helper_NEO.Sign(message.AsBinary(), this.prikey);
 
             var signdata = new TransactionSign();
-            signdata.VScript = pubkey.AsBinary();
-            signdata.IScript = sign.AsBinary();            
+            signdata.VScript = pubkey;
+            signdata.IScript = sign;            
             var data= SerializeHelper.SerializeToBinary(signdata);
 
             this.Tell_SendRaw(this._System.GetPipeline(this, "this/node"), message.AsBinary(), data);

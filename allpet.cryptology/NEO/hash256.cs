@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 namespace AllPet
 {
+    [Serializable]
     public class Hash256 : IComparable<Hash256>
     {
         public Hash256(byte[] data)

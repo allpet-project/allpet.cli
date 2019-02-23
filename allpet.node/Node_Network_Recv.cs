@@ -191,7 +191,8 @@ namespace AllPet.Module
         {
             logger.Info($"------OnRecv_Post_SendRaw  From:{from?.system?.Remote?.ToString()??"Local"} -------");
             //验证交易合法性，合法就收
-            bool sign = Helper_NEO.VerifySignature(dict["message"].AsBinary(), dict["sign"].AsBinary(), dict["pubkey"].AsBinary());
+            var signData = SerializeHelper.DeserializeWithBinary<TransactionSign>(dict["signData"].AsBinary());
+            bool sign = Helper_NEO.VerifySignature(dict["message"].AsBinary(), signData.IScript, signData.VScript);
             if (!sign)
             {
                 return;
@@ -202,7 +203,7 @@ namespace AllPet.Module
                 Transaction trans = new Transaction();
                 trans.Index = this.txpool.MaxTransactionID;
                 trans.message = dict["message"].AsBinary();
-                trans.signdata = SerializeHelper.DeserializeWithBinary<TransactionSign>(dict["signData"].AsBinary());
+                trans.signdata = signData;
                 lock (blockTimerLock)
                 {
                     this.txpool.AddTx(trans);

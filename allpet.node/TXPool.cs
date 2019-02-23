@@ -4,12 +4,14 @@ using System.Text;
 
 namespace AllPet.Module.Node
 {
+    [Serializable]
     public class Transaction
     {
         public UInt64 Index;//交易索引
         public byte[] message;//交易体
         public TransactionSign signdata;
     }
+    [Serializable]
     public class TransactionSign
     {
         public byte[] VScript;//只支持checksig公钥

@@ -358,6 +358,7 @@ namespace AllPet.Module
                         block.TXData.TryAdd(item.Key,item.Value);
                         txids.Add(item.Key);
                     }
+                    block.header = new BlockHeader();
                     block.header.TxidsHash = SerializeHelper.SerializeToBinary(txids);
                     this.txpool.Clear();
                 }
@@ -367,6 +368,8 @@ namespace AllPet.Module
                     {
                         this.blockCount = 0;
                         block = new Block();
+                        block.header = new BlockHeader();
+                        block.header.TxidsHash = new byte[0];
                         block.index = BitConverter.GetBytes(this.GetLastIndex());
                     }
                     else
