@@ -43,6 +43,7 @@ namespace AllPet.Module
         }
         void Tell_Request_PeerList(IModulePipeline remote)
         {
+            if (!this.beEnableQueryPeers) return;
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Request_PeerList;
             remote.Tell(new MessagePackObject(dict));
@@ -112,13 +113,6 @@ namespace AllPet.Module
         }
 
 
-        //void Tell_IamObserver(IModulePipeline remote)
-        //{
-        //    var dict = new MessagePackObjectDictionary();
-        //    dict["cmd"] = (UInt16)CmdList.Observer_Iam;
-        //    remote.Tell(new MessagePackObject(dict));
-        //}
-
         void Tell_Request_plevel(IModulePipeline remote)
         {
             var dict = new MessagePackObjectDictionary();
@@ -130,6 +124,7 @@ namespace AllPet.Module
         {
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Response_Plevel;
+            dict["plevel"] = this.pLevel;
             remote.Tell(new MessagePackObject(dict));
         }
 

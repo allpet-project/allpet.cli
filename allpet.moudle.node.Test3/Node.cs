@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using AllPet.Pipeline.MsgPack;
 using AllPet.Pipeline;
+using AllPet.Module;
 
 namespace allpet.moudle.node.Test3
 {
@@ -13,8 +14,8 @@ namespace allpet.moudle.node.Test3
         public Config config;
 
         public ISystem sys;
-        public IModuleInstance actor;
-        public Node(string EndPoint = null,string initpeer=null,string ListenEndPoint=null,string jsonFile= "config.json")
+        public Module_Node actor;
+        public Node(string EndPoint = null,string initpeer=null,string ListenEndPoint=null,bool beEnableQueryPeers = true,string jsonFile= "config.json")
         {
             logger = new AllPet.Common.Logger();
             logger.Warn("Allpet.Node v0.001 Peer 01");
@@ -49,6 +50,7 @@ namespace allpet.moudle.node.Test3
             {
                 this.actor = new AllPet.Module.Module_Node(logger, config_node);
                 system.RegistModule("node", this.actor);
+                this.actor.beEnableQueryPeers = beEnableQueryPeers;
             }
             else
             {

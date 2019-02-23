@@ -114,7 +114,7 @@ namespace AllPet.Module
 
                                         {
                                             var publickey = n.PublicKey == null ? null : Helper.Bytes2HexString(n.PublicKey);
-                                            logger.Info("peer=" + n.remoteNode.system.PeerID + " publickey=" + publickey + " pubep=" + n.publicEndPoint+" beAccepted:"+n.beAccepted);
+                                            logger.Info("peer=" + n.remoteNode.system.PeerID +  " pubep=" + n.publicEndPoint + " beAccepted:" + n.beAccepted + " publickey=" + publickey );
                                         }
                                     }
 
@@ -125,6 +125,13 @@ namespace AllPet.Module
                                     {
                                         var publickey = n.PublicKey == null ? null : Helper.Bytes2HexString(n.PublicKey);
                                         logger.Info("proved=" + n.remoteNode.system.Remote.ToString() + "  public=" + publickey + "  pubep=" + n.publicEndPoint + "  isProved=" + n.isProved+ "  provedPubep=" + n.provedPubep);
+                                    }
+                                }
+                                if(_cmd== "peer.plevel")
+                                {
+                                    foreach(var item in this.linkNodes.Values)
+                                    {
+                                        this.Tell_Request_plevel(item.remoteNode);
                                     }
                                 }
                             }
@@ -154,7 +161,7 @@ namespace AllPet.Module
                     };
                     RegNetEvent(from.system);
                 }
-                logger.Info("remote msg:" + obj.Value.ToString());
+                //logger.Info("remote msg:" + obj.Value.ToString());
                 switch (cmd)
                 {
                     case CmdList.Request_JoinPeer://告知其他节点我的存在，包括是不是共识节点之类的

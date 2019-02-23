@@ -13,7 +13,7 @@ namespace allpet.moudle.node.Test3
         {
             while (true)
             {
-                Console.WriteLine("CMD(1=测试：发现新加入的节点并连接。2=测试:断线重连)>");
+                Console.WriteLine("CMD(1=测试：发现新加入的节点并连接。2=测试:断线重连 3=测试：plevel传递)>");
                 var cmd = Console.ReadLine();
                 switch (cmd)
                 {

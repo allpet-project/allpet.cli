@@ -60,7 +60,8 @@ namespace AllPet.Module
             var link = this.linkNodes[from.system.PeerID];
             link.hadJoin = true;//已经和某个节点接通
             //如果连上了,标识连上的节点的优先级
-            link.pLevel = dict["pleve"].AsInt32();                     
+            var plevel = dict["pleve"].AsInt32();
+            this.refreshPlevel(link, plevel);
 
             if (this.prikey != null)//有私钥证明一下
             {
@@ -69,33 +70,53 @@ namespace AllPet.Module
                 var message = addinfo.Concat(check).ToArray();
                 var signdata = Helper_NEO.Sign(message, this.prikey);
                 Tell_Request_ProvePeer(from, addinfo, signdata);
-            }           
-            if(this.beEnableQueryPeers)
-            {
-                Tell_Request_PeerList(from);
             }
+            Tell_Request_PeerList(from);
             //如果连接上了，要更新自己的优先级
-            if (this.pLevel < 0)
+            //if (this.pLevel < 0)
+            //{
+            //    if (link.pLevel >= 0)//加入的节点优先级有效，且本身节点不是记账人
+            //    {
+            //        this.pLevel = link.pLevel + 1;
+            //    }
+            //}
+            //else if(this.pLevel > link.pLevel)
+            //{
+            //    this.pLevel = link.pLevel + 1;
+            //    //如果是变更，则广播低优先级节点
+            //    foreach (var item in this.linkNodes)
+            //    {
+            //        if (item.Value.hadJoin && item.Value.pLevel < this.pLevel)
+            //        {
+            //            Tell_BoradCast_PeerState(item.Value.remoteNode);
+            //        }
+            //    }
+            //}
+
+            //System.Console.WriteLine($"node:{this.config.PublicEndPoint} pLeve:{this.pLevel}  isProved:{this.isProved}");
+        }
+        void refreshPlevel(LinkObj link, int linkPlevel)
+        {
+            link.pLevel = linkPlevel;
+            if (this.beObserver) return;
+            if(linkPlevel>=0)
             {
-                if (link.pLevel >= 0)//加入的节点优先级有效，且本身节点不是记账人
+                if(this.pLevel< linkPlevel)
                 {
-                    this.pLevel = link.pLevel + 1;
-                }
-            }
-            else if(this.pLevel > link.pLevel)
-            {
-                this.pLevel = link.pLevel + 1;
-                //如果是变更，则广播低优先级节点
-                foreach (var item in this.linkNodes)
-                {
-                    if (item.Value.hadJoin && item.Value.pLevel < this.pLevel)
+                    this.pLevel = linkPlevel + 1;
+                    foreach (var item in this.linkNodes)
                     {
-                        Tell_BoradCast_PeerState(item.Value.remoteNode);
+                        if (item.Value.hadJoin && (item.Value.pLevel > this.pLevel|| item.Value.pLevel==-1))
+                        {
+                            Tell_BoradCast_PeerState(item.Value.remoteNode);
+                        }
                     }
                 }
             }
-            System.Console.WriteLine($"node:{this.config.PublicEndPoint}    pLeve:{this.pLevel}    isProved:{this.isProved}");
+            //logger.Warn("from:" + link.publicEndPoint + " plevel:" + link.pLevel + " node:" + this.config.PublicEndPoint + " plevel:" + this.pLevel);
         }
+
+
         void OnRecv_RequestProvePeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {
             var link = this.linkNodes[from.system.PeerID];
@@ -235,13 +256,19 @@ namespace AllPet.Module
                 }
             }
         }
+        
         void OnRecv_BoradCast_PeerState(IModulePipeline from, MessagePackObjectDictionary dict)
         {
             var parentPleve = dict["pleve"].AsInt32();
-            if(this.pLevel > parentPleve)
+
+            if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link))
             {
-                this.pLevel = parentPleve+1;
+                this.refreshPlevel(link, parentPleve);
             }
+            //if (this.pLevel > parentPleve||this.pLevel==-1)
+            //{
+            //    this.pLevel = parentPleve + 1;
+            //}
         }
         void OnRecv_Post_TouchProvedPeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {

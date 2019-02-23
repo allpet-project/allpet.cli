@@ -137,6 +137,7 @@ namespace AllPet.Module
         /// 测试用，开关是否请求peerlist
         /// </summary>
         public bool beEnableQueryPeers = true;
+        public bool beObserver = false;
 
         public Module_Node(AllPet.Common.ILogger logger, Newtonsoft.Json.Linq.JObject configJson) : base(true)
         {
