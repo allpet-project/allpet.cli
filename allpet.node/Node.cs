@@ -66,7 +66,7 @@ namespace AllPet.Module
         public bool hadJoin;//是否被允许加入了网络
         public byte[] CheckInfo;
         public byte[] PublicKey;
-        public int pLevel;
+        public int pLevel=-1;
         public string provedPubep;
         public bool isProved;//是否是记账人节点
     }

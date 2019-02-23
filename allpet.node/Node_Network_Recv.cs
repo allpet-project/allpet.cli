@@ -62,6 +62,7 @@ namespace AllPet.Module
             //如果连上了,标识连上的节点的优先级
             var plevel = dict["pleve"].AsInt32();
             this.refreshPlevel(link, plevel);
+            //Console.WriteLine("@ from:" + link.publicEndPoint + " plevel:" + link.pLevel + " node:" + this.config.PublicEndPoint + " plevel:" + this.pLevel);
 
             if (this.prikey != null)//有私钥证明一下
             {
@@ -97,23 +98,28 @@ namespace AllPet.Module
         }
         void refreshPlevel(LinkObj link, int linkPlevel)
         {
-            link.pLevel = linkPlevel;
             if (this.beObserver) return;
             if(linkPlevel>=0)
             {
-                if(this.pLevel< linkPlevel)
+                if (link.pLevel > linkPlevel || link.pLevel == -1)
                 {
-                    this.pLevel = linkPlevel + 1;
-                    foreach (var item in this.linkNodes)
+                    link.pLevel = linkPlevel;
+
+                    if (this.pLevel > linkPlevel || this.pLevel == -1)
                     {
-                        if (item.Value.hadJoin && (item.Value.pLevel > this.pLevel|| item.Value.pLevel==-1))
+                        this.pLevel = linkPlevel + 1;
+                        foreach (var item in this.linkNodes)
                         {
-                            Tell_BoradCast_PeerState(item.Value.remoteNode);
+                            if (item.Value.hadJoin && (item.Value.pLevel > this.pLevel || item.Value.pLevel == -1))
+                            {
+                                Tell_BoradCast_PeerState(item.Value.remoteNode);
+                            }
                         }
                     }
                 }
+
+
             }
-            //logger.Warn("from:" + link.publicEndPoint + " plevel:" + link.pLevel + " node:" + this.config.PublicEndPoint + " plevel:" + this.pLevel);
         }
 
 
@@ -265,6 +271,8 @@ namespace AllPet.Module
             {
                 this.refreshPlevel(link, parentPleve);
             }
+            //Console.WriteLine("# from:" + link.publicEndPoint + " plevel:" + link.pLevel + " node:" + this.config.PublicEndPoint + " plevel:" + this.pLevel);
+
             //if (this.pLevel > parentPleve||this.pLevel==-1)
             //{
             //    this.pLevel = parentPleve + 1;
