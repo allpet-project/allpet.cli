@@ -13,8 +13,8 @@ namespace allpet.moudle.node.Test3
         public Config config;
 
         public ISystem sys;
-        public AllPet.Module.Module_Node actor;
-        public Node(string EndPoint = null,string initpeer=null,string ListenEndPoint=null)
+        public IModuleInstance actor;
+        public Node(string EndPoint = null,string initpeer=null,string ListenEndPoint=null,string jsonFile= "config.json")
         {
             logger = new AllPet.Common.Logger();
             logger.Warn("Allpet.Node v0.001 Peer 01");
@@ -32,7 +32,7 @@ namespace allpet.moudle.node.Test3
             var system = AllPet.Pipeline.PipelineSystem.CreatePipelineSystemV1(new AllPet.Common.Logger());
 
 
-            var config_node = config.GetJson("config.json", ".ModulesConfig.Node") as JObject;
+            var config_node = config.GetJson(jsonFile, ".ModulesConfig.Node") as JObject;
 
             //-----------------配置 publicendpoint /initpeer
             if(EndPoint != null)
@@ -58,7 +58,7 @@ namespace allpet.moudle.node.Test3
 
 
             system.OpenNetwork(new AllPet.peer.tcp.PeerOption() { });
-            var endpoint = config.GetIPEndPoint("config.json", ".ListenEndPoint");
+            var endpoint = config.GetIPEndPoint(jsonFile, ".ListenEndPoint");
             if(ListenEndPoint!=null)
             {
                 endpoint= ListenEndPoint.AsIPEndPoint();

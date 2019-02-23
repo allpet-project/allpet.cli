@@ -70,8 +70,10 @@ namespace AllPet.Module
                 var signdata = Helper_NEO.Sign(message, this.prikey);
                 Tell_Request_ProvePeer(from, addinfo, signdata);
             }           
-
-            Tell_Request_PeerList(from);
+            if(this.beEnableQueryPeers)
+            {
+                Tell_Request_PeerList(from);
+            }
             //如果连接上了，要更新自己的优先级
             if (this.pLevel < 0)
             {
@@ -334,6 +336,26 @@ namespace AllPet.Module
                 }
             }
             return false;
+        }
+
+        //private IModulePipeline observer;
+        //void OnRecv_IamObserver(IModulePipeline from, MessagePackObjectDictionary dict)
+        //{
+        //    observer = from;
+        //}
+
+        void OnRecv_Response_plevel(IModulePipeline from,MessagePackObjectDictionary dict)
+        {
+            var id=from.system.PeerID;
+            var plevel = dict["plevel"].AsInt32();
+            if(this.linkNodes.TryGetValue(id, out LinkObj obj))
+            {
+                logger.Info(" plevel:"+ plevel+ "from:" + obj.publicEndPoint);
+            }
+        }
+        void OnRecv_Request_plevel(IModulePipeline from)
+        {
+            this.Tell_Response_plevel(from);
         }
     }
 

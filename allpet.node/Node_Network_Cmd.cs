@@ -37,6 +37,8 @@ namespace AllPet.Module
         /// </summary>
         RPC = 0x0300,
 
+        Request_Plevel,
+        Response_Plevel
     }
     public partial class Module_Node : Module_MsgPack
     {
@@ -198,6 +200,12 @@ namespace AllPet.Module
                         {
                             OnRecv_Response_ProvedRelay(from, dict);
                         }
+                        break;
+                    case CmdList.Request_Plevel:
+                        OnRecv_Request_plevel(from);
+                        break;
+                    case CmdList.Response_Plevel:
+                        OnRecv_Response_plevel(from,dict);
                         break;
                     default:
                         logger.Error("unknow msg:" + dict.ToString());

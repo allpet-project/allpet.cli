@@ -110,5 +110,28 @@ namespace AllPet.Module
             dict["isProved"] = this.isProved;
             remote.Tell(new MessagePackObject(dict));
         }
+
+
+        //void Tell_IamObserver(IModulePipeline remote)
+        //{
+        //    var dict = new MessagePackObjectDictionary();
+        //    dict["cmd"] = (UInt16)CmdList.Observer_Iam;
+        //    remote.Tell(new MessagePackObject(dict));
+        //}
+
+        void Tell_Request_plevel(IModulePipeline remote)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_Plevel;
+            remote.Tell(new MessagePackObject(dict));
+        }
+
+        void Tell_Response_plevel(IModulePipeline remote)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Response_Plevel;
+            remote.Tell(new MessagePackObject(dict));
+        }
+
     }
 }

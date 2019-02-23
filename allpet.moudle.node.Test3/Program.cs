@@ -23,6 +23,9 @@ namespace allpet.moudle.node.Test3
                     case "2":
                         test2.run();
                         break;
+                    case "3":
+                        test3.run();
+                        break;
                 }
             }
         }

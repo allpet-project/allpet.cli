@@ -132,6 +132,12 @@ namespace AllPet.Module
 
 
         public Node.TXPool txpool;//交易池
+
+        /// <summary>
+        /// 测试用，开关是否请求peerlist
+        /// </summary>
+        public bool beEnableQueryPeers = true;
+
         public Module_Node(AllPet.Common.ILogger logger, Newtonsoft.Json.Linq.JObject configJson) : base(true)
         {
             this.guid = Helper_NEO.CalcHash256(Guid.NewGuid().ToByteArray());
@@ -161,7 +167,6 @@ namespace AllPet.Module
                         this.pLevel = 0;//记账节点
                     }
                 }
-
                 blockChain = new BlockChain();
                 blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
                 this.lastIndex = blockChain.GetLastIndex();
