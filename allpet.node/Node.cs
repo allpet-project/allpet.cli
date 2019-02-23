@@ -154,8 +154,8 @@ namespace AllPet.Module
                     this.pubkey = Helper_NEO.GetPublicKey_FromPrivateKey(prikey);
                     //区分记账人                    
                     var address = Helper_NEO.GetAddress_FromPublicKey(pubkey);//证明人的地址
-                   //如果证明人的地址和初始记账人的地址相同即为记账人
-                   if(this.config.ChainInfo.InitOwner.Contains(address))
+                                                                              //如果证明人的地址和初始记账人的地址相同即为记账人
+                    if (this.config.ChainInfo.InitOwner.Contains(address))
                     {
                         this.isProved = true;
                         this.pLevel = 0;//记账节点
@@ -200,50 +200,51 @@ namespace AllPet.Module
 
         void RegNetEvent(ISystemPipeline syspipe)
         {
-            syspipe.HaltLink();
-            if (syspipe.linked)
-            {
-                //logger.Info("==reg net event direct");
+            //    //syspipe.HaltLink();
+            //    if (syspipe.linked)
+            //    {
+            //        //logger.Info("==reg net event direct");
+            //        _OnPeerLink(syspipe.PeerID, syspipe.IsHost, syspipe.Remote);
+            //    }
+            //    else
+            //    {
+            //        //logger.Info("==reg net event delay");
+            //        syspipe.OnPeerLink += _OnPeerLink;
+            //    }
+            //    syspipe.OnPeerClose += _OnPeerClose;
+            //    //syspipe.ResumeLink();
 
-                _OnPeerLink(syspipe.PeerID, syspipe.IsHost, syspipe.Remote);
-            }
-            else
-            {
-                //logger.Info("==reg net event delay");
-
-                syspipe.OnPeerLink += _OnPeerLink;
-            }
-            syspipe.OnPeerClose += _OnPeerClose;
-            syspipe.ResumeLink();
+            syspipe.SetLinkEvent(this._OnPeerLink);
+            syspipe.SetLinkCloseEvent(this._OnPeerClose);
         }
-        void _OnPeerLink(UInt64 id, bool accept, IPEndPoint remote)//现在能区分主叫 connect 和 被叫 accept了
+        void _OnPeerLink(ISystemPipeline system)//现在能区分主叫 connect 和 被叫 accept了
         {
-            var pipe = linkNodes[id];
+            var pipe = linkNodes[system.PeerID];
 
             //主叫被叫都尝试加入对方网络
-            logger.Info("--------------------------》_OnPeerLink：id/" + id+ "         IPEndPoint/"+remote+"              BeAccepted:"+accept);
+            logger.Info("--------------------------》_OnPeerLink：id/" + system.PeerID + "         IPEndPoint/" + system.Remote + "              BeAccepted:" + system.IsHost);
 
             Tell_ReqJoinPeer(pipe.remoteNode);
             if (this.isProved)
             {
                 //告诉我你是否是共识节点或者能否到达共识节点
-                Tell_Post_TouchProvedPeer(pipe.remoteNode, string.Empty,this.guid.ToString());
+                Tell_Post_TouchProvedPeer(pipe.remoteNode, string.Empty, this.guid.ToString());
             }
-            logger.Info("_OnPeerLink" + id);
+            logger.Info("_OnPeerLink" + system.PeerID);
         }
-        void _OnPeerClose(UInt64 id)
+        void _OnPeerClose(ISystemPipeline system)
         {
-            linkNodes.TryRemove(id, out LinkObj node);
+            linkNodes.TryRemove(system.PeerID, out LinkObj node);
             var remotestr = node.remoteNode.system.Remote.ToString();
             this.linkIDs.TryRemove(remotestr, out ulong v);
 
-            provedNodes.TryRemove(id, out LinkObj keepernode);
+            provedNodes.TryRemove(system.PeerID, out LinkObj keepernode);
             var canlink = this.listCanlink.Getqueue(remotestr);
-            if(canlink?.weight > 0)
+            if (canlink?.weight > 0)
             {
                 canlink.weight--;
             }
-            logger.Info("_OnPeerClose" + id);
+            logger.Info("_OnPeerClose" + system.PeerID);
 
         }
         public override void OnStart()
@@ -262,7 +263,7 @@ namespace AllPet.Module
                 this.listCanlink.Enqueue(new CanLinkObj()
                 {
                     remote = p,
-                    fromType=LinkFromEnum.InitPeer
+                    fromType = LinkFromEnum.InitPeer
                 });
             }
             startWathNetWork();
@@ -270,11 +271,13 @@ namespace AllPet.Module
 
         }
 
-        private void ConnectOne(IPEndPoint p,IPEndPoint whoTell=null)
-        {                
+        private void ConnectOne(IPEndPoint p, IPEndPoint whoTell = null)
+        {
             //让GetPipeline来自动连接,此时remotenode 不可立即通讯，等回调，见RegNetEvent
-            var remotenode = this.GetPipeline(p.ToString() + "/node");//模块的名称是固定的
-            linkNodes[remotenode.system.PeerID] = new LinkObj()
+            var remotenode = this.GetPipeline(p.ToString() + "/node");
+
+            var system = remotenode.system;
+            linkNodes[system.PeerID] = new LinkObj()
             {
                 from = whoTell,
                 ID = null,
@@ -282,18 +285,41 @@ namespace AllPet.Module
                 publicEndPoint = null,
                 beAccepted = false
             };
+
+            linkIDs[system.Remote.ToString()] = system.PeerID;
+
+            RegNetEvent(system);
+
+            //,(node) =>
+            //{
+            //    var system = node.system;
+            //    linkNodes[node.system.PeerID] = new LinkObj()
+            //    {
+            //        from = whoTell,
+            //        ID = null,
+            //        remoteNode = node,
+            //        publicEndPoint = null,
+            //        beAccepted = false
+            //    };
+
+            //    linkIDs[system.Remote.ToString()] = system.PeerID;
+            //    RegNetEvent(system);
+            //    //var fromstr = whoTell != null ? whoTell.ToString() : "";
+            //    logger.Info("try to link to=>" + p.ToString());
+
+            //});//模块的名称是固定的
+
+            //var system = remotenode.system;
             //Console.WriteLine("@@@@@@@@@@@@@ systemid"+remotenode.system.PeerID);
-            linkIDs[remotenode.system.Remote.ToString()] = remotenode.system.PeerID;
-            RegNetEvent(remotenode.system);
-            //var fromstr = whoTell != null ? whoTell.ToString() : "";
-            logger.Info("try to link to=>" + p.ToString());
+
+
 
         }
 
         private void SaveCanlinkList()
         {
             var sb = new StringBuilder();
-            
+
             while (this.listCanlink.Count > 0)
             {
                 var item = this.listCanlink.Dequeue();
@@ -303,7 +329,7 @@ namespace AllPet.Module
                     sb.Append(":");
                     sb.Append(item.remote.Port);
                     sb.Append("\n");
-                }                
+                }
             }
             try
             {
@@ -314,9 +340,9 @@ namespace AllPet.Module
                 System.IO.File.AppendAllText(NodePath, sb.ToString(), System.Text.Encoding.UTF8);
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                
+
             }
         }
 
@@ -337,11 +363,11 @@ namespace AllPet.Module
                         this.listCanlink.Enqueue(new CanLinkObj()
                         {
                             remote = p,
-                            fromType=LinkFromEnum.ResetLink
+                            fromType = LinkFromEnum.ResetLink
                         });
                     }
                 }
-            }                
+            }
         }
         /// <summary>
         /// txIndex:现在出到哪个交易啦
@@ -413,9 +439,10 @@ namespace AllPet.Module
         {
             var _cts = new CancellationTokenSource();
             var ct = _cts.Token;
-            var wathTask = new Task(async()=> {
+            var wathTask = new Task(async () =>
+            {
                 await this.WatchNetwork(ct);
-            },ct);
+            }, ct);
             wathTask.Start();
             this.cts = _cts;
         }
@@ -425,7 +452,7 @@ namespace AllPet.Module
             int connectwaiter = 0;
             while (true)
             {
-                if(token.IsCancellationRequested)
+                if (token.IsCancellationRequested)
                 {
                     break;
                 }
@@ -461,13 +488,13 @@ namespace AllPet.Module
                             continue;
                         if (this.linkIDs.ContainsKey(canlink.remote.ToString()) == false)
                         {
-                            var times = (10-canlink.weight)/2;
+                            var times = (10 - canlink.weight) / 2;
                             if (canlink.linkCount == times)
                             {
                                 var fromstr = canlink.from != null ? canlink.from.ToString() : "";
                                 logger.Info("------------------------------------ConnectOne=>" + canlink.remote.ToString() + "       from:" + fromstr + "  fromtype:" + canlink.fromType);
 
-                                ConnectOne(canlink.remote,canlink.from);
+                                ConnectOne(canlink.remote, canlink.from);
 
                                 canlink.linkCount = 0;
                             }
@@ -480,7 +507,7 @@ namespace AllPet.Module
                         {
                             listCanlink.Enqueue(canlink);
                         }
-                    }                    
+                    }
                 }
 
                 await System.Threading.Tasks.Task.Delay(1000);//1秒刷新一次

@@ -126,9 +126,6 @@ namespace AllPet.Pipeline
         }
         PipelineSystemV1 _System;
 
-        public event Action<UInt64, bool, IPEndPoint> OnPeerLink;
-        public event Action<UInt64> OnPeerClose;
-
         public bool IsLocal => true;
 
         public string remoteaddr => null;
@@ -179,14 +176,13 @@ namespace AllPet.Pipeline
             }
         }
 
-        public void HaltLink()
+        public void SetLinkEvent(Action<ISystemPipeline> methodOnLink)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("not for Local");
         }
-
-        public void ResumeLink()
+        public void SetLinkCloseEvent(Action<ISystemPipeline> methodOnClose)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("not for Local");
         }
     }
 }

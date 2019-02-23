@@ -39,7 +39,7 @@ namespace AllPet.peer.tcp
         //发起连接
         //一个Peer可以发起多个连接
         //发起连接可立即得到一个linkid
-        UInt64 Connect(IPEndPoint linktoEndPoint);
+        UInt64 Connect(IPEndPoint linktoEndPoint, Action<UInt64> PreLink = null);
 
         //无论是accept 的 和 connect的,统一管理 用一个UINT64标识他
 
