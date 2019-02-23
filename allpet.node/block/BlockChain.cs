@@ -1,4 +1,5 @@
-﻿using AllPet.Module;
+﻿using allpet.module.node;
+using AllPet.Module;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,10 +25,6 @@ namespace AllPet.Module.block
         readonly static byte[] TableID_Blocks = new byte[] { 0x01, 0x02 };
         readonly static byte[] TableID_TXs = new byte[] { 0x01, 0x03 };
         readonly static byte[] TableID_Owners = new byte[] { 0x01, 0x04 };
-        readonly static byte[] TableID_Indexs = new byte[] { 0x01, 0x05 };
-        readonly static byte[] LastIndex = new byte[] { 0xff, 0xff, 0xff, 0xff };
-        readonly static byte[] BlockTxIndex = new byte[] { 0xef, 0xef, 0xef, 0xef };
-        readonly static byte[] BlockIndex = new byte[] { 0xdf, 0xdf, 0xdf, 0xdf };
 
         public ulong GetBlockCount()
         {
@@ -62,38 +59,25 @@ namespace AllPet.Module.block
         public void SetTx(UInt64 id, TransAction tx)
         {
         }
-        public void SetTx(UInt64 lastindex,UInt64 id,byte[]txid, byte[] data)
-        {
-            db.PutDirect(TableID_TXs, txid, data);//txid到byte[]的映射
-            db.PutDirect(TableID_Indexs,BitConverter.GetBytes(id), txid);//index到txid的映射
-            db.PutDirect(TableID_Indexs, LastIndex, BitConverter.GetBytes(lastindex));
-        }
         System.Collections.Concurrent.ConcurrentQueue<TransAction> queueTransAction;
         public void MakeBlock(UInt16 from, UInt64 to, params UInt64[] skip)
         {
 
         }
-        public void MakeBlock(ulong index, byte[] block,ulong txIndex,ulong blockIndex)
+        public void SaveBlock(Block block)
         {
-            db.PutDirect(TableID_Blocks, BitConverter.GetBytes(index), block);
-            db.PutDirect(TableID_Indexs, BlockTxIndex, BitConverter.GetBytes(txIndex));
-            db.PutDirect(TableID_Indexs, BlockIndex, BitConverter.GetBytes(blockIndex));
+            var batch  = db.CreateWriteBatch();
+            batch.Put(TableID_Blocks, block.index, block.header.TxidsHash);
+            //当前交易
+            foreach (var item in block.TXData)
+            {
+                var data = SerializeHelper.SerializeToBinary(item.Value);
+                batch.Put(TableID_TXs, item.Key, data);
+            }
+            //当前高度
+            batch.Put(TableID_SystemInfo, Key_SystemInfo_BlockCount, block.index);
+            db.WriteBatch(batch);
         }
-        public ulong GetLastIndex()
-        {
-            return db.GetUInt64Direct(TableID_Indexs, LastIndex);
-        }
-
-        public ulong GetBlockTxIndex()
-        {
-            return db.GetUInt64Direct(TableID_Indexs, BlockTxIndex);
-        }
-
-        public ulong GetBlockIndex()
-        {
-            return db.GetUInt64Direct(TableID_Indexs, BlockIndex);
-        }
-
     }
 
 }

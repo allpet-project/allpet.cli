@@ -8,6 +8,9 @@ using System.Net;
 using AllPet.Common;
 using System.Linq;
 using AllPet.Module.block;
+using LightDB;
+using AllPet.Module.Node;
+using allpet.module.node;
 
 namespace AllPet.Module
 {
@@ -25,19 +28,21 @@ namespace AllPet.Module
     }
     public partial class Module_Node : Module_MsgPack
     {
-        private ulong lastIndex ;
         private ulong blockIndex;//块的lastindex
-        private ulong txIndex;//哪些tx的index被出块了
         private ulong blockCount;
 
+        private static ulong GetNonce()
+        {
+            byte[] nonce = new byte[sizeof(ulong)];
+            Random rand = new Random();
+            rand.NextBytes(nonce);
+            return nonce.ToUInt64();
+        }
         private ulong GetLastIndex()
         {
-            var index = this.lastIndex;
-            lock (blockTimerLock)
-            {
-                lastIndex++;
-            }
-            return index;
+            var index = this.blockIndex;
+            this.blockIndex++;
+            return this.blockIndex;
         }
         public RPC_Result RPC_ListPeer(IList<MessagePackObject> _params)
         {
@@ -92,20 +97,20 @@ namespace AllPet.Module
         }
         public RPC_Result RPC_SendRawTransaction(IList<MessagePackObject> _params)
         {
-            SaveBlockChain(_params);
-            this.Tell_SendRaw(this._System.GetPipeline(this, "this/node"), _params,this.guid.ToString());
+            var list = _params as List<MessagePackObject>;
+            var message = list[0];
+            var pubkey = list[1];
+            var sign = list[2];
+
+            var signdata = new TransactionSign();
+            signdata.VScript = pubkey.AsBinary();
+            signdata.IScript = sign.AsBinary();            
+            var data= SerializeHelper.SerializeToBinary(signdata);
+
+            this.Tell_SendRaw(this._System.GetPipeline(this, "this/node"), message.AsBinary(), data);
             var result = new MessagePackObject(0);
             return new RPC_Result(result);
         }
-        private void SaveBlockChain(IList<MessagePackObject> _params)
-        {
-            foreach (var item in _params)
-            {
-                var index = this.GetLastIndex();
-                var hash256 = Helper.CalcSha256(item.AsBinary());
-
-                this.blockChain.SetTx(this.lastIndex, index, hash256, item.AsBinary());
-            }
-        }
+        
     }
 }

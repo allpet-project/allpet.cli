@@ -7,6 +7,9 @@ using System.Text;
 using System.Net;
 using AllPet.Common;
 using System.Linq;
+using AllPet.Module.Node;
+using allpet.module.node;
+
 namespace AllPet.Module
 {
     partial class Module_Node : Module_MsgPack
@@ -186,50 +189,47 @@ namespace AllPet.Module
         /// <param name="dict"></param>
         void OnRecv_Post_SendRaw(IModulePipeline from, MessagePackObjectDictionary dict)
         {
-            var nodeid = dict.ContainsKey("nodeid") ?dict["nodeid"].AsString():string.Empty;
-            logger.Info($"------OnRecv_Post_SendRaw  From:{from?.system?.Remote?.ToString()??"Local"}  nodeid:{nodeid}-------");
-
+            logger.Info($"------OnRecv_Post_SendRaw  From:{from?.system?.Remote?.ToString()??"Local"} -------");
+            //验证交易合法性，合法就收
+            bool sign = Helper_NEO.VerifySignature(dict["message"].AsBinary(), dict["sign"].AsBinary(), dict["pubkey"].AsBinary());
+            if (!sign)
+            {
+                return;
+            }
             //收到消息后要么转发,要么保存
             if (this.isProved)
-            {                
-                //如果不是自己发过来的，就保存
-                
-                //lights add
-                //为啥会自己发给自己？交易用就好内存池，交易不用频繁写数据库，产块的时候
-                if (this.guid.ToString() != nodeid)
+            {
+                Transaction trans = new Transaction();
+                trans.Index = this.txpool.MaxTransactionID;
+                trans.message = dict["message"].AsBinary();
+                trans.signdata = SerializeHelper.DeserializeWithBinary<TransactionSign>(dict["signData"].AsBinary());
+                lock (blockTimerLock)
                 {
-                    //lights add
-                    //交易是交易，和块是两码事，还在浆糊
-                    SaveBlockChain(dict["rawdata"].AsList());
+                    this.txpool.AddTx(trans);
+                }
+                //向内存池保存完，向全网广播这个交易
+                foreach (var item in this.linkNodes)
+                {
+                    if (item.Value.hadJoin)
+                    {
+                        Tell_BoardCast_Tx(item.Value.remoteNode, dict["message"].AsBinary(), dict["signData"].AsBinary());
+                    }
                 }
             }
             else
             {
-                bool isSended = false;
-                //lights add
-                //这个逻辑也奇怪，为什么要排序？ 尽量不要用linq
-
-                var list = this.provedNodes.OrderBy(x=>x.Value.pLevel);
-                foreach (var item in list)
+                //只流转给非记账节点，按照优先级，小于等于自己的其中一个
+                LinkObj minLink = null;
+                foreach (var item in this.linkNodes)
                 {
-                    if (item.Value.hadJoin)
+                    if ((minLink == null || item.Value.pLevel < minLink.pLevel) && (item.Value.hadJoin))
                     {
-                        Tell_SendRaw(item.Value.remoteNode, dict["rawdata"].AsList(), dict["nodeid"].AsString());
-                        isSended = true;
-                        break;
+                        minLink = item.Value;
                     }
                 }
-                if (!isSended)
+                if (minLink != null)
                 {
-                    var linkList = this.linkNodes.OrderBy(x => x.Value.pLevel);
-                    foreach (var item in this.linkNodes)
-                    {
-                        if (item.Value.hadJoin)
-                        {
-                            Tell_SendRaw(item.Value.remoteNode, dict["rawdata"].AsList(), dict["nodeid"].AsString());
-                            break;
-                        }
-                    }
+                    Tell_SendRaw(minLink.remoteNode, dict["message"].AsBinary(), dict["signData"].AsBinary());
                 }
             }
         }
@@ -321,6 +321,14 @@ namespace AllPet.Module
                     Tell_Response_Iamhere(link.remoteNode, provedpubep);
                 }
             }
+        }
+        void OnRecv_BoardCast_Tx(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            Transaction trans = new Transaction();
+            trans.Index = this.txpool.MaxTransactionID;
+            trans.message = dict["message"].AsBinary();
+            trans.signdata = SerializeHelper.DeserializeWithBinary<TransactionSign>(dict["signData"].AsBinary());
+            this.txpool.AddTx(trans);
         }
         private bool ContainsRemote(IPEndPoint ipEndPoint)
         {

@@ -18,8 +18,8 @@ namespace AllPet.Module.Node
     //这个模块要对接数据库，TxPool要被保存
     public class TXPool
     {
-        System.Collections.Concurrent.ConcurrentDictionary<UInt64, Hash256> map_tx2index;
-        System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction> TXData;
+        System.Collections.Concurrent.ConcurrentDictionary<UInt64, Hash256> map_tx2index = new System.Collections.Concurrent.ConcurrentDictionary<ulong, Hash256>();
+        System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction> TXData = new System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction>();
         public UInt64 MaxTransactionID
         {
             get;
@@ -28,8 +28,17 @@ namespace AllPet.Module.Node
         public void AddTx(Transaction trans)
         {
             //第一步，验证交易合法性，合法就收
+            
             //第二步，验证Hash是否已经存在
+            var txid = Helper_NEO.CalcHash256(trans.message);
+            if(TXData.ContainsKey(txid))
+            {
+                return;
+            }
+            TXData.TryAdd(txid, trans);
             //第三步，放进去并调整MaxTransactionID
+            map_tx2index.TryAdd(MaxTransactionID, txid);
+            MaxTransactionID++;
         }
         public Transaction GetTxByIndex(UInt64 id)
         {
@@ -39,6 +48,18 @@ namespace AllPet.Module.Node
         public Transaction GetTxByHash(Hash256 hash)
         {
             return TXData[hash];
+        }
+        public System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction> Txs
+        {
+            get
+            {
+                return this.TXData;
+            }
+            private set { }
+        }
+        public void Clear()
+        {
+            this.TXData.Clear();
         }
     }
 }

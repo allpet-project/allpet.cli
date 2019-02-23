@@ -31,6 +31,7 @@ namespace AllPet.Module
 
         BoradCast_PeerState,//一个节点证明了他自己,当证明或者优先级发生改变的时候，向所有下级节点广播
         BoardCast_NewBlock,//新的块产生了
+        BoardCast_Tx,//广播一个交易
 
         /// <summary>
         /// RPC开头的都是对称响应式的消息，收到的命令中必须有一个id，必须返回发送，返回的id就是收到的id
@@ -197,6 +198,11 @@ namespace AllPet.Module
                     case CmdList.Response_ProvedRelay://告知是否是记账节点或者是否能够到达共识节点
                         {
                             OnRecv_Response_ProvedRelay(from, dict);
+                        }
+                        break;
+                    case CmdList.BoardCast_Tx://来自记账节点的交易广播
+                        {
+                            OnRecv_BoardCast_Tx(from, dict);
                         }
                         break;
                     default:

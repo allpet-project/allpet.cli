@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AllPet.Module.Node;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -60,6 +61,8 @@ namespace AllPet.Module.block
         public byte[] data = new byte[] { 1 };
         public BlockHeader header;
         public BlockSign sign;
+        public byte[] index;
+        public System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction> TXData = new System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction>();
         public byte[] ToBytes()
         {
             return data;
@@ -85,7 +88,7 @@ namespace AllPet.Module.block
         public byte[] value;
     }
 
-    [Serializable]
+   
     //调用交易,一切皆是调用
     public class TXBody
     {
@@ -94,13 +97,13 @@ namespace AllPet.Module.block
         public string method;
         public TXParamDesc[] _params;
     }
-    [Serializable]
+    
     public class Witness
     {
         public byte[] iScript; //push signdata，裏面是簽名，和neo保持一致，固定這麽來
         public byte[] vScript; //push 公鑰 ，checksig，中間一部分是公鑰
     }
-    [Serializable]
+    
     public class TransAction
     {
         public UInt64 txIndex;

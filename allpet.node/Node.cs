@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using AllPet.Module.block;
 using System.Timers;
+using allpet.module.node;
 
 namespace AllPet.Module
 {
@@ -164,9 +165,7 @@ namespace AllPet.Module
 
                 blockChain = new BlockChain();
                 blockChain.InitChain(this.config.SimpleDbPath, this.config.ChainInfo);
-                this.lastIndex = blockChain.GetLastIndex();
-                this.blockIndex = blockChain.GetBlockIndex();
-                this.txIndex = blockChain.GetBlockTxIndex();                
+                this.blockIndex = blockChain.GetBlockCount();            
 
                 //记账节点才需要出块
                 if (this.isProved)
@@ -189,12 +188,7 @@ namespace AllPet.Module
             this.txpool = new Node.TXPool();
             ResetCanlinkList();
         }
-
-        private void BlockTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         //peerid 是连接id，而每个节点，需要一个唯一不重复的节点ID，以方便进行识别
 
 
@@ -344,8 +338,6 @@ namespace AllPet.Module
             }                
         }
         /// <summary>
-        /// txIndex:现在出到哪个交易啦
-        /// lastIndex:现在交易的最大号
         /// 如果当前还有哪个交易没有出到块里，那就把出到块里
         /// 如果当前所有交易都出块了，那就每隔15秒出个空块
         /// </summary>
@@ -353,48 +345,39 @@ namespace AllPet.Module
         /// <param name="e"></param>
         private void MakeBlock(object source, ElapsedEventArgs e)
         {
+            Block block = null;
             lock (blockTimerLock)
-            {
-                List<MessagePackObject> block = null;
-
-                //没有交易时要出空块
-                //有交易且所有交易都已出块，也要出空块
-                if ((this.txIndex != 0 && this.txIndex >= (this.lastIndex - 1)) || this.lastIndex <=0)
+            {                
+                if (this.txpool.Txs.Count() > 0)
                 {
-                    if (blockCount >= (15/ blockTime))
+                    block = new Block();
+                    block.index = BitConverter.GetBytes(this.GetLastIndex());
+                    List<Hash256> txids = new List<Hash256>();
+                    foreach (var item in this.txpool.Txs)
                     {
-                        //出空块
-                        blockCount = 0;
-                        block = new List<MessagePackObject>();
+                        block.TXData.TryAdd(item.Key,item.Value);
+                        txids.Add(item.Key);
                     }
-                    else
-                    {
-                        blockCount++;
-                    }
+                    block.header.TxidsHash = SerializeHelper.SerializeToBinary(txids);
+                    this.txpool.Clear();
                 }
                 else
                 {
-                    blockCount = 0;
-                    ulong length = this.txIndex==0?(this.lastIndex - this.txIndex):(this.lastIndex - this.txIndex-1);
-                    if (length > 0)
+                    if (this.blockCount >= (15 / blockTime))
                     {
-                        block = new List<MessagePackObject>();
-                        ulong start = (this.txIndex == 0 ? 0 : (this.txIndex + 1));
-                        for (ulong i = 0; i < length; i++)
-                        {
-                            block.Add(new MessagePackObject(start));
-                            this.txIndex = start;
-                            start++;
-                        }
+                        this.blockCount = 0;
+                        block = new Block();
+                        block.index = BitConverter.GetBytes(this.GetLastIndex());
                     }
-                }
-                if (block != null)
-                {
-                    var data = MsgPack_Helper.Pack(new MessagePackObject(block));
-                    var bindex = this.blockIndex;
-                    this.blockIndex++;
-                    this.blockChain.MakeBlock(bindex, data.ToArray(), this.txIndex, this.blockIndex);
-                }
+                    else
+                    {
+                        this.blockCount++;
+                    }
+                }                
+            }
+            if (block != null)
+            {
+                blockChain.SaveBlock(block);
             }
         }
         public override void Dispose()

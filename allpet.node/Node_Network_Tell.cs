@@ -7,6 +7,8 @@ using System.Text;
 using System.Net;
 using AllPet.Common;
 using System.Linq;
+using AllPet.Module.Node;
+
 namespace AllPet.Module
 {
     partial class Module_Node : Module_MsgPack
@@ -76,14 +78,14 @@ namespace AllPet.Module
             dict["pleve"] = this.pLevel;//告诉对方我的优先级
             remote.Tell(new MessagePackObject(dict));
         }
-        void Tell_SendRaw(IModulePipeline remote, IList<MessagePackObject> _params, string nodeid)
+        void Tell_SendRaw(IModulePipeline remote, byte[] message,byte[] signData)
         {
-            logger.Info($"------Tell_SendRaw  To:{remote.ToString()}  this nodeid:{nodeid}-------");
-            var dic = new MessagePackObjectDictionary();
-            dic["cmd"] = (UInt16)CmdList.Post_SendRaw;
-            dic["nodeid"] = nodeid;
-            dic["rawdata"] = new MessagePackObject(_params);
-            remote.Tell(new MessagePackObject(dic));
+            logger.Info($"------Tell_SendRaw  To:{remote.ToString()}-------");
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Post_SendRaw;
+            dict["message"] = message;
+            dict["signData"] = signData;
+            remote.Tell(new MessagePackObject(dict));
         }
         void Tell_Post_TouchProvedPeer(IModulePipeline remote,string pubep,string nodeid)
         {
@@ -108,6 +110,14 @@ namespace AllPet.Module
             dict["pubep"] = pubep;
             dict["provedpubep"] = provedpubep;
             dict["isProved"] = this.isProved;
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void Tell_BoardCast_Tx(IModulePipeline remote, byte[] message, byte[] signData)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.BoardCast_Tx;
+            dict["message"] = message;
+            dict["signData"] = signData;
             remote.Tell(new MessagePackObject(dict));
         }
     }
