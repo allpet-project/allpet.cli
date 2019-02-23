@@ -161,7 +161,7 @@ namespace AllPet.Module
                     };
                     RegNetEvent(from.system);
                 }
-                //logger.Info("remote msg:" + obj.Value.ToString());
+                logger.Info("remote msg:" + obj.Value.ToString());
                 switch (cmd)
                 {
                     case CmdList.Request_JoinPeer://告知其他节点我的存在，包括是不是共识节点之类的
