@@ -421,10 +421,7 @@ namespace AllPet.Module
         public MessagePackObject makeCmd_FakeRemote(MessagePackObject msg)
         {
             var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Local_Cmd;
-            var paramss= new List<MessagePackObject>();
-            paramss.Add("fakeRemote");
-            dict["params"] = paramss.ToArray();
+            dict["cmd"] = (UInt16)CmdList.Fake_Remote;
             dict["msg"] = msg;
             return new MessagePackObject(dict);
         }

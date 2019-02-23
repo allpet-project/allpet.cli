@@ -40,7 +40,8 @@ namespace AllPet.Module
         Request_Plevel,
         Response_Plevel,
         Request_SendMsg,
-        Request_ConnectTo
+        Request_ConnectTo,
+        Fake_Remote
     }
     public partial class Module_Node : Module_MsgPack
     {
@@ -136,16 +137,15 @@ namespace AllPet.Module
                                         this.Tell_Request_plevel(item.remoteNode);
                                     }
                                 }
-                                if(_cmd== "fakeRemote")
-                                {
-                                    this.onRecv_FakeRemote(dict);
-                                }
                             }
                         }
                         break;
 
                     case CmdList.Post_SendRaw:
                         OnRecv_Post_SendRaw(from, dict);
+                        break;
+                    case CmdList.Fake_Remote:
+                        this.onRecv_FakeRemote(dict);
                         break;
                     default:
                         logger.Error("unknow msg:" + dict.ToString());
