@@ -99,21 +99,30 @@ namespace AllPet.Module
 
             //System.Console.WriteLine($"node:{this.config.PublicEndPoint} pLeve:{this.pLevel}  isProved:{this.isProved}");
         }
+        /// <summary>
+        /// linkobj告诉我他的plevel
+        /// </summary>
+        /// <param name="link"></param>
+        /// <param name="linkPlevel"></param>
         void refreshPlevel(LinkObj link, int linkPlevel)
         {
             if (this.beObserver) return;
-            if(linkPlevel>=0)
+            if(linkPlevel>=0)//当libobj 的plevel=-1的时候，本节点不受它影响
             {
+                //linkobj的初值为-1，对方可能发多次消息过来告知plevel变更。
+                //当前只考虑建立链接，即linkobj的plevel只可能变小 的情况下，本节点收到刷新消息，仅处理对方plevel比当前记录小的情况，即可以忽略一些无意义刷新消息，这个之后可能变更。
                 if (link.pLevel > linkPlevel || link.pLevel == -1)
                 {
                     link.pLevel = linkPlevel;
 
-                    if (this.pLevel > linkPlevel || this.pLevel == -1)
+                    if (this.pLevel > linkPlevel || this.pLevel == -1)//linkobj告知本机刷新plevel
                     {
                         this.pLevel = linkPlevel + 1;
                         foreach (var item in this.linkNodes)
                         {
-                            if (item.Value.hadJoin && (item.Value.pLevel > this.pLevel || item.Value.pLevel == -1))
+                            //不管linkobj是否hasjoin，都给它发消息.如果linknode最终还是hasjoin=false,就当做发一次无效消息。
+                            //判断linkobj hasjoin=ture才发的话，有可能本节点已告知过该节点plevel（request_joinpeer）,response消息还没返回，该节点在本节点向下广播的时候没有收到消息，之后也不会被告知本节点刷新plevel了，
+                            if ((item.Value.pLevel > this.pLevel || item.Value.pLevel == -1))
                             {
                                 Tell_BoradCast_PeerState(item.Value.remoteNode);
                             }
@@ -400,6 +409,57 @@ namespace AllPet.Module
         void OnRecv_Request_plevel(IModulePipeline from)
         {
             this.Tell_Response_plevel(from);
+        }
+
+        public MessagePackObject makeCmd_ConentTo(string endpoint)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_ConnectTo;
+            dict["endpoint"] = endpoint;
+            return new MessagePackObject(dict);
+        }
+        public MessagePackObject makeCmd_SendMsg(string targetEndpoint, MessagePackObject msg)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_SendMsg;
+            dict["msg"] = msg;
+            dict["target"] = targetEndpoint;
+            return new MessagePackObject(dict);
+        }
+
+        public MessagePackObject makeCmd_FakeRemote(MessagePackObject msg)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Fake_Remote;
+            dict["msg"] = msg;
+            return new MessagePackObject(dict);
+        }
+
+        void onRecv_FakeRemote(MessagePackObjectDictionary dict)
+        {
+            if(dict.TryGetValue("msg",out MessagePackObject msg))
+            {
+                var msgdict = msg.AsDictionary();
+                var cmd = (CmdList)msgdict["cmd"].AsUInt16();
+                this.OnReceiveMsgFromRemote(null,cmd, msgdict);//null应该修改为自己到自己的pipeline,不然在处理消息过程用到from的时候，可能报错。
+            }
+        }
+        void OnRecv_SendMsg(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var msg = dict["msg"];
+            var endpointStr = dict["target"].AsString();
+            if (this.linkIDs.TryGetValue(endpointStr, out ulong peer))
+            {
+                this.linkNodes[peer].remoteNode.Tell(msg);
+            }
+        }
+        void OnRecv_Request_ConnectTo(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var endpointstr = dict["endpoint"].AsString();
+            if(IPEndPoint.TryParse(endpointstr, out IPEndPoint endpoint))
+            {
+                this.ConnectOne(endpoint);
+            }
         }
     }
 

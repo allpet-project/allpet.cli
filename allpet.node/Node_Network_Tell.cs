@@ -90,6 +90,7 @@ namespace AllPet.Module
         }
         void Tell_Post_TouchProvedPeer(IModulePipeline remote,string pubep,string nodeid)
         {
+            if (this.beObserver) return;
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Post_TouchProvedPeer;
             dict["pubep"] = pubep;
@@ -137,6 +138,5 @@ namespace AllPet.Module
             dict["plevel"] = this.pLevel;
             remote.Tell(new MessagePackObject(dict));
         }
-
     }
 }
