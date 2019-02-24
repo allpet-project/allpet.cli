@@ -37,8 +37,8 @@ namespace AllPet.Module.Node
             {
                 return;
             }
-            TXData.TryAdd(txid, trans);
             //第三步，放进去并调整MaxTransactionID
+            TXData.TryAdd(txid, trans);
             map_tx2index.TryAdd(MaxTransactionID, txid);
             MaxTransactionID++;
         }

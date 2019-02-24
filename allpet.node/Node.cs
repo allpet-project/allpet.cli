@@ -124,7 +124,7 @@ namespace AllPet.Module
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, LinkObj> provedNodes;//记账人列表
         System.Collections.Concurrent.ConcurrentDictionary<string, UInt64> linkIDs;
         Struct.ThreadSafeQueueWithKey<CanLinkObj> listCanlink;
-        System.Timers.Timer blockTimer;
+        System.Timers.Timer blockTimer;//出块定时器
         BlockChain blockChain;
 
         static string NodePath = "./node.data";
@@ -404,16 +404,24 @@ namespace AllPet.Module
                         block.header = new BlockHeader();
                         block.header.TxidsHash = new byte[0];
                         block.index = BitConverter.GetBytes(this.GetLastIndex());
+                        //定期同步下各个记账节点的块
+                        foreach(var item in this.provedNodes)
+                        {
+                            if(item.Value.hadJoin)
+                            {
+                                Tell_Request_BlockHeight(item.Value.remoteNode);
+                            }
+                        }
                     }
                     else
                     {
-                        this.blockCount++;
+                        this.blockCount++;                        
                     }
                 }                
             }
             if (block != null)
             {
-                blockChain.SaveBlock(block);
+                blockChain.SaveBlock(block, this.blockIndex);
             }
         }
         public override void Dispose()

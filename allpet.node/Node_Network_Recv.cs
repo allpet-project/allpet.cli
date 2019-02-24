@@ -9,6 +9,7 @@ using AllPet.Common;
 using System.Linq;
 using AllPet.Module.Node;
 using allpet.module.node;
+using AllPet.Module.block;
 
 namespace AllPet.Module
 {
@@ -371,11 +372,48 @@ namespace AllPet.Module
         }
         void OnRecv_BoardCast_Tx(IModulePipeline from, MessagePackObjectDictionary dict)
         {
+            var signData = SerializeHelper.DeserializeWithBinary<TransactionSign>(dict["signData"].AsBinary());
+            bool sign = Helper_NEO.VerifySignature(dict["message"].AsBinary(), signData.IScript, signData.VScript);
+            if (!sign)
+            {
+                return;
+            }
             Transaction trans = new Transaction();
             trans.Index = this.txpool.MaxTransactionID;
             trans.message = dict["message"].AsBinary();
-            trans.signdata = SerializeHelper.DeserializeWithBinary<TransactionSign>(dict["signData"].AsBinary());
+            trans.signdata = signData;
             this.txpool.AddTx(trans);
+        }
+
+        void OnRecv_Request_BlockHeight(IModulePipeline from)
+        {
+            Tell_Response_BlockHeight(from);
+        }
+        void OnRecv_Response_BlockHeight(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var index = dict["blockIndex"].AsUInt64();
+            if(index >= this.blockIndex)//blockIndex始终要比当前存在的block高度大一个
+            {
+                Tell_Request_Block(from, this.blockIndex);
+            }
+        }
+        void OnRecv_Request_Block(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var index = dict["blockIndex"].AsUInt64();
+            var blockheader = this.blockChain.GetBlockHeader(index);
+            Tell_Response_Block(from, blockheader);
+        }
+        void OnRecv_Response_Block(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var header = dict["blockHeader"].AsBinary();
+            if (header != null)
+            {
+                var block = new Block();
+                block.index = BitConverter.GetBytes(this.GetLastIndex());
+                block.header = new BlockHeader();
+                block.header.TxidsHash = header;
+                this.blockChain.SaveBlock(block,this.blockIndex);
+            }
         }
         private bool ContainsRemote(IPEndPoint ipEndPoint)
         {

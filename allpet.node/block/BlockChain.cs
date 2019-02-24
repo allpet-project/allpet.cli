@@ -64,7 +64,7 @@ namespace AllPet.Module.block
         {
 
         }
-        public void SaveBlock(Block block)
+        public void SaveBlock(Block block,ulong lastIndex)
         {
             var batch  = db.CreateWriteBatch();
             batch.Put(TableID_Blocks, block.index, block.header.TxidsHash);
@@ -75,8 +75,12 @@ namespace AllPet.Module.block
                 batch.Put(TableID_TXs, item.Key, data);
             }
             //当前高度
-            batch.Put(TableID_SystemInfo, Key_SystemInfo_BlockCount, block.index);
+            batch.Put(TableID_SystemInfo, Key_SystemInfo_BlockCount, BitConverter.GetBytes(lastIndex));
             db.WriteBatch(batch);
+        }
+        public byte[] GetBlockHeader(ulong blockIndex)
+        {
+            return db.GetDirect(TableID_Blocks, BitConverter.GetBytes(blockIndex));
         }
     }
 

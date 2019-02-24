@@ -33,6 +33,11 @@ namespace AllPet.Module
         BoardCast_NewBlock,//新的块产生了
         BoardCast_Tx,//广播一个交易
 
+        Request_BlockHeight,//询问一个节点高度
+        Response_BlockHeight,//返回一个节点高度
+        Request_Block,//找任意高度大于自己的节点索要一个block header
+        Response_Block,//返回一个block header
+
         /// <summary>
         /// RPC开头的都是对称响应式的消息，收到的命令中必须有一个id，必须返回发送，返回的id就是收到的id
         /// </summary>
@@ -240,6 +245,26 @@ namespace AllPet.Module
                 case CmdList.BoardCast_Tx://来自记账节点的交易广播
                     {
                         OnRecv_BoardCast_Tx(from, dict);
+                    }
+                    break;
+                case CmdList.Request_BlockHeight://询问一个节点高度
+                    {
+                        OnRecv_Request_BlockHeight(from);
+                    }
+                    break;
+                case CmdList.Response_BlockHeight://返回一个节点高度
+                    {
+                        OnRecv_Response_BlockHeight(from, dict);
+                    }
+                    break;
+                case CmdList.Request_Block://找任意高度大于自己的节点索要一个block header
+                    {
+                        OnRecv_Request_Block(from, dict);
+                    }
+                    break;
+                case CmdList.Response_Block://返回一个block header
+                    {
+                        OnRecv_Response_Block(from, dict);
                     }
                     break;
                 default:

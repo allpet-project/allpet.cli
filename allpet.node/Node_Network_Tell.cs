@@ -138,5 +138,33 @@ namespace AllPet.Module
             dict["plevel"] = this.pLevel;
             remote.Tell(new MessagePackObject(dict));
         }
+
+        void Tell_Request_BlockHeight(IModulePipeline remote)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_BlockHeight;
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void Tell_Response_BlockHeight(IModulePipeline remote)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Response_BlockHeight;
+            dict["blockIndex"] = this.blockIndex;
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void Tell_Request_Block(IModulePipeline remote,ulong blockIndex)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_Block;
+            dict["blockIndex"] = blockIndex;
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void Tell_Response_Block(IModulePipeline remote, byte[] header)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Response_Block;
+            dict["blockHeader"] = header;
+            remote.Tell(new MessagePackObject(dict));
+        }
     }
 }
