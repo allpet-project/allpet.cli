@@ -101,18 +101,29 @@ namespace light.asynctcp
 
         private void ProcessConnect(SocketAsyncEventArgs e, LinkInfo link)
         {
-            this.OnConnected(link.Handle,link.Remote);
-
-            var asyncr = link.Socket.ReceiveAsync(link.recvArgs);
-            if (!asyncr)
+            if (e.SocketError == SocketError.Success)
             {
-                bool bEnd = false;
-                while (!bEnd)
+                this.links[link.Handle] = link;
+                this.OnConnected(link.Handle, link.Remote);
+                var asyncr = link.Socket.ReceiveAsync(link.recvArgs);
+                if (!asyncr)
                 {
-                    bEnd = ProcessReceice(link.recvArgs, link);
+                    bool bEnd = false;
+                    while (!bEnd)
+                    {
+                        bEnd = ProcessReceice(link.recvArgs, link);
+                    }
                 }
             }
-
+            else
+            {
+                OnLinkError(link.Handle, new Exception(e.SocketError.ToString()));
+                if (OnClosed != null)
+                {
+                    OnClosed(link.Handle);
+                }
+                this.PushBackLinks(link);
+            }
             //復用一個connect args
             e.UserToken = null;
             this.PushBackEventArgs(e);

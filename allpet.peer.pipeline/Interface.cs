@@ -23,7 +23,7 @@ namespace AllPet.Pipeline
         /// 连接到另一个ActorSystem，也不是必须的，GetActorRemote会自己去做这件事
         /// </summary>
         /// <param name="remote"></param>
-        ISystemPipeline Connect(IPEndPoint remote);
+        ISystemPipeline Connect(IPEndPoint remote, Action<ISystemPipeline> PreInit = null);
         Task<ISystemPipeline> ConnectAsync(IPEndPoint remote);//一个system 可以连接到另外一个系统,
 
         void DisConnect(ISystemPipeline pipe);
@@ -50,8 +50,8 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        void HaltLink();
-        void ResumeLink();
+        //void HaltLink();
+        //void ResumeLink();
         bool IsHost
         {
             get;
@@ -64,10 +64,13 @@ namespace AllPet.Pipeline
         {
             get;
         }
-        event Action<UInt64> OnPeerClose;
-        event Action<UInt64, bool, IPEndPoint> OnPeerLink;
+        //event Action<UInt64> OnPeerClose;
+        //event Action<UInt64, bool, IPEndPoint> OnPeerLink;
         IModulePipeline GetPipeline(IModuleInstance user, string urlFrom);
         IModulePipeline GetPipeLineByFrom(IModulePipeline from, IModuleInstance to);
+
+        void SetLinkEvent(Action<ISystemPipeline> methodOnLink);
+        void SetLinkCloseEvent(Action<ISystemPipeline> methodOnClose);
     }
     //连接到的actor
     public interface IModulePipeline
@@ -90,6 +93,7 @@ namespace AllPet.Pipeline
         {
             get;
         }
+
     }
 
     public interface IModuleInstance : IDisposable
@@ -114,7 +118,9 @@ namespace AllPet.Pipeline
         {
             get;
         }
+        //这个接口这样设计的确有些奇怪
         IModulePipeline GetPipeline(string urlActor);
+        //IModulePipeline GetPipeline(string urlActor, Action<IModulePipeline> PreInit = null);
         void OnRegistered(ISystem system,string path);
         void OnStart();
         void OnStarted();

@@ -45,6 +45,7 @@ namespace AllPet.Module
         }
         void Tell_Request_PeerList(IModulePipeline remote)
         {
+            if (!this.beEnableQueryPeers) return;
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Request_PeerList;
             remote.Tell(new MessagePackObject(dict));
@@ -120,5 +121,22 @@ namespace AllPet.Module
             dict["signData"] = signData;
             remote.Tell(new MessagePackObject(dict));
         }
+
+
+        void Tell_Request_plevel(IModulePipeline remote)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_Plevel;
+            remote.Tell(new MessagePackObject(dict));
+        }
+
+        void Tell_Response_plevel(IModulePipeline remote)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Response_Plevel;
+            dict["plevel"] = this.pLevel;
+            remote.Tell(new MessagePackObject(dict));
+        }
+
     }
 }
