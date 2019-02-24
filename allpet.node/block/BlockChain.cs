@@ -76,7 +76,9 @@ namespace AllPet.Module.block
             }
             //当前高度
             batch.Put(TableID_SystemInfo, Key_SystemInfo_BlockCount, BitConverter.GetBytes(lastIndex));
+            
             db.WriteBatch(batch);
+            
         }
         public byte[] GetBlockHeader(ulong blockIndex)
         {

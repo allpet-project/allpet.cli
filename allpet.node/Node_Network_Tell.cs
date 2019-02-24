@@ -30,7 +30,7 @@ namespace AllPet.Module
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.Response_AcceptJoin;
             dict["checkinfo"] = link.CheckInfo;
-            dict["pleve"] = this.pLevel;//告诉对方我的优先级
+            dict["plevel"] = this.pLevel;//告诉对方我的优先级
             //选个挑战信息
             remote.Tell(new MessagePackObject(dict));
         }
@@ -76,7 +76,7 @@ namespace AllPet.Module
         {
             var dict = new MessagePackObjectDictionary();
             dict["cmd"] = (UInt16)CmdList.BoradCast_PeerState;
-            dict["pleve"] = this.pLevel;//告诉对方我的优先级
+            dict["plevel"] = this.pLevel;//告诉对方我的优先级
             remote.Tell(new MessagePackObject(dict));
         }
         void Tell_SendRaw(IModulePipeline remote, byte[] message,byte[] signData)

@@ -402,16 +402,8 @@ namespace AllPet.Module
                         this.blockCount = 0;
                         block = new Block();
                         block.header = new BlockHeader();
-                        block.header.TxidsHash = new byte[0];
-                        block.index = BitConverter.GetBytes(this.GetLastIndex());
-                        //定期同步下各个记账节点的块
-                        foreach(var item in this.provedNodes)
-                        {
-                            if(item.Value.hadJoin)
-                            {
-                                Tell_Request_BlockHeight(item.Value.remoteNode);
-                            }
-                        }
+                        block.header.TxidsHash = new byte[1] { 0x00 };
+                        block.index = BitConverter.GetBytes(this.GetLastIndex());                        
                     }
                     else
                     {
@@ -467,6 +459,14 @@ namespace AllPet.Module
                     {
                         if (n.hadJoin)
                             this.Tell_Request_PeerList(n.remoteNode);
+                    }
+                    //定期同步下各个节点的块
+                    foreach (var item in this.linkNodes.Values)
+                    {
+                        if (item.hadJoin)
+                        {
+                            Tell_Request_BlockHeight(item.remoteNode);
+                        }
                     }
                 }
 

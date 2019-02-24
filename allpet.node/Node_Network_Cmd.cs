@@ -143,6 +143,10 @@ namespace AllPet.Module
                                         this.Tell_Request_plevel(item.remoteNode);
                                     }
                                 }
+                                if (_cmd == "block.index")
+                                {
+                                    logger.Info("blockIndex=" + this.blockIndex);
+                                }
                             }
                         }
                         break;

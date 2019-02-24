@@ -64,7 +64,7 @@ namespace AllPet.Module
             var link = this.linkNodes[from.system.PeerID];
             link.hadJoin = true;//已经和某个节点接通
             //如果连上了,标识连上的节点的优先级
-            var plevel = dict["pleve"].AsInt32();
+            var plevel = dict["plevel"].AsInt32();
             this.refreshPlevel(link, plevel);
             //Console.WriteLine("@ from:" + link.publicEndPoint + " plevel:" + link.pLevel + " node:" + this.config.PublicEndPoint + " plevel:" + this.pLevel);
 
@@ -276,7 +276,7 @@ namespace AllPet.Module
         
         void OnRecv_BoradCast_PeerState(IModulePipeline from, MessagePackObjectDictionary dict)
         {
-            var parentPleve = dict["pleve"].AsInt32();
+            var parentPleve = dict["plevel"].AsInt32();
 
             if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link))
             {
@@ -394,7 +394,10 @@ namespace AllPet.Module
             var index = dict["blockIndex"].AsUInt64();
             if(index >= this.blockIndex)//blockIndex始终要比当前存在的block高度大一个
             {
-                Tell_Request_Block(from, this.blockIndex);
+                for (ulong i = this.blockIndex; i < index; i++)
+                {
+                    Tell_Request_Block(from, this.blockIndex);
+                }
             }
         }
         void OnRecv_Request_Block(IModulePipeline from, MessagePackObjectDictionary dict)
@@ -418,10 +421,10 @@ namespace AllPet.Module
         private bool ContainsRemote(IPEndPoint ipEndPoint)
         {
             var linkRemote = ipEndPoint.ToString();
-            foreach (var item in this.provedNodes)
+            foreach (var item in this.provedNodes.Values)
             {
-                if ((item.Value.publicEndPoint.ToString() == linkRemote)
-                    ||(item.Value.provedPubep == linkRemote))
+                if ((item.publicEndPoint.ToString() == linkRemote)
+                    ||(item.provedPubep == linkRemote))
                 {
                     return true;
                 }
