@@ -166,5 +166,19 @@ namespace AllPet.Module
             dict["blockHeader"] = header;
             remote.Tell(new MessagePackObject(dict));
         }
+        void Tell_Request_Tx(IModulePipeline remote,byte[] txid)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Request_Tx;
+            dict["txid"] = txid;
+            remote.Tell(new MessagePackObject(dict));
+        }
+        void Tell_Response_Tx(IModulePipeline remote, byte[] tx)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.Response_Tx;
+            dict["tx"] = tx;
+            remote.Tell(new MessagePackObject(dict));
+        }
     }
 }

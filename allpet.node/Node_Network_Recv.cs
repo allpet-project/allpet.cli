@@ -417,21 +417,56 @@ namespace AllPet.Module
             if (header != null)
             {
                 var index = this.GetLastIndex();
-                if (header.Count() > 3)
+                if (index != 0)
                 {
-                    var list = SerializeHelper.DeserializeWithBinary<List<Hash256>>(header);                    
-                    logger.Info($"---------------OnRecv_Response_Block-----block:[{index}]------------");
-                    for (int i = 0; i < list.Count; i++)
+                    var head = SerializeHelper.DeserializeWithBinary<BlockHeader>(header);
+                    if (head.blockType == BlockType.TxData)
                     {
-                        logger.Info($" index={i}    txid={list[i].ToString()}");
+                        var list = SerializeHelper.DeserializeWithBinary<List<Hash256>>(head.TxidsHash);
+                        logger.Info($"---------------OnRecv_Response_Block-----block:[{index}]------------");
+                        for (int i = 0; i < list.Count; i++)
+                        {
+                            logger.Info($" index={i}    txid={list[i].ToString()}");
+                        }
+                        logger.Info("--------------------------------------------------------------------");
                     }
-                    logger.Info("--------------------------------------------------------------------");
+                    var block = new Block();
+                    block.index = BitConverter.GetBytes(index);
+                    block.header = new BlockHeader(head.blockType);
+                    block.header.TxidsHash = head.TxidsHash;
+                    this.blockChain.SaveBlock(block, this.blockIndex);
                 }
-                var block = new Block();
-                block.index = BitConverter.GetBytes(index);
-                block.header = new BlockHeader();
-                block.header.TxidsHash = header;
-                this.blockChain.SaveBlock(block,this.blockIndex);
+                else
+                {
+                    this.blockChain.SaveZeroBlock();
+                }            
+            }
+        }
+        void OnRecv_Request_Tx(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var txid = dict["txid"].AsBinary();
+            if (txid != null)
+            {
+                var tx = this.blockChain.GetTx(txid);
+                if (tx != null)
+                {
+                    Tell_Response_Tx(from, tx);
+                }
+            }
+        }
+        void OnRecv_Response_Tx(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var tx = dict["tx"].AsBinary();
+            if (tx != null)
+            {
+                var trans = SerializeHelper.DeserializeWithBinary<Transaction>(tx);
+                //验证交易合法性，合法就收
+                bool sign = Helper_NEO.VerifySignature(trans.message, trans.signdata.IScript, trans.signdata.VScript);
+                if (!sign)
+                {
+                    return;
+                }
+                this.txpool.AddTx(trans);
             }
         }
         private bool ContainsRemote(IPEndPoint ipEndPoint)

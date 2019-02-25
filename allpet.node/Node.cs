@@ -392,7 +392,7 @@ namespace AllPet.Module
                         block.TXData.TryAdd(item.Key,item.Value);
                         txids.Add(item.Key);
                     }
-                    block.header = new BlockHeader();
+                    block.header = new BlockHeader(BlockType.TxData);
                     block.header.TxidsHash = SerializeHelper.SerializeToBinary(txids);
                     logger.Info($"---------------MakeBlock-----block:[{index}]------------");
                     for (int i = 0; i < txids.Count; i++)
