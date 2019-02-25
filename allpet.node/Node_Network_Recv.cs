@@ -65,7 +65,7 @@ namespace AllPet.Module
             link.hadJoin = true;//已经和某个节点接通
             //如果连上了,标识连上的节点的优先级
             var plevel = dict["plevel"].AsInt32();
-            this.refreshPlevel(link, plevel);
+            this.getPlevelFromLinkObj(link, plevel);
             //Console.WriteLine("@ from:" + link.publicEndPoint + " plevel:" + link.pLevel + " node:" + this.config.PublicEndPoint + " plevel:" + this.pLevel);
 
             if (this.prikey != null)//有私钥证明一下
@@ -100,46 +100,6 @@ namespace AllPet.Module
 
             //System.Console.WriteLine($"node:{this.config.PublicEndPoint} pLeve:{this.pLevel}  isProved:{this.isProved}");
         }
-        /// <summary>
-        /// linkobj告诉我他的plevel
-        /// </summary>
-        /// <param name="link"></param>
-        /// <param name="linkPlevel"></param>
-        void refreshPlevel(LinkObj link, int linkPlevel)
-        {
-            if (this.beObserver) return;
-            if(linkPlevel>=0)//当libobj 的plevel=-1的时候，本节点不受它影响
-            {
-                //linkobj的初值为-1，对方可能发多次消息过来告知plevel变更。
-                //当前只考虑建立链接，即linkobj的plevel只可能变小 的情况下，本节点收到刷新消息，仅处理对方plevel比当前记录小的情况，即可以忽略一些无意义刷新消息，这个之后可能变更。
-                //gaoxiqing
-                //这种假设应该是错的，没办法保证只往小的变，如果你真想区分多个命令的先后的话，建议加上时间戳，根据时间戳判断肯定不会错
-                if (link.pLevel > linkPlevel || link.pLevel == -1)
-                {
-                    link.pLevel = linkPlevel;
-
-                    if (this.pLevel > linkPlevel || this.pLevel == -1)//linkobj告知本机刷新plevel
-                    {
-                        this.pLevel = linkPlevel + 1;
-                        foreach (var item in this.linkNodes)
-                        {
-                            //不管linkobj是否hasjoin，都给它发消息.如果linknode最终还是hasjoin=false,就当做发一次无效消息。
-                            //判断linkobj hasjoin=ture才发的话，有可能本节点已告知过该节点plevel（request_joinpeer）,response消息还没返回，该节点在本节点向下广播的时候没有收到消息，之后也不会被告知本节点刷新plevel了，
-                            //gaoxiqing
-                            //不判断hasjoin=ture的话，有时是会出异常的。假设那个连接它真就没有连上，这时你给它发信，肯定出异常。
-                            //我觉得对应这种情况，应该在ResponseAcceptJoin中加上刷新level回执消息，无论什么时候收到，都去刷下对方的level
-                            if ((item.Value.pLevel > this.pLevel || item.Value.pLevel == -1))
-                            {
-                                Tell_BoradCast_PeerState(item.Value.remoteNode);
-                            }
-                        }
-                    }
-                }
-
-
-            }
-        }
-
 
         void OnRecv_RequestProvePeer(IModulePipeline from, MessagePackObjectDictionary dict)
         {
@@ -285,7 +245,7 @@ namespace AllPet.Module
 
             if (this.linkNodes.TryGetValue(from.system.PeerID, out LinkObj link))
             {
-                this.refreshPlevel(link, parentPleve);
+                this.getPlevelFromLinkObj(link, parentPleve);
             }
             //Console.WriteLine("# from:" + link.publicEndPoint + " plevel:" + link.pLevel + " node:" + this.config.PublicEndPoint + " plevel:" + this.pLevel);
 
@@ -457,29 +417,7 @@ namespace AllPet.Module
             this.Tell_Response_plevel(from);
         }
 
-        public MessagePackObject makeCmd_ConentTo(string endpoint)
-        {
-            var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Request_ConnectTo;
-            dict["endpoint"] = endpoint;
-            return new MessagePackObject(dict);
-        }
-        public MessagePackObject makeCmd_SendMsg(string targetEndpoint, MessagePackObject msg)
-        {
-            var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Request_SendMsg;
-            dict["msg"] = msg;
-            dict["target"] = targetEndpoint;
-            return new MessagePackObject(dict);
-        }
 
-        public MessagePackObject makeCmd_FakeRemote(MessagePackObject msg)
-        {
-            var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Fake_Remote;
-            dict["msg"] = msg;
-            return new MessagePackObject(dict);
-        }
 
         void onRecv_FakeRemote(MessagePackObjectDictionary dict)
         {
@@ -507,6 +445,28 @@ namespace AllPet.Module
                 this.ConnectOne(endpoint);
             }
         }
+        void OnRecv_Request_Disconnect(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var endpointstr = dict["endpoint"].AsString();
+            this.DisconnectOneByEndpoint(endpointstr);
+        }
+        void OnRecv_BoardCast_LosePlevel(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            if(this.linkNodes.TryGetValue(from.system.PeerID,out LinkObj obj))
+            {
+                var plevel = obj.pLevel;
+                var beAffected=this.losePlevelFromLinkObj(obj);
+                if(!beAffected)
+                {
+                    if(this.pLevel!=-1)
+                    {
+                        this.Tell_BoradCast_PeerState(from);
+                    }
+                }
+            }
+        }
+        
+
     }
 
     public static class LinkNodeFunc

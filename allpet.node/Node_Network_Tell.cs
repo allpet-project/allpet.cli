@@ -166,5 +166,12 @@ namespace AllPet.Module
             dict["blockHeader"] = header;
             remote.Tell(new MessagePackObject(dict));
         }
+
+        void Tell_BoardCast_LosePlevel(IModulePipeline remote)
+        {
+            var dict = new MessagePackObjectDictionary();
+            dict["cmd"] = (UInt16)CmdList.BoardCast_LosePlevel;
+            remote.Tell(new MessagePackObject(dict));
+        }
     }
 }

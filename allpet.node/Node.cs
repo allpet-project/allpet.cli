@@ -235,19 +235,23 @@ namespace AllPet.Module
         }
         void _OnPeerClose(ISystemPipeline system)
         {
-            linkNodes.TryRemove(system.PeerID, out LinkObj node);
-            var remotestr = node.remoteNode.system.Remote.ToString();
-            this.linkIDs.TryRemove(remotestr, out ulong v);
-
-            provedNodes.TryRemove(system.PeerID, out LinkObj keepernode);
-            var canlink = this.listCanlink.Getqueue(remotestr);
-            if (canlink?.weight > 0)
+            if(linkNodes.TryRemove(system.PeerID, out LinkObj node))
             {
-                canlink.weight--;
-            }
-            logger.Info("_OnPeerClose" + system.PeerID);
+                var remotestr = node.remoteNode.system.Remote.ToString();
+                this.linkIDs.TryRemove(remotestr, out ulong v);
+                provedNodes.TryRemove(system.PeerID, out LinkObj keepernode);
+                var canlink = this.listCanlink.Getqueue(remotestr);
+                if (canlink?.weight > 0)
+                {
+                    canlink.weight--;
+                }
+                logger.Info("_OnPeerClose" + system.PeerID);
 
+                //断开连接处理plevel
+                losePlevelFromLinkObj(node);
+            }
         }
+
         public override void OnStart()
         {
             foreach (var p in this.config.InitPeer)
@@ -315,6 +319,17 @@ namespace AllPet.Module
 
 
 
+        }
+
+        private void DisconnectOneByEndpoint(string endpointStr)
+        {
+            if (IPEndPoint.TryParse(endpointStr, out IPEndPoint endpoint))
+            {
+                if (this.linkIDs.TryGetValue(endpoint.ToString(), out ulong peer))
+                {
+                    this._System.DisConnect(this.linkNodes[peer].remoteNode.system);
+                }
+            }
         }
 
         private void SaveCanlinkList()
@@ -514,7 +529,6 @@ namespace AllPet.Module
                 await System.Threading.Tasks.Task.Delay(1000);//1秒刷新一次
             }
         }
-
 
     }
 }
