@@ -45,11 +45,13 @@ namespace AllPet.Module
         /// </summary>
         RPC = 0x0300,
 
-        Request_Plevel,
-        Response_Plevel,
-        Request_SendMsg,
-        Request_ConnectTo,
-        Fake_Remote
+        Request_Plevel,//询问一个节点的plevel
+        Response_Plevel,//回应 request（询问一个节点的plevel） 
+        Request_SendMsg,//请求一个节点帮忙发消息到另一个节点
+        Request_ConnectTo,//请求一个节点和另一个节点建立连接
+        Request_DisconnectTo,//请求一个节点断开另一个节点建立连接
+        Fake_Remote,//本地发本地，模拟消息来自另一个节点
+        BoardCast_LosePlevel,//节点loseplevel
     }
     public partial class Module_Node : Module_MsgPack
     {
@@ -247,6 +249,12 @@ namespace AllPet.Module
                     break;
                 case CmdList.Request_ConnectTo:
                     OnRecv_Request_ConnectTo(from, dict);
+                    break;
+                case CmdList.Request_DisconnectTo:
+                    OnRecv_Request_Disconnect(from,dict);
+                    break;
+                case CmdList.BoardCast_LosePlevel:
+                    OnRecv_BoardCast_LosePlevel(from,dict);
                     break;
                 case CmdList.BoardCast_Tx://来自记账节点的交易广播
                     {

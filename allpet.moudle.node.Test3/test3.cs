@@ -35,7 +35,7 @@ namespace allpet.moudle.node.Test3
             var pipeline = node.sys.GetPipeline(null, "this/node");
             while (pipeline.IsVaild)
             {
-                Console.WriteLine("localCmd 1=a系统的plevel(5)联向b系统的plevel（6）  2=>:a系统的plevel(5)联向b系统的plevel（5） 3=a系统的plevel(5)联向b系统的plevel（2）");
+                Console.WriteLine("localCmd a1=a系统的plevel(5)联向b系统的plevel（6）  a2=>:a系统的plevel(5)联向b系统的plevel（5） a3=a系统的plevel(5)联向b系统的plevel（2）");
                 var line = Console.ReadLine();
                 if (string.IsNullOrEmpty(line) == false)
                 {
@@ -46,25 +46,52 @@ namespace allpet.moudle.node.Test3
 
                         break;
                     }
-                    if(line=="1"||line=="2"||line=="3")
+                    if(line=="a1"||line=="a2"||line=="a3"||line=="b1"||line=="b2"||line=="b3")
                     {
-                        if(line=="1")
+                        switch(line)
                         {
-                            var msg = node.actor.makeCmd_SendMsg("127.0.0.1:1895", node.actor.makeCmd_ConentTo("127.0.0.1:2896"));
-                            var localcmd=node.actor.makeCmd_FakeRemote(msg);
-                            pipeline.Tell(localcmd);
-                        }
-                        else if(line=="2")
-                        {
-                            var msg = node.actor.makeCmd_SendMsg("127.0.0.1:1895", node.actor.makeCmd_ConentTo("127.0.0.1:2895"));
-                            var localcmd = node.actor.makeCmd_FakeRemote(msg);
-                            pipeline.Tell(localcmd);
-                        }
-                        else if(line=="3")
-                        {
-                            var msg = node.actor.makeCmd_SendMsg("127.0.0.1:1895", node.actor.makeCmd_ConentTo("127.0.0.1:2892"));
-                            var localcmd = node.actor.makeCmd_FakeRemote(msg);
-                            pipeline.Tell(localcmd);
+                            case "a1":
+                                {
+                                    var msg = node.actor.makeCmd_SendMsg("127.0.0.1:1895", node.actor.makeCmd_ConnectTo("127.0.0.1:2896"));
+                                    var localcmd = node.actor.makeCmd_FakeRemote(msg);
+                                    pipeline.Tell(localcmd);
+                                }
+                                break;
+                            case "a2":
+                                {
+                                    var msg = node.actor.makeCmd_SendMsg("127.0.0.1:1895", node.actor.makeCmd_ConnectTo("127.0.0.1:2895"));
+                                    var localcmd = node.actor.makeCmd_FakeRemote(msg);
+                                    pipeline.Tell(localcmd);
+                                }
+                                break;
+                            case "a3":
+                                {
+                                    var msg = node.actor.makeCmd_SendMsg("127.0.0.1:1895", node.actor.makeCmd_ConnectTo("127.0.0.1:2892"));
+                                    var localcmd = node.actor.makeCmd_FakeRemote(msg);
+                                    pipeline.Tell(localcmd);
+                                }
+                                break;
+                            case "b1":
+                                {
+                                    var msg = node.actor.makeCmd_SendMsg("127.0.0.1:1895", node.actor.makeCmd_DisconnectTo("127.0.0.1:2896"));
+                                    var localcmd = node.actor.makeCmd_FakeRemote(msg);
+                                    pipeline.Tell(localcmd);
+                                }
+                                break;
+                            case "b2":
+                                {
+                                    var msg = node.actor.makeCmd_SendMsg("127.0.0.1:1895", node.actor.makeCmd_DisconnectTo("127.0.0.1:2895"));
+                                    var localcmd = node.actor.makeCmd_FakeRemote(msg);
+                                    pipeline.Tell(localcmd);
+                                }
+                                break;
+                            case "b3":
+                                {
+                                    var msg = node.actor.makeCmd_SendMsg("127.0.0.1:1895", node.actor.makeCmd_DisconnectTo("127.0.0.1:2892"));
+                                    var localcmd = node.actor.makeCmd_FakeRemote(msg);
+                                    pipeline.Tell(localcmd);
+                                }
+                                break;
                         }
 
                     }else
