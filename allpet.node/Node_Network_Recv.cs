@@ -130,7 +130,7 @@ namespace AllPet.Module
                             //我觉得对应这种情况，应该在ResponseAcceptJoin中加上刷新level回执消息，无论什么时候收到，都去刷下对方的level
                             if ((item.Value.pLevel > this.pLevel || item.Value.pLevel == -1))
                             {
-                                //Tell_BoradCast_PeerState(item.Value.remoteNode);
+                                Tell_BoradCast_PeerState(item.Value.remoteNode);
                             }
                         }
                     }
