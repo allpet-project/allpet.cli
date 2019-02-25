@@ -40,7 +40,6 @@ namespace AllPet.Module
         }
         private ulong GetLastIndex()
         {
-            var index = this.blockIndex;
             this.blockIndex++;
             return this.blockIndex;
         }

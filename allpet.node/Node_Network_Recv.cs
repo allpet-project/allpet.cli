@@ -401,7 +401,10 @@ namespace AllPet.Module
             {
                 for (ulong i = this.blockIndex; i < index; i++)
                 {
-                    Tell_Request_Block(from, i);
+                    if (i != 0)
+                    {
+                        Tell_Request_Block(from, i);
+                    }
                 }
             }
         }
@@ -417,29 +420,22 @@ namespace AllPet.Module
             if (header != null)
             {
                 var index = this.GetLastIndex();
-                if (index != 0)
-                {
-                    var head = SerializeHelper.DeserializeWithBinary<BlockHeader>(header);
-                    if (head.blockType == BlockType.TxData)
-                    {
-                        var list = SerializeHelper.DeserializeWithBinary<List<Hash256>>(head.TxidsHash);
-                        logger.Info($"---------------OnRecv_Response_Block-----block:[{index}]------------");
-                        for (int i = 0; i < list.Count; i++)
-                        {
-                            logger.Info($" index={i}    txid={list[i].ToString()}");
-                        }
-                        logger.Info("--------------------------------------------------------------------");
-                    }
-                    var block = new Block();
-                    block.index = BitConverter.GetBytes(index);
-                    block.header = new BlockHeader(head.blockType);
-                    block.header.TxidsHash = head.TxidsHash;
-                    this.blockChain.SaveBlock(block, this.blockIndex);
-                }
-                else
-                {
-                    this.blockChain.SaveZeroBlock();
-                }            
+                var head = SerializeHelper.DeserializeWithBinary<BlockHeader>(header);
+                //if (head.blockType == BlockType.TxData)
+                //{
+                //    var list = SerializeHelper.DeserializeWithBinary<List<Hash256>>(head.TxidsHash);
+                //    logger.Info($"---------------OnRecv_Response_Block-----block:[{index}]------------");
+                //    for (int i = 0; i < list.Count; i++)
+                //    {
+                //        logger.Info($" index={i}    txid={list[i].ToString()}");
+                //    }
+                //    logger.Info("--------------------------------------------------------------------");
+                //}
+                var block = new Block();
+                block.index = BitConverter.GetBytes(index);
+                block.header = new BlockHeader(head.blockType);
+                block.header.TxidsHash = head.TxidsHash;
+                this.blockChain.SaveBlock(block, this.blockIndex);
             }
         }
         void OnRecv_Request_Tx(IModulePipeline from, MessagePackObjectDictionary dict)
