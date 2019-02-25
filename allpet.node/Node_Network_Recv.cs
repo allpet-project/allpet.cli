@@ -421,16 +421,20 @@ namespace AllPet.Module
             {
                 var index = this.GetLastIndex();
                 var head = SerializeHelper.DeserializeWithBinary<BlockHeader>(header);
-                //if (head.blockType == BlockType.TxData)
-                //{
-                //    var list = SerializeHelper.DeserializeWithBinary<List<Hash256>>(head.TxidsHash);
-                //    logger.Info($"---------------OnRecv_Response_Block-----block:[{index}]------------");
-                //    for (int i = 0; i < list.Count; i++)
-                //    {
-                //        logger.Info($" index={i}    txid={list[i].ToString()}");
-                //    }
-                //    logger.Info("--------------------------------------------------------------------");
-                //}
+                if (head.blockType == BlockType.TxData)
+                {
+                    var list = SerializeHelper.DeserializeWithBinary<List<Hash256>>(head.TxidsHash);
+                    logger.Info($"---------------OnRecv_Response_Block-----block:[{index}]------------");
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        logger.Info($" index={i}    txid={list[i].ToString()}");
+                    }
+                    logger.Info("--------------------------------------------------------------------");
+                    foreach(var item in list)
+                    {
+                        Tell_Request_Tx(from, item);
+                    }
+                }
                 var block = new Block();
                 block.index = BitConverter.GetBytes(index);
                 block.header = new BlockHeader(head.blockType);

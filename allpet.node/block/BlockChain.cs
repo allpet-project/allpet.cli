@@ -63,12 +63,7 @@ namespace AllPet.Module.block
         {
 
         }
-        public void SaveZeroBlock()
-        {
-            var blockcount = db.GetUInt64Direct(TableID_SystemInfo, Key_SystemInfo_BlockCount);
-            var block = new block.Block();
-            db.PutDirect(TableID_Blocks, BitConverter.GetBytes(blockcount), block.ToBytes());
-        }
+        
         public void SaveBlock(Block block,ulong lastIndex)
         {
             var batch  = db.CreateWriteBatch();
