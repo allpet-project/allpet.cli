@@ -130,7 +130,7 @@ namespace AllPet.Module
                             //我觉得对应这种情况，应该在ResponseAcceptJoin中加上刷新level回执消息，无论什么时候收到，都去刷下对方的level
                             if ((item.Value.pLevel > this.pLevel || item.Value.pLevel == -1))
                             {
-                                Tell_BoradCast_PeerState(item.Value.remoteNode);
+                                //Tell_BoradCast_PeerState(item.Value.remoteNode);
                             }
                         }
                     }
@@ -401,7 +401,7 @@ namespace AllPet.Module
             {
                 for (ulong i = this.blockIndex; i < index; i++)
                 {
-                    Tell_Request_Block(from, this.blockIndex);
+                    Tell_Request_Block(from, i);
                 }
             }
         }
@@ -416,8 +416,19 @@ namespace AllPet.Module
             var header = dict["blockHeader"].AsBinary();
             if (header != null)
             {
+                var index = this.GetLastIndex();
+                if (header.Count() > 3)
+                {
+                    var list = SerializeHelper.DeserializeWithBinary<List<Hash256>>(header);                    
+                    logger.Info($"---------------OnRecv_Response_Block-----block:[{index}]------------");
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        logger.Info($" index={i}    txid={list[i].ToString()}");
+                    }
+                    logger.Info("--------------------------------------------------------------------");
+                }
                 var block = new Block();
-                block.index = BitConverter.GetBytes(this.GetLastIndex());
+                block.index = BitConverter.GetBytes(index);
                 block.header = new BlockHeader();
                 block.header.TxidsHash = header;
                 this.blockChain.SaveBlock(block,this.blockIndex);
