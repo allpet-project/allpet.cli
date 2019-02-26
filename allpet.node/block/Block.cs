@@ -46,11 +46,17 @@ namespace AllPet.Module.block
             this.Add(hash);
         }
     }
+    [Serializable]
     public class BlockHeader
     {
         public byte[] lastBlockHash;
         public byte[] nonce;
         public byte[] TxidsHash;
+        public BlockType blockType;
+        public BlockHeader(BlockType blockType = BlockType.Blank)
+        {
+            this.blockType = blockType;
+        }
     }
     public class BlockSign
     {
@@ -61,14 +67,20 @@ namespace AllPet.Module.block
         public byte[] data = new byte[] { 1 };
         public BlockHeader header;
         public BlockSign sign;
-        public byte[] index;
+        public byte[] index;        
         public System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction> TXData = new System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction>();
+        
         public byte[] ToBytes()
         {
             return data;
         }
     }
 
+    public enum BlockType
+    {
+        Blank,
+        TxData
+    }
     public enum TXParamType
     {
         //常量

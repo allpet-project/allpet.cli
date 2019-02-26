@@ -399,15 +399,22 @@ namespace AllPet.Module
                 if (this.txpool.Txs.Count() > 0)
                 {
                     block = new Block();
-                    block.index = BitConverter.GetBytes(this.GetLastIndex());
+                    var index = this.GetLastIndex();
+                    block.index = BitConverter.GetBytes(index);
                     List<Hash256> txids = new List<Hash256>();
                     foreach (var item in this.txpool.Txs)
                     {
                         block.TXData.TryAdd(item.Key,item.Value);
                         txids.Add(item.Key);
                     }
-                    block.header = new BlockHeader();
+                    block.header = new BlockHeader(BlockType.TxData);
                     block.header.TxidsHash = SerializeHelper.SerializeToBinary(txids);
+                    logger.Info($"---------------MakeBlock-----block:[{index}]------------");
+                    for (int i = 0; i < txids.Count; i++)
+                    {
+                        logger.Info($" index={i}    txid={txids[i].ToString()}");
+                    }
+                    logger.Info("---------------------------------------------------------");
                     this.txpool.Clear();
                 }
                 else

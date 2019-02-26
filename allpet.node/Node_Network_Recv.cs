@@ -361,7 +361,10 @@ namespace AllPet.Module
             {
                 for (ulong i = this.blockIndex; i < index; i++)
                 {
-                    Tell_Request_Block(from, this.blockIndex);
+                    if (i != 0)
+                    {
+                        Tell_Request_Block(from, i);
+                    }
                 }
             }
         }
@@ -376,11 +379,54 @@ namespace AllPet.Module
             var header = dict["blockHeader"].AsBinary();
             if (header != null)
             {
+                var index = this.GetLastIndex();
+                var head = SerializeHelper.DeserializeWithBinary<BlockHeader>(header);
+                if (head.blockType == BlockType.TxData)
+                {
+                    var list = SerializeHelper.DeserializeWithBinary<List<Hash256>>(head.TxidsHash);
+                    logger.Info($"---------------OnRecv_Response_Block-----block:[{index}]------------");
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        logger.Info($" index={i}    txid={list[i].ToString()}");
+                    }
+                    logger.Info("--------------------------------------------------------------------");
+                    foreach(var item in list)
+                    {
+                        Tell_Request_Tx(from, item);
+                    }
+                }
                 var block = new Block();
-                block.index = BitConverter.GetBytes(this.GetLastIndex());
-                block.header = new BlockHeader();
-                block.header.TxidsHash = header;
-                this.blockChain.SaveBlock(block,this.blockIndex);
+                block.index = BitConverter.GetBytes(index);
+                block.header = new BlockHeader(head.blockType);
+                block.header.TxidsHash = head.TxidsHash;
+                this.blockChain.SaveBlock(block, this.blockIndex);
+            }
+        }
+        void OnRecv_Request_Tx(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var txid = dict["txid"].AsBinary();
+            if (txid != null)
+            {
+                var tx = this.blockChain.GetTx(txid);
+                if (tx != null)
+                {
+                    Tell_Response_Tx(from, tx);
+                }
+            }
+        }
+        void OnRecv_Response_Tx(IModulePipeline from, MessagePackObjectDictionary dict)
+        {
+            var tx = dict["tx"].AsBinary();
+            if (tx != null)
+            {
+                var trans = SerializeHelper.DeserializeWithBinary<Transaction>(tx);
+                //验证交易合法性，合法就收
+                bool sign = Helper_NEO.VerifySignature(trans.message, trans.signdata.IScript, trans.signdata.VScript);
+                if (!sign)
+                {
+                    return;
+                }
+                this.txpool.AddTx(trans);
             }
         }
         private bool ContainsRemote(IPEndPoint ipEndPoint)

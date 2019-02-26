@@ -35,6 +35,7 @@ namespace allpet.module.node
             MemoryStream stream = new MemoryStream();
             stream.Write(data, 0, data.Length);
             stream.Position = 0;
+            stream.Flush();
             BinaryFormatter bf = new BinaryFormatter();
             object obj = bf.Deserialize(stream);
 

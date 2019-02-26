@@ -37,6 +37,8 @@ namespace AllPet.Module
         Response_BlockHeight,//返回一个节点高度
         Request_Block,//找任意高度大于自己的节点索要一个block header
         Response_Block,//返回一个block header
+        Request_Tx,//请求同步一个交易
+        Response_Tx,//返回一个交易
 
         /// <summary>
         /// RPC开头的都是对称响应式的消息，收到的命令中必须有一个id，必须返回发送，返回的id就是收到的id
@@ -277,6 +279,16 @@ namespace AllPet.Module
                 case CmdList.Response_Block://返回一个block header
                     {
                         OnRecv_Response_Block(from, dict);
+                    }
+                    break;
+                case CmdList.Request_Tx://请求同步一个交易
+                    {
+                        OnRecv_Request_Tx(from, dict);
+                    }
+                    break;
+                case CmdList.Response_Tx://返回一个交易
+                    {
+                        OnRecv_Response_Tx(from, dict);
                     }
                     break;
                 default:

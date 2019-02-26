@@ -52,7 +52,6 @@ namespace AllPet.Module.block
                 //设置初始见证人
                 //发行默认货币PET
                 var block = new block.Block();
-
                 db.PutDirect(TableID_Blocks, BitConverter.GetBytes(blockcount), block.ToBytes());
             }
         }
@@ -64,10 +63,12 @@ namespace AllPet.Module.block
         {
 
         }
+        
         public void SaveBlock(Block block,ulong lastIndex)
         {
             var batch  = db.CreateWriteBatch();
-            batch.Put(TableID_Blocks, block.index, block.header.TxidsHash);
+            var blockHeader = SerializeHelper.SerializeToBinary(block.header);
+            batch.Put(TableID_Blocks, block.index, blockHeader);
             //当前交易
             foreach (var item in block.TXData)
             {
@@ -83,6 +84,10 @@ namespace AllPet.Module.block
         public byte[] GetBlockHeader(ulong blockIndex)
         {
             return db.GetDirect(TableID_Blocks, BitConverter.GetBytes(blockIndex));
+        }
+        public byte[] GetTx(byte[] txid)
+        {
+            return db.GetDirect(TableID_TXs, txid);
         }
     }
 
