@@ -514,7 +514,6 @@ namespace AllPet.Module
         {
             if(this.linkNodes.TryGetValue(from.system.PeerID,out LinkObj obj))
             {
-                var plevel = obj.pLevel;
                 var beAffected=this.losePlevelFromLinkObj(obj);
                 if(!beAffected)
                 {

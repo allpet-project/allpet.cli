@@ -36,6 +36,8 @@ namespace allpet.moudle.node.Test3
             while (pipeline.IsVaild)
             {
                 Console.WriteLine("localCmd a1=a系统的plevel(5)联向b系统的plevel（6）  a2=>:a系统的plevel(5)联向b系统的plevel（5） a3=a系统的plevel(5)联向b系统的plevel（2）");
+                Console.WriteLine("localCmd b1=断开a系统的plevel(5)到b系统的plevel(6)连接  b2=>:断开a系统的plevel(5)到b系统的plevel(5)连接 b3=断开a系统的plevel(5)联向b系统的plevel(2)连接");
+
                 var line = Console.ReadLine();
                 if (string.IsNullOrEmpty(line) == false)
                 {
@@ -138,15 +140,6 @@ namespace allpet.moudle.node.Test3
             new Node("127.0.0.1:2897", "127.0.0.1:2896", "0.0.0.0:2897", false);
             new Node("127.0.0.1:2898", "127.0.0.1:2897", "0.0.0.0:2898", false);
             new Node("127.0.0.1:2899", "127.0.0.1:2898", "0.0.0.0:2899", false);
-        }
-
-
-        MessagePackObject getCmd(string endpoint)
-        {
-            var dict = new MessagePackObjectDictionary();
-            dict["cmd"] = (UInt16)CmdList.Request_ConnectTo;
-            dict["endpoint"] = endpoint;
-            return new MessagePackObject(dict);
         }
     }
 }
