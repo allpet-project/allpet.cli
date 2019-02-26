@@ -149,7 +149,7 @@ namespace AllPet.Module
                                 }
                                 if (_cmd == "block.index")
                                 {
-                                    logger.Info("blockIndex=" + this.blockIndex);
+                                    logger.Info("blockIndex=" + this.blockIndex+ "   txpool.Count=" + this.txpool.Txs.Count());
                                 }
                             }
                         }

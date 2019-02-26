@@ -20,6 +20,7 @@ namespace AllPet.Module.Node
     //这个模块要对接数据库，TxPool要被保存
     public class TXPool
     {
+        public static int txpoolcount = 0;//测试用
         System.Collections.Concurrent.ConcurrentDictionary<UInt64, Hash256> map_tx2index = new System.Collections.Concurrent.ConcurrentDictionary<ulong, Hash256>();
         System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction> TXData = new System.Collections.Concurrent.ConcurrentDictionary<Hash256, Transaction>();
         public UInt64 MaxTransactionID
@@ -35,6 +36,7 @@ namespace AllPet.Module.Node
             var txid = Helper_NEO.CalcHash256(trans.message);
             if(TXData.ContainsKey(txid))
             {
+                txpoolcount++;
                 return;
             }
             //第三步，放进去并调整MaxTransactionID

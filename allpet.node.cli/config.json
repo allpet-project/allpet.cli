@@ -8,7 +8,6 @@
       "Open": true,
       "PublicEndPoint": "0.0.0.0:2080",
       "InitPeer": [
-        "127.0.0.1:2081",
         "212.64.86.72:2081"
       ],
       "ChainInfo": {

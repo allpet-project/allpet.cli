@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\allpet.common\allpet.common.csproj" />
+    <ProjectReference Include="..\allpet.cryptology\allpet.cryptology.csproj" />
+  </ItemGroup>
+
+</Project>

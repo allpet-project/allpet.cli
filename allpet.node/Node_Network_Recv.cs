@@ -191,16 +191,30 @@ namespace AllPet.Module
         /// </summary>
         /// <param name="from"></param>
         /// <param name="dict"></param>
+        static DateTime start;
+        static int recvcount = 0;        
         void OnRecv_Post_SendRaw(IModulePipeline from, MessagePackObjectDictionary dict)
         {
+            if(recvcount == 0 )
+            {
+                start = DateTime.Now;
+            }
+            recvcount++;
             logger.Info($"------OnRecv_Post_SendRaw  From:{from?.system?.Remote?.ToString()??"Local"} -------");
             //验证交易合法性，合法就收
             var signData = SerializeHelper.DeserializeWithBinary<TransactionSign>(dict["signData"].AsBinary());
             bool sign = Helper_NEO.VerifySignature(dict["message"].AsBinary(), signData.IScript, signData.VScript);
             if (!sign)
             {
+                logger.Info($"------OnRecv_Post_SendRaw  sign error -------");
                 return;
             }
+            if (recvcount % 20 == 0)
+            {
+                var end = DateTime.Now;
+                logger.Info("recv count:" + recvcount + " span=" + (end - start).TotalMilliseconds + "  txpool.discard"+ TXPool.txpoolcount);
+            }
+
             //收到消息后要么转发,要么保存
             if (this.isProved)
             {
