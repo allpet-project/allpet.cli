@@ -72,7 +72,7 @@ namespace allpet.moudule.node.sendraw.test
                     datalen--;
                 }
                 var magiclen = magic.Length;
-                magic = Encoding.UTF8.GetBytes("werwerwerwerwerwerwerwerwerwerwerwerwerwerwerwerwerfwerwerwe");
+                magic = Encoding.UTF8.GetBytes("zzzxZxzxcdfheryeryw34t34t65345t345t345t345345345345345345");
                 for (int i = 0; i < magic.Length; i++)
                 {
                     data[magiclen] = magic[i];
